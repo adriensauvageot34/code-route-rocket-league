@@ -24,6 +24,8 @@ Le script `dev` utilise un lanceur local pour eviter l'erreur Windows/Codex `spa
 
 L'app est pensee en priorite pour un telephone en mode paysage. Sur ordinateur, ouvre les outils de developpement du navigateur, active l'apercu mobile, puis passe le telephone virtuel en paysage pour verifier le rendu principal.
 
+L'app declare aussi une orientation paysage dans son manifest PWA. Les navigateurs et applications mobiles ne permettent pas tous de forcer la rotation automatiquement. Quand le telephone reste en portrait, un ecran bloque l'app et demande de passer en paysage.
+
 ## Ajouter les futures captures
 
 Place les images de situation dans `public/captures/`, puis reference-les dans les fichiers JSON via un chemin du type :
