@@ -30,8 +30,9 @@ Place les images de situation dans `public/captures/`, puis reference-les dans l
 
 ## Donnees locales
 
-Les questions de la V0 vivent dans `src/data/questions.example.json`.
-Les types TypeScript associes sont dans `src/types/question.ts`.
+Les captures et questions de la V0 vivent dans `src/data/content.example.json`.
+Les types TypeScript associes sont dans `src/types/content.ts`.
+Le format est documente dans `docs/data-format.md`.
 
 ## Structure
 
