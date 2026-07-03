@@ -1,0 +1,32 @@
+[
+  {
+    "id": "example-rotation-001",
+    "capture_id": "capture-example-001",
+    "image_path": "/captures/example-rotation-001.png",
+    "context_to_display": "Tu es deuxieme joueur en attaque. Ton coequipier vient de contester dans le coin adverse.",
+    "question_text": "Quelle decision limite le mieux le contre tout en gardant la pression ?",
+    "answer_format": "single",
+    "answers": [
+      {
+        "id": "a",
+        "label": "Avancer plein axe pour tenter une frappe immediate",
+        "is_correct": false
+      },
+      {
+        "id": "b",
+        "label": "Rester disponible en soutien et couvrir la sortie de balle",
+        "is_correct": true
+      },
+      {
+        "id": "c",
+        "label": "Revenir directement chercher le boost arriere",
+        "is_correct": false
+      }
+    ],
+    "correction": "La priorite est de rester utile sans fermer toutes les options de repli. Le soutien permet de continuer la pression si la balle sort bien, tout en couvrant une perte de duel.",
+    "pedagogical_mode": "correction",
+    "cognitive_category": "prise_decision",
+    "rl_category": "rotation",
+    "error_tags": ["overcommit", "mauvais_spacing"]
+  }
+]
