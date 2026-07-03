@@ -1,3 +1,5 @@
+import { OrientationGate } from "@/components/OrientationGate";
+
 type AppFrameProps = {
   children: React.ReactNode;
 };
@@ -19,6 +21,7 @@ export function AppFrame({ children }: AppFrameProps) {
       </header>
 
       <div className="app-content">{children}</div>
+      <OrientationGate />
     </div>
   );
 }
