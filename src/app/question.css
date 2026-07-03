@@ -1,0 +1,235 @@
+.question-page {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.question-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.question-header h1 {
+  margin-bottom: 0;
+  font-size: clamp(1.8rem, 4vw, 3.2rem);
+}
+
+.compact-action {
+  min-height: 42px;
+  flex: 0 0 auto;
+}
+
+.question-layout {
+  display: grid;
+  align-items: start;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1.25fr) minmax(340px, 0.75fr);
+}
+
+.capture-card,
+.question-card {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(17, 24, 32, 0.84);
+  box-shadow: var(--shadow);
+}
+
+.capture-card {
+  overflow: hidden;
+}
+
+.capture-media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #0d131a;
+}
+
+.capture-image {
+  object-fit: cover;
+}
+
+.capture-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(145deg, rgba(255, 122, 47, 0.14), rgba(69, 215, 255, 0.1)),
+    #0d131a;
+  background-size:
+    48px 48px,
+    48px 48px,
+    auto,
+    auto;
+}
+
+.fallback-copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  max-width: min(320px, calc(100% - 48px));
+  flex-direction: column;
+  gap: 8px;
+  text-align: center;
+}
+
+.fallback-copy strong {
+  color: var(--text);
+  font-size: clamp(1.4rem, 4vw, 2.8rem);
+}
+
+.fallback-copy span {
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.capture-context {
+  margin: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.16);
+  color: #dbe6f0;
+  font-size: 0.95rem;
+  padding: 16px 18px;
+}
+
+.question-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px;
+}
+
+.question-copy h2 {
+  margin-bottom: 0;
+  font-size: clamp(1.25rem, 3vw, 1.8rem);
+  line-height: 1.2;
+}
+
+.answers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.answer-option {
+  display: flex;
+  width: 100%;
+  min-height: 64px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  padding: 12px;
+  text-align: left;
+}
+
+.answer-option:hover {
+  border-color: rgba(69, 215, 255, 0.46);
+  background: rgba(69, 215, 255, 0.08);
+}
+
+.answer-option.selected {
+  border-color: rgba(255, 178, 56, 0.72);
+  background: rgba(255, 178, 56, 0.11);
+}
+
+.answer-main {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+}
+
+.answer-order,
+.answer-rank {
+  display: inline-grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 8px;
+  font-size: 0.86rem;
+  font-weight: 850;
+}
+
+.answer-order {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--muted);
+}
+
+.answer-rank {
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  color: #160c04;
+}
+
+.answer-text {
+  overflow-wrap: anywhere;
+  color: #ecf3fa;
+  font-size: 0.96rem;
+  line-height: 1.35;
+}
+
+.question-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.validate-action {
+  min-width: 150px;
+}
+
+.validate-action:disabled {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.46);
+  cursor: not-allowed;
+}
+
+.saved-state {
+  border: 1px solid rgba(86, 216, 138, 0.3);
+  border-radius: 8px;
+  background: rgba(86, 216, 138, 0.08);
+  color: #b7f5cb;
+  font-size: 0.88rem;
+  font-weight: 800;
+  padding: 10px 12px;
+}
+
+@media (max-width: 900px) {
+  .question-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .question-header {
+    flex-direction: column;
+  }
+
+  .compact-action,
+  .validate-action {
+    width: 100%;
+  }
+
+  .question-card {
+    padding: 16px;
+  }
+
+  .answer-option {
+    min-height: 72px;
+  }
+}
