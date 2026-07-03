@@ -20,6 +20,10 @@ L'app sera disponible sur `http://localhost:3000`.
 
 Le script `dev` utilise un lanceur local pour eviter l'erreur Windows/Codex `spawn EPERM` observee avec le lanceur Next.js 16. Le lanceur officiel reste disponible avec `npm.cmd run dev:next`.
 
+## Affichage cible
+
+L'app est pensee en priorite pour un telephone en mode paysage. Sur ordinateur, ouvre les outils de developpement du navigateur, active l'apercu mobile, puis passe le telephone virtuel en paysage pour verifier le rendu principal.
+
 ## Ajouter les futures captures
 
 Place les images de situation dans `public/captures/`, puis reference-les dans les fichiers JSON via un chemin du type :
