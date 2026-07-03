@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 process.env.NODE_ENV = process.env.NODE_ENV || "development";
 process.env.__NEXT_DEV_SERVER = "1";
 process.env.NEXT_PRIVATE_START_TIME = String(Date.now());
