@@ -23,6 +23,7 @@ export function QuestionScreen({
 }: QuestionScreenProps) {
   const [selectedAnswerIds, setSelectedAnswerIds] = useState<string[]>([]);
   const [imageAvailable, setImageAvailable] = useState(imageExists);
+  const [isImageExpanded, setIsImageExpanded] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const selectedRankByAnswerId = useMemo(() => {
@@ -84,6 +85,14 @@ export function QuestionScreen({
             ) : (
               <CaptureFallback label={capture.capture_id} />
             )}
+
+            <button
+              className="image-zoom-button"
+              onClick={() => setIsImageExpanded(true)}
+              type="button"
+            >
+              Agrandir
+            </button>
           </div>
 
           {capture.context_to_display ? (
@@ -104,7 +113,11 @@ export function QuestionScreen({
                 isSelected={selectedAnswerIds.includes(answer.answer_id)}
                 key={answer.answer_id}
                 onSelect={selectAnswer}
-                rank={selectedRankByAnswerId.get(answer.answer_id)}
+                rank={
+                  question.answer_format === "ranking"
+                    ? selectedRankByAnswerId.get(answer.answer_id)
+                    : undefined
+                }
               />
             ))}
           </div>
@@ -122,6 +135,48 @@ export function QuestionScreen({
           </div>
         </div>
       </section>
+
+      {isImageExpanded ? (
+        <div
+          aria-label="Capture agrandie"
+          aria-modal="true"
+          className="capture-lightbox"
+          role="dialog"
+        >
+          <button
+            aria-label="Fermer l'image agrandie"
+            className="lightbox-backdrop"
+            onClick={() => setIsImageExpanded(false)}
+            type="button"
+          />
+          <div className="lightbox-panel">
+            <div className="lightbox-topline">
+              <span>{capture.short_label}</span>
+              <button
+                className="secondary-action compact-action"
+                onClick={() => setIsImageExpanded(false)}
+                type="button"
+              >
+                Fermer
+              </button>
+            </div>
+            <div className="lightbox-media">
+              {imageAvailable ? (
+                <Image
+                  alt={capture.title ?? capture.short_label}
+                  className="capture-image"
+                  fill
+                  onError={() => setImageAvailable(false)}
+                  sizes="100vw"
+                  src={capture.image_path}
+                />
+              ) : (
+                <CaptureFallback label={capture.capture_id} />
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }

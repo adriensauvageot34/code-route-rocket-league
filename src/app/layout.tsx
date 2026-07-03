@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./question.css";
+import "./landscape.css";
 
 export const metadata: Metadata = {
   title: "Code de la route Rocket League",
