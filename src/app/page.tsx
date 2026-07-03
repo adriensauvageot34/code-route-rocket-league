@@ -32,8 +32,8 @@ export default function Home() {
             <span className="eyebrow">Session locale V0</span>
             <h1 id="app-title">Code de la route Rocket League</h1>
             <p>
-              Observer la situation, choisir son role, prendre la bonne decision,
-              puis apprendre avec une correction claire.
+              Interface pensee pour le telephone en paysage : observer vite la
+              situation, choisir son role, puis valider la bonne decision.
             </p>
           </div>
 
@@ -76,10 +76,10 @@ export default function Home() {
 
           <div className="next-question">
             <span className="eyebrow">Prochaine etape</span>
-            <h2>Afficher les premieres situations</h2>
+            <h2>Format entrainement mobile</h2>
             <p>
-              Les captures iront dans <code>public/captures</code> et les questions
-              dans <code>src/data</code>.
+              Sur ordinateur, utilise l&apos;apercu mobile du navigateur pour tester le
+              rendu telephone paysage.
             </p>
           </div>
 
