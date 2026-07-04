@@ -2,15 +2,23 @@ import type { Answer } from "@/types/content";
 
 type AnswerOptionProps = {
   answer: Answer;
+  isDisabled?: boolean;
   isSelected: boolean;
   rank?: number;
   onSelect: (answerId: string) => void;
 };
 
-export function AnswerOption({ answer, isSelected, rank, onSelect }: AnswerOptionProps) {
+export function AnswerOption({
+  answer,
+  isDisabled = false,
+  isSelected,
+  rank,
+  onSelect
+}: AnswerOptionProps) {
   return (
     <button
       className={isSelected ? "answer-option selected" : "answer-option"}
+      disabled={isDisabled}
       onClick={() => onSelect(answer.answer_id)}
       type="button"
     >

@@ -57,6 +57,15 @@
   flex: initial;
 }
 
+.session-game .capture-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: #05080c;
+  object-fit: cover;
+  object-position: center center;
+}
+
 .game-hud {
   position: absolute;
   z-index: 4;
@@ -129,11 +138,6 @@
   transform: translateX(4px);
 }
 
-.pause-button:hover {
-  border-color: rgba(69, 215, 255, 0.46);
-  background: rgba(69, 215, 255, 0.12);
-}
-
 .context-overlay {
   position: absolute;
   z-index: 3;
@@ -183,6 +187,21 @@
   padding: 8px;
 }
 
+.session-game .answer-option:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.session-game .answer-option:disabled:hover {
+  border-color: var(--hud-line);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.session-game .answer-option.selected:disabled:hover {
+  border-color: rgba(255, 178, 56, 0.78);
+  background: rgba(255, 178, 56, 0.13);
+}
+
 .session-game .answer-main {
   gap: 8px;
 }
@@ -210,126 +229,65 @@
   min-height: 40px;
   margin-top: 0;
   overflow: hidden;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease;
 }
 
-.session-feedback {
-  display: grid;
-  gap: 7px;
-}
-
-.result-pill {
-  display: inline-flex;
-  min-height: 30px;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 8px;
-  font-size: 0.78rem;
-  font-weight: 900;
-  padding: 0 10px;
-}
-
-.result-pill.correct {
-  border-color: rgba(86, 216, 138, 0.5);
-  background: rgba(86, 216, 138, 0.14);
-  color: #b7f5cb;
-}
-
-.result-pill.wrong {
-  border-color: rgba(255, 104, 104, 0.5);
-  background: rgba(255, 104, 104, 0.14);
-  color: #ffc9c9;
-}
-
-.post-answer-actions {
-  display: grid;
-  gap: 7px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.correction-action,
-.next-action {
-  width: 100%;
-  min-height: 34px;
-  font-size: 0.74rem;
-  padding: 0 8px;
-}
-
-.session-game .validate-action.submitted {
+.session-game .validate-action.submitted.correct {
   border-color: rgba(86, 216, 138, 0.72);
   background: linear-gradient(135deg, #56d88a, #1ca45d);
   color: #041108;
 }
 
+.session-game .validate-action.submitted.wrong {
+  border-color: rgba(255, 178, 56, 0.74);
+  background: linear-gradient(135deg, #ffb238, #ff7a2f);
+  color: #160c04;
+}
+
+.session-game .validate-action.phase-timing {
+  cursor: default;
+}
+
+.session-game .validate-action.phase-correction,
+.session-game .validate-action.phase-next {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+}
+
 .session-game .validate-action .validate-label {
   display: inline-block;
-  transition:
-    opacity 150ms ease,
-    transform 150ms ease;
+  transition: opacity 150ms ease, transform 150ms ease;
 }
 
-.session-game .validate-action.submitted .validate-label {
-  opacity: 0;
-  transform: scale(0.88);
-}
-
-.validate-check {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 13px;
-  height: 24px;
-  display: none;
-  border-right: 4px solid currentColor;
-  border-bottom: 4px solid currentColor;
-  transform: translate(-50%, -62%) rotate(45deg);
-}
-
-.session-game .validate-action.submitted .validate-check {
-  display: block;
-  animation: validate-pop 180ms ease-out;
-}
-
-@keyframes validate-pop {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -62%) rotate(45deg) scale(0.55);
-  }
-
-  to {
-    opacity: 1;
-    transform: translate(-50%, -62%) rotate(45deg) scale(1);
-  }
-}
-
-.pause-overlay {
+.pause-overlay,
+.correction-overlay {
   position: fixed;
-  z-index: 110;
   inset: 0;
   display: grid;
   place-items: center;
-  background: rgba(0, 0, 0, 0.72);
+  background: rgba(0, 0, 0, 0.74);
   backdrop-filter: blur(8px);
+}
+
+.pause-overlay {
+  z-index: 110;
+}
+
+.correction-overlay {
+  z-index: 130;
+  padding: 12px;
+}
+
+.pause-card,
+.correction-card {
+  border: 1px solid rgba(98, 130, 162, 0.42);
+  border-radius: 8px;
+  background: rgba(8, 12, 17, 0.97);
+  box-shadow: var(--hud-glow);
 }
 
 .pause-card {
   width: min(360px, calc(100vw - 32px));
-  border: 1px solid rgba(98, 130, 162, 0.42);
-  border-radius: 8px;
-  background: rgba(10, 15, 21, 0.96);
-  box-shadow: var(--hud-glow);
   padding: 18px;
-}
-
-.pause-card h2 {
-  margin: 6px 0 8px;
-  font-size: 1.35rem;
-}
-
-.pause-card p {
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.45;
 }
 
 .pause-actions {
@@ -338,27 +296,12 @@
   margin-top: 16px;
 }
 
-.correction-overlay {
-  position: fixed;
-  z-index: 130;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  background: rgba(0, 0, 0, 0.74);
-  backdrop-filter: blur(8px);
-  padding: 12px;
-}
-
 .correction-card {
   width: min(780px, calc(100vw - 24px));
   max-height: calc(100svh - 24px);
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   overflow: hidden;
-  border: 1px solid rgba(98, 130, 162, 0.42);
-  border-radius: 8px;
-  background: rgba(8, 12, 17, 0.97);
-  box-shadow: var(--hud-glow);
 }
 
 .correction-head {
@@ -373,13 +316,6 @@
 .correction-head h2 {
   margin: 7px 0 0;
   font-size: 1.16rem;
-}
-
-.correction-close {
-  min-height: 34px;
-  flex: 0 0 auto;
-  font-size: 0.78rem;
-  padding: 0 12px;
 }
 
 .correction-content {
@@ -455,7 +391,6 @@
   border-radius: 8px;
   background: rgba(255, 178, 56, 0.08);
   padding: 0 9px;
-  text-decoration-thickness: 1px;
 }
 
 .glossary-definition {
@@ -467,12 +402,6 @@
 
 .glossary-definition strong {
   color: var(--accent);
-}
-
-.glossary-definition span {
-  color: #fff6e4;
-  font-size: 0.84rem;
-  line-height: 1.35;
 }
 
 @media (orientation: landscape) and (max-height: 560px) {
@@ -523,11 +452,6 @@
     padding: 6px 8px;
   }
 
-  .session-game .image-hold-hint {
-    right: 7px;
-    bottom: 7px;
-  }
-
   .session-game .question-card {
     gap: 6px;
     padding: 8px;
@@ -555,50 +479,6 @@
 
   .session-game .validate-action {
     min-height: 36px;
-  }
-
-  .result-pill {
-    min-height: 27px;
-    font-size: 0.68rem;
-  }
-
-  .correction-action,
-  .next-action {
-    min-height: 30px;
-    font-size: 0.66rem;
-  }
-
-  .correction-overlay {
-    padding: 8px;
-  }
-
-  .correction-card {
-    width: min(720px, calc(100vw - 16px));
-    max-height: calc(100svh - 16px);
-  }
-
-  .correction-head,
-  .correction-content {
-    padding: 8px;
-  }
-
-  .correction-content {
-    gap: 7px;
-  }
-
-  .correction-content section,
-  .glossary-definition {
-    padding: 7px;
-  }
-
-  .correction-content h3 {
-    font-size: 0.66rem;
-  }
-
-  .correction-content p,
-  .correction-content li {
-    font-size: 0.72rem;
-    line-height: 1.28;
   }
 }
 
