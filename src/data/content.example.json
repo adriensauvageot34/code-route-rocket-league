@@ -3,7 +3,7 @@
   "captures": [
     {
       "capture_id": "CAP-0001",
-      "image_path": "/captures/CAP-0001.jpg",
+      "image_path": "/captures/CAP-0001.avif",
       "title": "Pression offensive dans le camp bleu",
       "short_label": "Soutien offensif",
       "match_mode": "ranked_2v2",
@@ -16,23 +16,6 @@
       "hidden_context": "Un adversaire peut encore degager fort si les deux joueurs orange s'engagent sur la meme action.",
       "context_to_display": "Tu es en attaque dans le camp bleu. Ton coequipier vient de jouer la balle cote droit, pres de la surface adverse. Tu es derriere l'action avec 41 boost.",
       "capture_notes": "Vraie capture alpha pour travailler le soutien offensif sans double commit.",
-      "validation_status": "validated"
-    },
-    {
-      "capture_id": "CAP-0002",
-      "image_path": "/captures/CAP-0002.jpg",
-      "title": "Dernier joueur avec beaucoup de boost",
-      "short_label": "Last man bas",
-      "match_mode": "ranked_2v2",
-      "team_player": "orange",
-      "score_blue": 1,
-      "score_orange": 0,
-      "time_remaining": "04:09",
-      "player_boost": 93,
-      "visible_context": "Tu es tres bas dans ton camp avec 93 boost. Ton coequipier est devant, proche de l'action au milieu du terrain.",
-      "hidden_context": "Les adversaires peuvent encore recuperer ou renvoyer la balle si l'equipe orange monte trop vite.",
-      "context_to_display": "Tu es tres bas dans ton camp avec 93 boost. Ton coequipier est devant, proche de l'action au milieu du terrain. Les adversaires peuvent encore recuperer ou renvoyer la balle.",
-      "capture_notes": "Vraie capture alpha pour travailler la lecture du role de dernier joueur.",
       "validation_status": "validated"
     }
   ],
@@ -127,100 +110,6 @@
           {
             "term": "boost",
             "definition": "Ressource utilisee pour accelerer, voler ou recuperer plus vite. Avoir du boost ne donne pas automatiquement la priorite sur la balle."
-          }
-        ]
-      }
-    },
-    {
-      "question_id": "CAP-0002-Q01",
-      "capture_id": "CAP-0002",
-      "question_text": "Quelle est la meilleure lecture de ton role dans cette situation ?",
-      "answer_format": "single",
-      "time_limit_seconds": 15,
-      "pedagogical_mode": "best_option",
-      "cognitive_category_primary": "prioritization",
-      "cognitive_category_secondary": "role_identification",
-      "cognitive_subcategory": "securite_ou_pression",
-      "rl_category_primary": "defense",
-      "rl_category_secondary": "team_rotation",
-      "rl_subcategory": "last_man",
-      "frequency_weight": 1,
-      "validation_status": "validated",
-      "is_active": true,
-      "answers": [
-        {
-          "answer_id": "CAP-0002-Q01-A",
-          "text": "Tu dois rester colle a ta ligne de but, car tu es le dernier defenseur.",
-          "display_order": 1,
-          "is_correct": false,
-          "ranking_position": null,
-          "feedback": "Mauvaise reponse. Rester trop bas protege le but, mais abandonne trop de terrain et rend difficile le soutien de ton coequipier.",
-          "error_tags": ["excessive_passivity", "too_passive"]
-        },
-        {
-          "answer_id": "CAP-0002-Q01-B",
-          "text": "Tu dois avancer progressivement pour reduire l'espace, tout en restant capable de defendre.",
-          "display_order": 2,
-          "is_correct": true,
-          "ranking_position": null,
-          "feedback": "Bonne reponse. Tu es dernier homme, mais tu as beaucoup de boost. Tu peux avancer progressivement pour soutenir l'action tout en gardant une position defensive sure.",
-          "error_tags": []
-        },
-        {
-          "answer_id": "CAP-0002-Q01-C",
-          "text": "Tu dois partir directement au corner boost, car tu es loin de l'action.",
-          "display_order": 3,
-          "is_correct": false,
-          "ranking_position": null,
-          "feedback": "Mauvaise reponse. Tu as deja 93 boost. Chercher un autre gros boost n'apporte presque rien et peut te sortir de la bonne position.",
-          "error_tags": ["boost_over_ball", "bad_spacing"]
-        },
-        {
-          "answer_id": "CAP-0002-Q01-D",
-          "text": "Tu dois foncer au milieu pour rejoindre immediatement ton coequipier.",
-          "display_order": 4,
-          "is_correct": false,
-          "ranking_position": null,
-          "feedback": "Mauvaise reponse. Foncer au milieu reduit trop vite la couverture et peut te faire depasser si la balle revient fort vers ton camp.",
-          "error_tags": ["overcommit", "bad_spacing"]
-        }
-      ],
-      "correction": {
-        "expected_answer": "B. Tu dois avancer progressivement pour reduire l'espace, tout en restant capable de defendre.",
-        "correct_answer_summary": "La bonne decision est d'avancer progressivement, sans te jeter.",
-        "what_to_observe": "Tu es tres eloigne de ton coequipier, tu as 93 boost, ton coequipier peut encore perdre le duel, l'action n'est pas totalement securisee et tu dois rester capable d'avancer vers le ballon plutot que de reculer en urgence.",
-        "what_to_observe_items": [
-          "Tu es tres eloigne de ton coequipier.",
-          "Tu as 93 boost, donc tu n'as pas besoin de chercher un gros boost.",
-          "Ton coequipier est devant et peut encore perdre le duel.",
-          "L'action n'est pas totalement securisee.",
-          "Tu dois rester capable d'avancer vers le ballon plutot que de reculer en urgence."
-        ],
-        "principle": "Etre dernier homme ne veut pas dire rester colle a son but. Il faut couvrir le danger tout en restant assez proche pour soutenir l'action.",
-        "why_tempting": "Comme tu es dernier defenseur, tu peux avoir peur d'avancer et preferer rester tres bas. Mais trop reculer donne beaucoup d'espace aux adversaires.",
-        "risk_avoided": "En avancant progressivement, tu evites deux extremes : etre trop passif au fond du terrain ou overcommit en rejoignant ton coequipier trop vite.",
-        "reflex_phrase": "Je couvre, mais je ne disparais pas de l'action.",
-        "guide_reference": "defense.last_man_progressif",
-        "glossary_terms": [
-          {
-            "term": "last man",
-            "definition": "Dernier joueur entre les adversaires et ton but. Son role principal est d'eviter qu'une erreur donne un but gratuit."
-          },
-          {
-            "term": "duel",
-            "definition": "Situation ou deux joueurs contestent directement la balle ou se disputent la prochaine touche."
-          },
-          {
-            "term": "overcommit",
-            "definition": "Engagement trop risque qui te sort de l'action et laisse ton equipe vulnerable si tu rates."
-          },
-          {
-            "term": "gros boost",
-            "definition": "Pastille de 100 boost situee dans les coins ou sur les cotes. Elle est utile, mais ne doit pas etre prioritaire si tu as deja beaucoup de boost ou si l'action est dangereuse."
-          },
-          {
-            "term": "couverture",
-            "definition": "Position qui permet de proteger ton equipe si l'action devant toi echoue."
           }
         ]
       }

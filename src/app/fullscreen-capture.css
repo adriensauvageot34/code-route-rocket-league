@@ -57,7 +57,11 @@
 }
 
 .capture-lightbox .capture-image {
+  width: 100%;
+  height: 100%;
+  display: block;
   object-fit: contain;
+  object-position: center center;
 }
 
 @media (orientation: landscape) and (max-height: 560px) {

@@ -1,7 +1,9 @@
 "use client";
 
-import Image from "next/image";
+/* eslint-disable @next/next/no-img-element -- Local gameplay captures must render without Next image optimization cache. */
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import type { KeyboardEvent, PointerEvent } from "react";
 import { AnswerOption } from "@/components/AnswerOption";
@@ -17,6 +19,8 @@ type QuestionScreenProps = {
   onNextQuestion: () => void;
 };
 
+type PrimaryActionState = "validate" | "timing" | "correction" | "next";
+
 export function QuestionScreen({
   capture,
   imageExists,
@@ -26,6 +30,8 @@ export function QuestionScreen({
   hasNextQuestion,
   onNextQuestion
 }: QuestionScreenProps) {
+  const router = useRouter();
+  const timeLimitSeconds = question.time_limit_seconds ?? 15;
   const [selectedAnswerIds, setSelectedAnswerIds] = useState<string[]>([]);
   const [imageAvailable, setImageAvailable] = useState(imageExists);
   const [isImageExpanded, setIsImageExpanded] = useState(false);
@@ -33,17 +39,18 @@ export function QuestionScreen({
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isCorrectionOpen, setIsCorrectionOpen] = useState(false);
   const [activeGlossaryTerm, setActiveGlossaryTerm] = useState<GlossaryTerm | null>(null);
-  const [remainingSeconds, setRemainingSeconds] = useState(question.time_limit_seconds ?? 15);
+  const [remainingSeconds, setRemainingSeconds] = useState(timeLimitSeconds);
+  const [responseTimeSeconds, setResponseTimeSeconds] = useState<number | null>(null);
+  const [primaryActionState, setPrimaryActionState] = useState<PrimaryActionState>("validate");
 
   const correctAnswerIds = useMemo(() => {
-    return question.answers
-      .filter((answer) => answer.is_correct)
-      .map((answer) => answer.answer_id);
+    return question.answers.filter((answer) => answer.is_correct).map((answer) => answer.answer_id);
   }, [question.answers]);
 
   const selectedRankByAnswerId = useMemo(() => {
     return new Map(selectedAnswerIds.map((answerId, index) => [answerId, index + 1]));
   }, [selectedAnswerIds]);
+
   const displayedTotalQuestions = Math.max(totalQuestions, 40);
   const isAnswerCorrect = useMemo(() => {
     if (question.answer_format === "ranking") {
@@ -64,12 +71,31 @@ export function QuestionScreen({
 
     return correctAnswerIds.every((answerId) => selectedAnswerIds.includes(answerId));
   }, [correctAnswerIds, question.answer_format, question.answers, selectedAnswerIds]);
+
   const expectedAnswerText =
     question.correction.expected_answer ??
     question.answers
       .filter((answer) => answer.is_correct)
       .map((answer) => answer.text)
       .join(" / ");
+  const responseTimeLabel =
+    responseTimeSeconds === null
+      ? ""
+      : `${responseTimeSeconds} ${responseTimeSeconds > 1 ? "secondes" : "seconde"}`;
+  const primaryActionLabel = getPrimaryActionLabel(
+    primaryActionState,
+    responseTimeLabel,
+    hasNextQuestion
+  );
+  const validateActionClassName = [
+    "primary-action",
+    "validate-action",
+    `phase-${primaryActionState}`,
+    isSubmitted ? "submitted" : "",
+    isSubmitted ? (isAnswerCorrect ? "correct" : "wrong") : ""
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   useEffect(() => {
     if (isPaused || isSubmitted || remainingSeconds <= 0) {
@@ -82,6 +108,18 @@ export function QuestionScreen({
 
     return () => window.clearInterval(timerId);
   }, [isPaused, isSubmitted, remainingSeconds]);
+
+  useEffect(() => {
+    if (primaryActionState !== "timing") {
+      return;
+    }
+
+    const revealActionId = window.setTimeout(() => {
+      setPrimaryActionState("correction");
+    }, 1500);
+
+    return () => window.clearTimeout(revealActionId);
+  }, [primaryActionState]);
 
   function expandImage(event: PointerEvent<HTMLDivElement>) {
     event.preventDefault();
@@ -117,9 +155,7 @@ export function QuestionScreen({
 
   function selectAnswer(answerId: string) {
     if (isSubmitted) {
-      setIsSubmitted(false);
-      setIsCorrectionOpen(false);
-      setActiveGlossaryTerm(null);
+      return;
     }
 
     if (question.answer_format === "single") {
@@ -141,6 +177,49 @@ export function QuestionScreen({
         ? current.filter((selectedAnswerId) => selectedAnswerId !== answerId)
         : [...current, answerId]
     );
+  }
+
+  function submitAnswer() {
+    if (selectedAnswerIds.length === 0 || isSubmitted) {
+      return;
+    }
+
+    setResponseTimeSeconds(Math.max(0, timeLimitSeconds - remainingSeconds));
+    setIsSubmitted(true);
+    setPrimaryActionState("timing");
+  }
+
+  function openCorrection() {
+    setIsCorrectionOpen(true);
+    setActiveGlossaryTerm(null);
+    setPrimaryActionState("next");
+  }
+
+  function goToNextStep() {
+    if (hasNextQuestion) {
+      onNextQuestion();
+      return;
+    }
+
+    router.push("/");
+  }
+
+  function handlePrimaryAction() {
+    if (primaryActionState === "validate") {
+      submitAnswer();
+      return;
+    }
+
+    if (primaryActionState === "timing") {
+      return;
+    }
+
+    if (primaryActionState === "correction") {
+      openCorrection();
+      return;
+    }
+
+    goToNextStep();
   }
 
   return (
@@ -186,12 +265,11 @@ export function QuestionScreen({
             </div>
 
             {imageAvailable ? (
-              <Image
+              <img
                 alt={capture.title ?? capture.short_label}
                 className="capture-image"
-                fill
+                draggable={false}
                 onError={() => setImageAvailable(false)}
-                sizes="(max-width: 900px) 100vw, 700px"
                 src={capture.image_path}
               />
             ) : (
@@ -215,6 +293,7 @@ export function QuestionScreen({
             {question.answers.map((answer) => (
               <AnswerOption
                 answer={answer}
+                isDisabled={isSubmitted}
                 isSelected={selectedAnswerIds.includes(answer.answer_id)}
                 key={answer.answer_id}
                 onSelect={selectAnswer}
@@ -229,51 +308,14 @@ export function QuestionScreen({
 
           <div className="question-actions">
             <button
-              className={
-                isSubmitted
-                  ? "primary-action validate-action submitted"
-                  : "primary-action validate-action"
-              }
-              disabled={selectedAnswerIds.length === 0}
-              onClick={() => setIsSubmitted(true)}
+              aria-live="polite"
+              className={validateActionClassName}
+              disabled={primaryActionState === "validate" && selectedAnswerIds.length === 0}
+              onClick={handlePrimaryAction}
               type="button"
             >
-              <span className="validate-label">Valider</span>
-              <span className="validate-check" aria-hidden="true" />
+              <span className="validate-label">{primaryActionLabel}</span>
             </button>
-
-            {isSubmitted ? (
-              <div className="session-feedback" aria-live="polite">
-                <span className={isAnswerCorrect ? "result-pill correct" : "result-pill wrong"}>
-                  {isAnswerCorrect ? "Bonne reponse" : "Mauvaise reponse"}
-                </span>
-                <div className="post-answer-actions">
-                  <button
-                    className="secondary-action correction-action"
-                    onClick={() => {
-                      setIsCorrectionOpen(true);
-                      setActiveGlossaryTerm(null);
-                    }}
-                    type="button"
-                  >
-                    Voir la correction
-                  </button>
-                  {hasNextQuestion ? (
-                    <button
-                      className="secondary-action next-action"
-                      onClick={onNextQuestion}
-                      type="button"
-                    >
-                      Question suivante
-                    </button>
-                  ) : (
-                    <Link className="secondary-action next-action" href="/">
-                      Menu principal
-                    </Link>
-                  )}
-                </div>
-              </div>
-            ) : null}
           </div>
         </div>
       </section>
@@ -288,9 +330,6 @@ export function QuestionScreen({
           <div className="correction-card">
             <div className="correction-head">
               <div>
-                <span className={isAnswerCorrect ? "result-pill correct" : "result-pill wrong"}>
-                  {isAnswerCorrect ? "Bonne reponse" : "Mauvaise reponse"}
-                </span>
                 <h2>Correction</h2>
               </div>
               <button
@@ -416,12 +455,11 @@ export function QuestionScreen({
         >
           <div className="lightbox-media">
             {imageAvailable ? (
-              <Image
+              <img
                 alt={capture.title ?? capture.short_label}
                 className="capture-image"
-                fill
+                draggable={false}
                 onError={() => setImageAvailable(false)}
-                sizes="100vw"
                 src={capture.image_path}
               />
             ) : (
@@ -432,6 +470,26 @@ export function QuestionScreen({
       ) : null}
     </main>
   );
+}
+
+function getPrimaryActionLabel(
+  state: PrimaryActionState,
+  responseTimeLabel: string,
+  hasNextQuestion: boolean
+) {
+  if (state === "timing") {
+    return responseTimeLabel;
+  }
+
+  if (state === "correction") {
+    return "Voir la correction";
+  }
+
+  if (state === "next") {
+    return hasNextQuestion ? "Question suivante" : "Menu principal";
+  }
+
+  return "Valider";
 }
 
 function CaptureFallback({ label }: { label: string }) {
