@@ -3,6 +3,7 @@ import "./globals.css";
 import "./question.css";
 import "./landscape.css";
 import "./orientation.css";
+import "./fullscreen-capture.css";
 
 export const metadata: Metadata = {
   applicationName: "Code RL",

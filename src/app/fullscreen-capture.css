@@ -1,0 +1,72 @@
+.hold-expand-target {
+  cursor: zoom-in;
+  touch-action: none;
+  user-select: none;
+}
+
+.hold-expand-target:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.image-hold-hint {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 2;
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 8px;
+  background: rgba(5, 8, 12, 0.74);
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 850;
+  padding: 0 12px;
+  pointer-events: none;
+}
+
+.hold-expand-target:active .image-hold-hint {
+  border-color: rgba(255, 178, 56, 0.72);
+  background: rgba(255, 178, 56, 0.16);
+}
+
+.capture-lightbox {
+  position: fixed;
+  z-index: 120;
+  inset: 0;
+  display: block;
+  padding: 0;
+  background: #000000;
+  cursor: zoom-out;
+  touch-action: none;
+  user-select: none;
+}
+
+.capture-lightbox .lightbox-media {
+  position: relative;
+  overflow: hidden;
+  width: 100vw;
+  height: 100svh;
+  max-height: none;
+  border-radius: 0;
+  background: #000000;
+  aspect-ratio: auto;
+}
+
+.capture-lightbox .capture-image {
+  object-fit: contain;
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .image-hold-hint {
+    right: 7px;
+    bottom: 7px;
+    min-height: 28px;
+    border-radius: 7px;
+    font-size: 0.68rem;
+    padding: 0 9px;
+  }
+}
