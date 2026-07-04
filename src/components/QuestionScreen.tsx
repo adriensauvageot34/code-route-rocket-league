@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import type { KeyboardEvent, PointerEvent } from "react";
 import { AnswerOption } from "@/components/AnswerOption";
 import type { Capture, ContentQuestion } from "@/types/content";
 
@@ -29,6 +30,38 @@ export function QuestionScreen({
   const selectedRankByAnswerId = useMemo(() => {
     return new Map(selectedAnswerIds.map((answerId, index) => [answerId, index + 1]));
   }, [selectedAnswerIds]);
+
+  function expandImage(event: PointerEvent<HTMLDivElement>) {
+    event.preventDefault();
+
+    if (event.currentTarget.setPointerCapture) {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
+
+    setIsImageExpanded(true);
+  }
+
+  function collapseImage(event?: PointerEvent<HTMLDivElement>) {
+    if (event?.currentTarget.hasPointerCapture?.(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    setIsImageExpanded(false);
+  }
+
+  function handleImageKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === " " || event.key === "Enter") {
+      event.preventDefault();
+      setIsImageExpanded(true);
+    }
+  }
+
+  function handleImageKeyUp(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === " " || event.key === "Enter" || event.key === "Escape") {
+      event.preventDefault();
+      setIsImageExpanded(false);
+    }
+  }
 
   function selectAnswer(answerId: string) {
     if (isSubmitted) {
@@ -72,7 +105,19 @@ export function QuestionScreen({
 
       <section className="question-layout">
         <div className="capture-card" aria-label="Capture de situation">
-          <div className="capture-media">
+          <div
+            aria-label="Maintenir la capture en plein ecran"
+            className="capture-media hold-expand-target"
+            onContextMenu={(event) => event.preventDefault()}
+            onKeyDown={handleImageKeyDown}
+            onKeyUp={handleImageKeyUp}
+            onLostPointerCapture={() => setIsImageExpanded(false)}
+            onPointerCancel={collapseImage}
+            onPointerDown={expandImage}
+            onPointerUp={collapseImage}
+            role="button"
+            tabIndex={0}
+          >
             {imageAvailable ? (
               <Image
                 alt={capture.title ?? capture.short_label}
@@ -86,13 +131,7 @@ export function QuestionScreen({
               <CaptureFallback label={capture.capture_id} />
             )}
 
-            <button
-              className="image-zoom-button"
-              onClick={() => setIsImageExpanded(true)}
-              type="button"
-            >
-              Agrandir
-            </button>
+            <span className="image-hold-hint">Maintenir</span>
           </div>
 
           {capture.context_to_display ? (
@@ -138,42 +177,27 @@ export function QuestionScreen({
 
       {isImageExpanded ? (
         <div
-          aria-label="Capture agrandie"
+          aria-label="Capture en plein ecran"
           aria-modal="true"
           className="capture-lightbox"
+          onContextMenu={(event) => event.preventDefault()}
+          onPointerCancel={() => setIsImageExpanded(false)}
+          onPointerUp={() => setIsImageExpanded(false)}
           role="dialog"
         >
-          <button
-            aria-label="Fermer l'image agrandie"
-            className="lightbox-backdrop"
-            onClick={() => setIsImageExpanded(false)}
-            type="button"
-          />
-          <div className="lightbox-panel">
-            <div className="lightbox-topline">
-              <span>{capture.short_label}</span>
-              <button
-                className="secondary-action compact-action"
-                onClick={() => setIsImageExpanded(false)}
-                type="button"
-              >
-                Fermer
-              </button>
-            </div>
-            <div className="lightbox-media">
-              {imageAvailable ? (
-                <Image
-                  alt={capture.title ?? capture.short_label}
-                  className="capture-image"
-                  fill
-                  onError={() => setImageAvailable(false)}
-                  sizes="100vw"
-                  src={capture.image_path}
-                />
-              ) : (
-                <CaptureFallback label={capture.capture_id} />
-              )}
-            </div>
+          <div className="lightbox-media">
+            {imageAvailable ? (
+              <Image
+                alt={capture.title ?? capture.short_label}
+                className="capture-image"
+                fill
+                onError={() => setImageAvailable(false)}
+                sizes="100vw"
+                src={capture.image_path}
+              />
+            ) : (
+              <CaptureFallback label={capture.capture_id} />
+            )}
           </div>
         </div>
       ) : null}
