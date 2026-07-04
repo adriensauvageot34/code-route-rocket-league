@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { KeyboardEvent, PointerEvent } from "react";
 import { AnswerOption } from "@/components/AnswerOption";
-import type { Capture, ContentQuestion } from "@/types/content";
+import type { Capture, ContentQuestion, GlossaryTerm } from "@/types/content";
 
 type QuestionScreenProps = {
   capture: Capture;
@@ -13,6 +13,8 @@ type QuestionScreenProps = {
   question: ContentQuestion;
   questionIndex: number;
   totalQuestions: number;
+  hasNextQuestion: boolean;
+  onNextQuestion: () => void;
 };
 
 export function QuestionScreen({
@@ -20,19 +22,54 @@ export function QuestionScreen({
   imageExists,
   question,
   questionIndex,
-  totalQuestions
+  totalQuestions,
+  hasNextQuestion,
+  onNextQuestion
 }: QuestionScreenProps) {
   const [selectedAnswerIds, setSelectedAnswerIds] = useState<string[]>([]);
   const [imageAvailable, setImageAvailable] = useState(imageExists);
   const [isImageExpanded, setIsImageExpanded] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [remainingSeconds, setRemainingSeconds] = useState(15);
+  const [isCorrectionOpen, setIsCorrectionOpen] = useState(false);
+  const [activeGlossaryTerm, setActiveGlossaryTerm] = useState<GlossaryTerm | null>(null);
+  const [remainingSeconds, setRemainingSeconds] = useState(question.time_limit_seconds ?? 15);
+
+  const correctAnswerIds = useMemo(() => {
+    return question.answers
+      .filter((answer) => answer.is_correct)
+      .map((answer) => answer.answer_id);
+  }, [question.answers]);
 
   const selectedRankByAnswerId = useMemo(() => {
     return new Map(selectedAnswerIds.map((answerId, index) => [answerId, index + 1]));
   }, [selectedAnswerIds]);
   const displayedTotalQuestions = Math.max(totalQuestions, 40);
+  const isAnswerCorrect = useMemo(() => {
+    if (question.answer_format === "ranking") {
+      if (selectedAnswerIds.length !== question.answers.length) {
+        return false;
+      }
+
+      return selectedAnswerIds.every((answerId, index) => {
+        const answer = question.answers.find((candidate) => candidate.answer_id === answerId);
+
+        return answer?.ranking_position === index + 1;
+      });
+    }
+
+    if (selectedAnswerIds.length !== correctAnswerIds.length) {
+      return false;
+    }
+
+    return correctAnswerIds.every((answerId) => selectedAnswerIds.includes(answerId));
+  }, [correctAnswerIds, question.answer_format, question.answers, selectedAnswerIds]);
+  const expectedAnswerText =
+    question.correction.expected_answer ??
+    question.answers
+      .filter((answer) => answer.is_correct)
+      .map((answer) => answer.text)
+      .join(" / ");
 
   useEffect(() => {
     if (isPaused || isSubmitted || remainingSeconds <= 0) {
@@ -81,6 +118,8 @@ export function QuestionScreen({
   function selectAnswer(answerId: string) {
     if (isSubmitted) {
       setIsSubmitted(false);
+      setIsCorrectionOpen(false);
+      setActiveGlossaryTerm(null);
     }
 
     if (question.answer_format === "single") {
@@ -202,9 +241,150 @@ export function QuestionScreen({
               <span className="validate-label">Valider</span>
               <span className="validate-check" aria-hidden="true" />
             </button>
+
+            {isSubmitted ? (
+              <div className="session-feedback" aria-live="polite">
+                <span className={isAnswerCorrect ? "result-pill correct" : "result-pill wrong"}>
+                  {isAnswerCorrect ? "Bonne reponse" : "Mauvaise reponse"}
+                </span>
+                <div className="post-answer-actions">
+                  <button
+                    className="secondary-action correction-action"
+                    onClick={() => {
+                      setIsCorrectionOpen(true);
+                      setActiveGlossaryTerm(null);
+                    }}
+                    type="button"
+                  >
+                    Voir la correction
+                  </button>
+                  {hasNextQuestion ? (
+                    <button
+                      className="secondary-action next-action"
+                      onClick={onNextQuestion}
+                      type="button"
+                    >
+                      Question suivante
+                    </button>
+                  ) : (
+                    <Link className="secondary-action next-action" href="/">
+                      Menu principal
+                    </Link>
+                  )}
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
       </section>
+
+      {isCorrectionOpen ? (
+        <div
+          className="correction-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Correction pedagogique"
+        >
+          <div className="correction-card">
+            <div className="correction-head">
+              <div>
+                <span className={isAnswerCorrect ? "result-pill correct" : "result-pill wrong"}>
+                  {isAnswerCorrect ? "Bonne reponse" : "Mauvaise reponse"}
+                </span>
+                <h2>Correction</h2>
+              </div>
+              <button
+                className="secondary-action correction-close"
+                onClick={() => setIsCorrectionOpen(false)}
+                type="button"
+              >
+                Fermer
+              </button>
+            </div>
+
+            <div className="correction-content">
+              <section>
+                <h3>Bonne reponse attendue</h3>
+                <p>{expectedAnswerText}</p>
+              </section>
+
+              <section>
+                <h3>Ce qu&apos;il fallait observer</h3>
+                {question.correction.what_to_observe_items ? (
+                  <ul>
+                    {question.correction.what_to_observe_items.map((item) => (
+                      <li key={item}>
+                        <GlossaryText
+                          text={item}
+                          terms={question.correction.glossary_terms}
+                          onTermSelect={setActiveGlossaryTerm}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>
+                    <GlossaryText
+                      text={question.correction.what_to_observe}
+                      terms={question.correction.glossary_terms}
+                      onTermSelect={setActiveGlossaryTerm}
+                    />
+                  </p>
+                )}
+              </section>
+
+              <CorrectionSection
+                label="Principe a retenir"
+                text={question.correction.principle}
+                terms={question.correction.glossary_terms}
+                onTermSelect={setActiveGlossaryTerm}
+              />
+              <CorrectionSection
+                label="Pourquoi l'erreur etait tentante"
+                text={question.correction.why_tempting}
+                terms={question.correction.glossary_terms}
+                onTermSelect={setActiveGlossaryTerm}
+              />
+              <CorrectionSection
+                label="Risque evite"
+                text={question.correction.risk_avoided}
+                terms={question.correction.glossary_terms}
+                onTermSelect={setActiveGlossaryTerm}
+              />
+
+              <section className="reflex-section">
+                <h3>Phrase reflexe</h3>
+                <p>{question.correction.reflex_phrase}</p>
+              </section>
+
+              {question.correction.glossary_terms ? (
+                <section>
+                  <h3>Mots techniques</h3>
+                  <div className="glossary-term-list">
+                    {question.correction.glossary_terms.map((term) => (
+                      <button
+                        className="glossary-link glossary-chip"
+                        key={term.term}
+                        onClick={() => setActiveGlossaryTerm(term)}
+                        type="button"
+                      >
+                        {term.term}
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+
+              {activeGlossaryTerm ? (
+                <aside className="glossary-definition" aria-live="polite">
+                  <strong>{activeGlossaryTerm.term}</strong>
+                  <span>{activeGlossaryTerm.definition}</span>
+                </aside>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {isPaused ? (
         <div className="pause-overlay" role="dialog" aria-modal="true" aria-label="Session en pause">
@@ -268,4 +448,72 @@ function CaptureFallback({ label }: { label: string }) {
       </div>
     </div>
   );
+}
+
+function CorrectionSection({
+  label,
+  onTermSelect,
+  terms,
+  text
+}: {
+  label: string;
+  onTermSelect: (term: GlossaryTerm) => void;
+  terms?: GlossaryTerm[];
+  text: string;
+}) {
+  return (
+    <section>
+      <h3>{label}</h3>
+      <p>
+        <GlossaryText text={text} terms={terms} onTermSelect={onTermSelect} />
+      </p>
+    </section>
+  );
+}
+
+function GlossaryText({
+  onTermSelect,
+  terms,
+  text
+}: {
+  onTermSelect: (term: GlossaryTerm) => void;
+  terms?: GlossaryTerm[];
+  text: string;
+}) {
+  if (!terms || terms.length === 0) {
+    return text;
+  }
+
+  const orderedTerms = [...terms].sort((first, second) => second.term.length - first.term.length);
+  const matcher = new RegExp(`(${orderedTerms.map((term) => escapeRegExp(term.term)).join("|")})`, "gi");
+  const parts = text.split(matcher);
+
+  return (
+    <>
+      {parts.map((part, index) => {
+        const matchingTerm = orderedTerms.find(
+          (term) => term.term.toLowerCase() === part.toLowerCase()
+        );
+
+        if (!matchingTerm) {
+          return <span key={`${part}-${index}`}>{part}</span>;
+        }
+
+        return (
+          <button
+            className="glossary-link"
+            key={`${matchingTerm.term}-${index}`}
+            onClick={() => onTermSelect(matchingTerm)}
+            type="button"
+          >
+            {part}
+          </button>
+        );
+      })}
+    </>
+  );
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
