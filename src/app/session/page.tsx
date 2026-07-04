@@ -1,14 +1,28 @@
 import { existsSync } from "fs";
 import { join } from "path";
 import { AppFrame } from "@/components/AppFrame";
-import { QuestionScreen } from "@/components/QuestionScreen";
+import { SessionRunner } from "@/components/SessionRunner";
 import { getActiveQuestions, getCaptureById } from "@/lib/content";
 
 export default function SessionPage() {
   const questions = getActiveQuestions();
   const firstQuestion = questions[0];
   const capture = firstQuestion ? getCaptureById(firstQuestion.capture_id) : undefined;
-  const imageExists = capture ? captureImageExists(capture.image_path) : false;
+  const sessionItems = questions.flatMap((question) => {
+    const questionCapture = getCaptureById(question.capture_id);
+
+    if (!questionCapture) {
+      return [];
+    }
+
+    return [
+      {
+        capture: questionCapture,
+        imageExists: captureImageExists(questionCapture.image_path),
+        question
+      }
+    ];
+  });
 
   if (!firstQuestion || !capture) {
     return (
@@ -27,13 +41,7 @@ export default function SessionPage() {
 
   return (
     <AppFrame variant="game">
-      <QuestionScreen
-        capture={capture}
-        imageExists={imageExists}
-        question={firstQuestion}
-        questionIndex={0}
-        totalQuestions={questions.length}
-      />
+      <SessionRunner items={sessionItems} />
     </AppFrame>
   );
 }

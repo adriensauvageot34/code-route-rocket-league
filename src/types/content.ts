@@ -47,6 +47,9 @@ export type ErrorTag =
   | "vision_tunnel"
   | "bad_last_man_commit"
   | "forced_shot"
+  | "overcommit"
+  | "bad_spacing"
+  | "excessive_passivity"
   | "possession_given"
   | "wrong_role"
   | "poor_risk_assessment"
@@ -91,14 +94,22 @@ export type Answer = {
   error_tags: ErrorTag[];
 };
 
+export type GlossaryTerm = {
+  term: string;
+  definition: string;
+};
+
 export type Correction = {
+  expected_answer?: string;
   correct_answer_summary: string;
   what_to_observe: string;
+  what_to_observe_items?: string[];
   principle: string;
   why_tempting: string;
   risk_avoided: string;
   reflex_phrase: string;
   guide_reference: string;
+  glossary_terms?: GlossaryTerm[];
 };
 
 export type ContentQuestion = {

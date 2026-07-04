@@ -6,9 +6,12 @@ The V0 content database is local JSON. Edit `src/data/content.example.json` by h
 
 1. Add the image file in `public/captures/`, for example `public/captures/CAP-0006.jpg`.
 2. Add a capture entry with a stable `capture_id`, for example `CAP-0006`.
-3. Use `context_to_display` only when the screenshot needs extra context. It can stay empty.
-4. Keep `hidden_context` for internal notes that should not be shown to the player.
-5. Start with `validation_status: "draft"` until the capture has been reviewed.
+3. Set `image_path` to the public URL of that file, for example `/captures/CAP-0006.jpg`.
+4. Use the same `capture_id` in every question that belongs to this screenshot.
+5. The app reads the question, finds the matching capture by `capture_id`, then displays the linked `image_path`, context, answers, and correction.
+6. Use `context_to_display` only when the screenshot needs extra context. It can stay empty.
+7. Keep `hidden_context` for internal notes that should not be shown to the player.
+8. Start with `validation_status: "draft"` until the capture has been reviewed.
 
 ## Add a question
 

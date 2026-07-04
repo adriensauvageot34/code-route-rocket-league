@@ -200,7 +200,8 @@
 }
 
 .session-game .question-actions {
-  display: block;
+  display: grid;
+  gap: 7px;
 }
 
 .session-game .validate-action {
@@ -209,6 +210,49 @@
   min-height: 40px;
   margin-top: 0;
   overflow: hidden;
+}
+
+.session-feedback {
+  display: grid;
+  gap: 7px;
+}
+
+.result-pill {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 900;
+  padding: 0 10px;
+}
+
+.result-pill.correct {
+  border-color: rgba(86, 216, 138, 0.5);
+  background: rgba(86, 216, 138, 0.14);
+  color: #b7f5cb;
+}
+
+.result-pill.wrong {
+  border-color: rgba(255, 104, 104, 0.5);
+  background: rgba(255, 104, 104, 0.14);
+  color: #ffc9c9;
+}
+
+.post-answer-actions {
+  display: grid;
+  gap: 7px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.correction-action,
+.next-action {
+  width: 100%;
+  min-height: 34px;
+  font-size: 0.74rem;
+  padding: 0 8px;
 }
 
 .session-game .validate-action.submitted {
@@ -294,6 +338,143 @@
   margin-top: 16px;
 }
 
+.correction-overlay {
+  position: fixed;
+  z-index: 130;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.74);
+  backdrop-filter: blur(8px);
+  padding: 12px;
+}
+
+.correction-card {
+  width: min(780px, calc(100vw - 24px));
+  max-height: calc(100svh - 24px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid rgba(98, 130, 162, 0.42);
+  border-radius: 8px;
+  background: rgba(8, 12, 17, 0.97);
+  box-shadow: var(--hud-glow);
+}
+
+.correction-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 12px;
+}
+
+.correction-head h2 {
+  margin: 7px 0 0;
+  font-size: 1.16rem;
+}
+
+.correction-close {
+  min-height: 34px;
+  flex: 0 0 auto;
+  font-size: 0.78rem;
+  padding: 0 12px;
+}
+
+.correction-content {
+  min-height: 0;
+  display: grid;
+  gap: 10px;
+  overflow: auto;
+  padding: 12px;
+}
+
+.correction-content section,
+.glossary-definition {
+  border: 1px solid rgba(98, 130, 162, 0.25);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  padding: 10px;
+}
+
+.correction-content h3 {
+  margin: 0 0 6px;
+  color: var(--cyan);
+  font-size: 0.76rem;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.correction-content p,
+.correction-content li {
+  margin: 0;
+  color: #edf5ff;
+  font-size: 0.86rem;
+  line-height: 1.38;
+}
+
+.correction-content ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.reflex-section p {
+  color: var(--accent);
+  font-weight: 900;
+}
+
+.glossary-link {
+  display: inline;
+  border: 0;
+  background: transparent;
+  color: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+  padding: 0;
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.glossary-term-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.glossary-chip {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  border: 1px solid rgba(255, 178, 56, 0.34);
+  border-radius: 8px;
+  background: rgba(255, 178, 56, 0.08);
+  padding: 0 9px;
+  text-decoration-thickness: 1px;
+}
+
+.glossary-definition {
+  display: grid;
+  gap: 5px;
+  border-color: rgba(255, 178, 56, 0.38);
+  background: rgba(255, 178, 56, 0.1);
+}
+
+.glossary-definition strong {
+  color: var(--accent);
+}
+
+.glossary-definition span {
+  color: #fff6e4;
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
 @media (orientation: landscape) and (max-height: 560px) {
   .session-game {
     padding: 6px;
@@ -374,6 +555,50 @@
 
   .session-game .validate-action {
     min-height: 36px;
+  }
+
+  .result-pill {
+    min-height: 27px;
+    font-size: 0.68rem;
+  }
+
+  .correction-action,
+  .next-action {
+    min-height: 30px;
+    font-size: 0.66rem;
+  }
+
+  .correction-overlay {
+    padding: 8px;
+  }
+
+  .correction-card {
+    width: min(720px, calc(100vw - 16px));
+    max-height: calc(100svh - 16px);
+  }
+
+  .correction-head,
+  .correction-content {
+    padding: 8px;
+  }
+
+  .correction-content {
+    gap: 7px;
+  }
+
+  .correction-content section,
+  .glossary-definition {
+    padding: 7px;
+  }
+
+  .correction-content h3 {
+    font-size: 0.66rem;
+  }
+
+  .correction-content p,
+  .correction-content li {
+    font-size: 0.72rem;
+    line-height: 1.28;
   }
 }
 

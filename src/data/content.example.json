@@ -1,209 +1,229 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0-alpha",
   "captures": [
     {
       "capture_id": "CAP-0001",
       "image_path": "/captures/CAP-0001.jpg",
-      "title": "Second joueur en attaque",
+      "title": "Pression offensive dans le camp bleu",
       "short_label": "Soutien offensif",
       "match_mode": "ranked_2v2",
-      "team_player": "blue",
-      "score_blue": 1,
-      "score_orange": 1,
-      "time_remaining": "03:12",
-      "player_boost": 42,
-      "visible_context": "Ton coequipier conteste dans le coin adverse.",
-      "hidden_context": "Un adversaire attend une sortie forte pour contre-attaquer.",
-      "context_to_display": "Tu es deuxieme joueur. Ton coequipier vient de jouer la balle dans le coin adverse.",
-      "capture_notes": "Situation fictive pour travailler le soutien sans overcommit.",
-      "validation_status": "draft"
+      "team_player": "orange",
+      "score_blue": 0,
+      "score_orange": 0,
+      "time_remaining": "04:29",
+      "player_boost": 41,
+      "visible_context": "Tu es en attaque dans le camp bleu avec 41 boost. Ton coequipier vient de jouer la balle cote droit.",
+      "hidden_context": "Un adversaire peut encore degager fort si les deux joueurs orange s'engagent sur la meme action.",
+      "context_to_display": "Tu es en attaque dans le camp bleu. Ton coequipier vient de jouer la balle cote droit, pres de la surface adverse. Tu es derriere l'action avec 41 boost.",
+      "capture_notes": "Vraie capture alpha pour travailler le soutien offensif sans double commit.",
+      "validation_status": "validated"
     },
     {
       "capture_id": "CAP-0002",
       "image_path": "/captures/CAP-0002.jpg",
-      "title": "Dernier defenseur sous pression",
-      "short_label": "Last man",
-      "match_mode": "ranked_3v3",
-      "team_player": "blue",
-      "score_blue": 2,
-      "score_orange": 3,
-      "time_remaining": "01:08",
-      "player_boost": 18,
-      "visible_context": "Deux coequipiers sont devant toi et un adversaire controle la balle au milieu.",
-      "hidden_context": "Le tir direct est peu probable, mais une passe diagonale est ouverte.",
-      "context_to_display": "Tu es dernier joueur avec peu de boost.",
-      "capture_notes": "Situation fictive pour identifier les menaces avant de challenger.",
-      "validation_status": "draft"
-    },
-    {
-      "capture_id": "CAP-0003",
-      "image_path": "/captures/CAP-0003.jpg",
-      "title": "Sortie defensive",
-      "short_label": "Clear ou possession",
+      "title": "Dernier joueur avec beaucoup de boost",
+      "short_label": "Last man bas",
       "match_mode": "ranked_2v2",
       "team_player": "orange",
-      "score_blue": 0,
-      "score_orange": 1,
-      "time_remaining": "04:02",
-      "player_boost": 64,
-      "visible_context": "La balle descend dans ton coin et le premier adversaire recule.",
-      "hidden_context": "Ton coequipier est disponible cote mur pour recevoir une sortie controlee.",
-      "context_to_display": "",
-      "capture_notes": "Situation fictive pour classer les priorites en sortie de defense.",
-      "validation_status": "draft"
-    },
-    {
-      "capture_id": "CAP-0004",
-      "image_path": "/captures/CAP-0004.jpg",
-      "title": "Fin de match en avantage",
-      "short_label": "Gestion du risque",
-      "match_mode": "ranked_3v3",
-      "team_player": "blue",
-      "score_blue": 4,
-      "score_orange": 3,
-      "time_remaining": "00:22",
-      "player_boost": 31,
-      "visible_context": "Ton equipe mene d'un but et la balle est neutre pres de la ligne mediane.",
-      "hidden_context": "Un challenge rate ouvre un 2v1 direct pour l'equipe orange.",
-      "context_to_display": "Il reste 22 secondes et ton equipe mene d'un but.",
-      "capture_notes": "Situation fictive pour travailler le contexte score/temps.",
-      "validation_status": "draft"
-    },
-    {
-      "capture_id": "CAP-0005",
-      "image_path": "/captures/CAP-0005.jpg",
-      "title": "Lecture du gardien",
-      "short_label": "Attaque placee",
-      "match_mode": "ranked_2v2",
-      "team_player": "orange",
-      "score_blue": 2,
-      "score_orange": 2,
-      "time_remaining": "02:41",
-      "player_boost": 76,
-      "visible_context": "Tu controles la balle cote droit. Le gardien adverse attend sur la ligne.",
-      "hidden_context": "Le second adversaire revient au centre avec peu de boost.",
-      "context_to_display": "Tu as du temps pour choisir entre tir, passe ou controle.",
-      "capture_notes": "Situation fictive pour comparer les options offensives.",
-      "validation_status": "draft"
+      "score_blue": 1,
+      "score_orange": 0,
+      "time_remaining": "04:09",
+      "player_boost": 93,
+      "visible_context": "Tu es tres bas dans ton camp avec 93 boost. Ton coequipier est devant, proche de l'action au milieu du terrain.",
+      "hidden_context": "Les adversaires peuvent encore recuperer ou renvoyer la balle si l'equipe orange monte trop vite.",
+      "context_to_display": "Tu es tres bas dans ton camp avec 93 boost. Ton coequipier est devant, proche de l'action au milieu du terrain. Les adversaires peuvent encore recuperer ou renvoyer la balle.",
+      "capture_notes": "Vraie capture alpha pour travailler la lecture du role de dernier joueur.",
+      "validation_status": "validated"
     }
   ],
   "questions": [
     {
       "question_id": "CAP-0001-Q01",
       "capture_id": "CAP-0001",
-      "question_text": "Quelle decision garde la pression sans offrir un contre facile ?",
+      "question_text": "Quelle decision garde le mieux la pression sans offrir un contre facile ?",
       "answer_format": "single",
-      "time_limit_seconds": 25,
-      "pedagogical_mode": "best_option",
-      "cognitive_category_primary": "decision_choice",
+      "time_limit_seconds": 15,
+      "pedagogical_mode": "anti_reflex",
+      "cognitive_category_primary": "inhibition",
       "cognitive_category_secondary": "risk_evaluation",
-      "cognitive_subcategory": "soutien_au_deuxieme_joueur",
+      "cognitive_subcategory": "ne_pas_double_commit",
       "rl_category_primary": "team_rotation",
       "rl_category_secondary": "off_ball_offense",
-      "rl_subcategory": "second_man_spacing",
+      "rl_subcategory": "couverture",
       "frequency_weight": 1,
-      "validation_status": "draft",
+      "validation_status": "validated",
       "is_active": true,
       "answers": [
-        { "answer_id": "CAP-0001-Q01-A", "text": "Avancer plein axe pour tenter une frappe immediate.", "display_order": 1, "is_correct": false, "ranking_position": null, "feedback": "Tu fermes ton angle de repli et tu rends le contre plus dangereux.", "error_tags": ["double_commit", "bad_timing", "excessive_aggression"] },
-        { "answer_id": "CAP-0001-Q01-B", "text": "Rester en soutien a distance, pret a couvrir la sortie de balle.", "display_order": 2, "is_correct": true, "ranking_position": null, "feedback": "Tu gardes la pression tout en respectant ton role de securite.", "error_tags": [] },
-        { "answer_id": "CAP-0001-Q01-C", "text": "Quitter l'action pour prendre le gros boost arriere.", "display_order": 3, "is_correct": false, "ranking_position": null, "feedback": "Le boost aide, mais abandonner trop tot rend la pression gratuite pour l'adversaire.", "error_tags": ["boost_over_ball", "too_passive"] }
+        {
+          "answer_id": "CAP-0001-Q01-A",
+          "text": "Avancer plein axe pour tenter une frappe immediate.",
+          "display_order": 1,
+          "is_correct": false,
+          "ranking_position": null,
+          "feedback": "Mauvaise reponse. La frappe immediate est trop forcee : le ballon n'est pas clairement libre et ton coequipier est deja implique dans l'action.",
+          "error_tags": ["forced_shot", "overcommit"]
+        },
+        {
+          "answer_id": "CAP-0001-Q01-B",
+          "text": "Rester en soutien a distance, pret a couvrir la sortie de balle.",
+          "display_order": 2,
+          "is_correct": true,
+          "ranking_position": null,
+          "feedback": "Bonne reponse. Tu restes deuxieme homme, tu gardes la pression et tu peux reagir si le ballon sort au centre ou si l'adversaire clear.",
+          "error_tags": []
+        },
+        {
+          "answer_id": "CAP-0001-Q01-C",
+          "text": "Quitter l'action pour prendre le gros boost arriere.",
+          "display_order": 3,
+          "is_correct": false,
+          "ranking_position": null,
+          "feedback": "Mauvaise reponse. Partir chercher le gros boost abandonne la pression alors que l'action est encore devant toi.",
+          "error_tags": ["boost_over_ball", "too_passive"]
+        },
+        {
+          "answer_id": "CAP-0001-Q01-D",
+          "text": "Rejoindre ton coequipier cote droit pour continuer sur la meme balle.",
+          "display_order": 4,
+          "is_correct": false,
+          "ranking_position": null,
+          "feedback": "Mauvaise reponse. Rejoindre ton coequipier sur le meme cote augmente le risque de double commit et laisse le centre moins couvert.",
+          "error_tags": ["double_commit", "overcommit", "bad_spacing"]
+        }
       ],
-      "correction": { "correct_answer_summary": "Rester en soutien controle est la meilleure option.", "what_to_observe": "La position du coequipier, la trajectoire possible de la balle et l'adversaire pret a sortir.", "principle": "Le deuxieme joueur doit soutenir sans transformer l'attaque en double commit.", "why_tempting": "La balle semble proche du but, donc le tir immediat donne envie.", "risk_avoided": "Eviter un contre direct si le duel dans le coin est perdu.", "reflex_phrase": "Je soutiens d'abord, je frappe seulement si la sortie est propre.", "guide_reference": "rotation.second_man_spacing" }
+      "correction": {
+        "expected_answer": "B. Rester en soutien a distance, pret a couvrir la sortie de balle.",
+        "correct_answer_summary": "La bonne decision est de rester en soutien a distance.",
+        "what_to_observe": "Ton coequipier est deja engage pres du ballon, tu es derriere l'action, tu as assez de boost pour intervenir ensuite, le ballon n'est pas encore une balle gratuite et un adversaire peut encore degager.",
+        "what_to_observe_items": [
+          "Ton coequipier est deja engage pres du ballon.",
+          "Tu es derriere l'action.",
+          "Tu as assez de boost pour intervenir ensuite.",
+          "Le ballon n'est pas encore une balle gratuite.",
+          "Un adversaire peut encore degager."
+        ],
+        "principle": "Quand mon coequipier joue deja la balle, je ne vais pas sur la meme balle. Je couvre la sortie de l'action.",
+        "why_tempting": "Le ballon est proche du but adverse, donc on peut avoir envie d'avancer pour tirer ou finir l'action rapidement.",
+        "risk_avoided": "Si tu avances trop ou si tu rejoins ton coequipier cote droit, un simple clear peut eliminer les deux joueurs orange et creer un contre facile.",
+        "reflex_phrase": "Mon mate joue, je couvre.",
+        "guide_reference": "rotation.couverture_deuxieme_homme",
+        "glossary_terms": [
+          {
+            "term": "deuxieme homme",
+            "definition": "Joueur place derriere le premier joueur engage. Son role est de soutenir l'action sans abandonner la couverture."
+          },
+          {
+            "term": "clear",
+            "definition": "Degagement defensif qui envoie la balle loin de la zone dangereuse."
+          },
+          {
+            "term": "double commit",
+            "definition": "Situation ou deux joueurs de la meme equipe vont sur la meme balle, ce qui laisse souvent une zone importante sans couverture."
+          },
+          {
+            "term": "balle gratuite",
+            "definition": "Balle que tu peux recuperer sans pression immediate de l'adversaire."
+          },
+          {
+            "term": "boost",
+            "definition": "Ressource utilisee pour accelerer, voler ou recuperer plus vite. Avoir du boost ne donne pas automatiquement la priorite sur la balle."
+          }
+        ]
+      }
     },
     {
       "question_id": "CAP-0002-Q01",
       "capture_id": "CAP-0002",
-      "question_text": "Quels elements dois-tu observer avant de challenger en dernier defenseur ?",
-      "answer_format": "multiple",
-      "time_limit_seconds": 35,
-      "pedagogical_mode": "multiple_answers",
-      "cognitive_category_primary": "observation",
-      "cognitive_category_secondary": "role_identification",
-      "cognitive_subcategory": "last_man_scan",
-      "rl_category_primary": "defense",
-      "rl_category_secondary": "player_reading",
-      "rl_subcategory": "last_defender_decision",
-      "frequency_weight": 1,
-      "validation_status": "draft",
-      "is_active": true,
-      "answers": [
-        { "answer_id": "CAP-0002-Q01-A", "text": "La position de tes deux coequipiers devant toi.", "display_order": 1, "is_correct": true, "ranking_position": null, "feedback": "C'est essentiel pour savoir si tu es vraiment dernier joueur.", "error_tags": [] },
-        { "answer_id": "CAP-0002-Q01-B", "text": "L'angle de controle du porteur de balle adverse.", "display_order": 2, "is_correct": true, "ranking_position": null, "feedback": "L'angle indique s'il menace un tir, une passe ou un 50.", "error_tags": [] },
-        { "answer_id": "CAP-0002-Q01-C", "text": "Le gros boost le plus proche, meme s'il t'eloigne du but.", "display_order": 3, "is_correct": false, "ranking_position": null, "feedback": "Le boost ne doit pas passer avant la menace immediate.", "error_tags": ["boost_over_ball", "missed_threat"] },
-        { "answer_id": "CAP-0002-Q01-D", "text": "La ligne de passe diagonale vers le second adversaire.", "display_order": 4, "is_correct": true, "ranking_position": null, "feedback": "Une passe ouverte peut etre plus dangereuse qu'un tir direct.", "error_tags": [] }
-      ],
-      "correction": { "correct_answer_summary": "Observer les coequipiers, le controle adverse et la ligne de passe.", "what_to_observe": "Role defensif, angle du porteur et position du second adversaire.", "principle": "Le dernier defenseur defend la menace la plus dangereuse, pas seulement la balle.", "why_tempting": "Challenger vite donne l'impression de reprendre le controle.", "risk_avoided": "Eviter un bad last man commit qui donne un but ouvert.", "reflex_phrase": "Dernier joueur : je scanne avant de partir.", "guide_reference": "defense.last_man_scan" }
-    },
-    {
-      "question_id": "CAP-0003-Q01",
-      "capture_id": "CAP-0003",
-      "question_text": "Classe ces decisions de la meilleure a la moins bonne pour sortir de defense.",
-      "answer_format": "ranking",
-      "time_limit_seconds": 45,
-      "pedagogical_mode": "justification",
-      "cognitive_category_primary": "prioritization",
-      "cognitive_category_secondary": "situation_understanding",
-      "cognitive_subcategory": "defensive_exit_order",
-      "rl_category_primary": "defensive_exit",
-      "rl_category_secondary": "possession",
-      "rl_subcategory": "controlled_clear",
-      "frequency_weight": 1,
-      "validation_status": "draft",
-      "is_active": true,
-      "answers": [
-        { "answer_id": "CAP-0003-Q01-A", "text": "Controler vers le mur pour trouver ton coequipier disponible.", "display_order": 1, "is_correct": true, "ranking_position": 1, "feedback": "Meilleure option : elle garde la possession et sort la pression.", "error_tags": [] },
-        { "answer_id": "CAP-0003-Q01-B", "text": "Degager fort si le controle devient risque.", "display_order": 2, "is_correct": true, "ranking_position": 2, "feedback": "Option acceptable si le controle n'est plus possible.", "error_tags": [] },
-        { "answer_id": "CAP-0003-Q01-C", "text": "Tirer directement depuis ton coin vers le but adverse.", "display_order": 3, "is_correct": true, "ranking_position": 3, "feedback": "Option faible : elle rend souvent la possession.", "error_tags": ["possession_given", "forced_shot"] }
-      ],
-      "correction": { "correct_answer_summary": "Priorite au controle, puis au clear securise, puis au tir force en dernier.", "what_to_observe": "Temps disponible, position du coequipier et pression adverse.", "principle": "Une sortie defensive utile transforme la defense en possession.", "why_tempting": "Le tir long semble rassurant car il eloigne la balle.", "risk_avoided": "Eviter de rendre la balle sans que ton equipe puisse remonter.", "reflex_phrase": "Si j'ai du temps, je sors avec intention.", "guide_reference": "defensive_exit.controlled_clear" }
-    },
-    {
-      "question_id": "CAP-0004-Q01",
-      "capture_id": "CAP-0004",
-      "question_text": "Avec un but d'avance et 22 secondes restantes, quelle erreur dois-tu eviter ?",
+      "question_text": "Quelle est la meilleure lecture de ton role dans cette situation ?",
       "answer_format": "single",
-      "time_limit_seconds": 25,
-      "pedagogical_mode": "anti_reflex",
-      "cognitive_category_primary": "inhibition",
-      "cognitive_category_secondary": "risk_evaluation",
-      "cognitive_subcategory": "late_game_restraint",
-      "rl_category_primary": "score_time_context",
-      "rl_category_secondary": "challenges_duels",
-      "rl_subcategory": "low_value_challenge",
-      "frequency_weight": 0.9,
-      "validation_status": "draft",
+      "time_limit_seconds": 15,
+      "pedagogical_mode": "best_option",
+      "cognitive_category_primary": "prioritization",
+      "cognitive_category_secondary": "role_identification",
+      "cognitive_subcategory": "securite_ou_pression",
+      "rl_category_primary": "defense",
+      "rl_category_secondary": "team_rotation",
+      "rl_subcategory": "last_man",
+      "frequency_weight": 1,
+      "validation_status": "validated",
       "is_active": true,
       "answers": [
-        { "answer_id": "CAP-0004-Q01-A", "text": "Forcer un challenge central sans couverture.", "display_order": 1, "is_correct": true, "ranking_position": null, "feedback": "C'est l'erreur principale : le risque est trop grand pour le gain potentiel.", "error_tags": ["poor_risk_assessment", "bad_last_man_commit"] },
-        { "answer_id": "CAP-0004-Q01-B", "text": "Ralentir le jeu et forcer l'adversaire a faire le premier geste.", "display_order": 2, "is_correct": false, "ranking_position": null, "feedback": "C'est souvent correct quand ton equipe mene en fin de match.", "error_tags": [] },
-        { "answer_id": "CAP-0004-Q01-C", "text": "Garder une position qui coupe le tir direct.", "display_order": 3, "is_correct": false, "ranking_position": null, "feedback": "C'est une bonne priorite defensive.", "error_tags": [] }
+        {
+          "answer_id": "CAP-0002-Q01-A",
+          "text": "Tu dois rester colle a ta ligne de but, car tu es le dernier defenseur.",
+          "display_order": 1,
+          "is_correct": false,
+          "ranking_position": null,
+          "feedback": "Mauvaise reponse. Rester trop bas protege le but, mais abandonne trop de terrain et rend difficile le soutien de ton coequipier.",
+          "error_tags": ["excessive_passivity", "too_passive"]
+        },
+        {
+          "answer_id": "CAP-0002-Q01-B",
+          "text": "Tu dois avancer progressivement pour reduire l'espace, tout en restant capable de defendre.",
+          "display_order": 2,
+          "is_correct": true,
+          "ranking_position": null,
+          "feedback": "Bonne reponse. Tu es dernier homme, mais tu as beaucoup de boost. Tu peux avancer progressivement pour soutenir l'action tout en gardant une position defensive sure.",
+          "error_tags": []
+        },
+        {
+          "answer_id": "CAP-0002-Q01-C",
+          "text": "Tu dois partir directement au corner boost, car tu es loin de l'action.",
+          "display_order": 3,
+          "is_correct": false,
+          "ranking_position": null,
+          "feedback": "Mauvaise reponse. Tu as deja 93 boost. Chercher un autre gros boost n'apporte presque rien et peut te sortir de la bonne position.",
+          "error_tags": ["boost_over_ball", "bad_spacing"]
+        },
+        {
+          "answer_id": "CAP-0002-Q01-D",
+          "text": "Tu dois foncer au milieu pour rejoindre immediatement ton coequipier.",
+          "display_order": 4,
+          "is_correct": false,
+          "ranking_position": null,
+          "feedback": "Mauvaise reponse. Foncer au milieu reduit trop vite la couverture et peut te faire depasser si la balle revient fort vers ton camp.",
+          "error_tags": ["overcommit", "bad_spacing"]
+        }
       ],
-      "correction": { "correct_answer_summary": "Eviter le challenge central sans couverture.", "what_to_observe": "Score, temps restant, couverture et valeur reelle du challenge.", "principle": "En fin de match, une action moyenne peut etre mauvaise si elle ouvre un but gratuit.", "why_tempting": "Gagner le duel semble pouvoir tuer le match.", "risk_avoided": "Eviter un 2v1 ou un tir ouvert dans les dernieres secondes.", "reflex_phrase": "Je protege le resultat avant de chercher le highlight.", "guide_reference": "score_time_context.late_game_restraint" }
-    },
-    {
-      "question_id": "CAP-0005-Q01",
-      "capture_id": "CAP-0005",
-      "question_text": "Quelles options sont raisonnables si le gardien attend sur sa ligne ?",
-      "answer_format": "multiple",
-      "time_limit_seconds": 35,
-      "pedagogical_mode": "prediction",
-      "cognitive_category_primary": "comparison",
-      "cognitive_category_secondary": "anticipation",
-      "cognitive_subcategory": "offensive_option_selection",
-      "rl_category_primary": "offensive_creation",
-      "rl_category_secondary": "finishing",
-      "rl_subcategory": "goalkeeper_read",
-      "frequency_weight": 0.85,
-      "validation_status": "draft",
-      "is_active": true,
-      "answers": [
-        { "answer_id": "CAP-0005-Q01-A", "text": "Changer le rythme avec un controle supplementaire.", "display_order": 1, "is_correct": true, "ranking_position": null, "feedback": "Le changement de rythme force le gardien a se reveler.", "error_tags": [] },
-        { "answer_id": "CAP-0005-Q01-B", "text": "Chercher une passe si ton coequipier arrive dans l'axe.", "display_order": 2, "is_correct": true, "ranking_position": null, "feedback": "La passe devient forte si elle bat le gardien fixe.", "error_tags": [] },
-        { "answer_id": "CAP-0005-Q01-C", "text": "Tirer fort sans regarder la position du gardien.", "display_order": 3, "is_correct": false, "ranking_position": null, "feedback": "Un tir automatique est souvent lu et bloque.", "error_tags": ["vision_tunnel", "forced_shot"] },
-        { "answer_id": "CAP-0005-Q01-D", "text": "Continuer a porter la balle si le second adversaire est encore loin.", "display_order": 4, "is_correct": true, "ranking_position": null, "feedback": "Garder la possession est pertinent tant que la pression n'arrive pas.", "error_tags": [] }
-      ],
-      "correction": { "correct_answer_summary": "Controle, passe ou possession prolongee peuvent etre corrects; le tir automatique est le piege.", "what_to_observe": "Gardien fixe, soutien du coequipier et retour du second adversaire.", "principle": "En attaque placee, la meilleure option depend de la lecture du defenseur.", "why_tempting": "Le tir fort donne une sensation de decision claire.", "risk_avoided": "Eviter de donner une possession facile au gardien.", "reflex_phrase": "Je lis le gardien avant de choisir la finition.", "guide_reference": "offensive_creation.goalkeeper_read" }
+      "correction": {
+        "expected_answer": "B. Tu dois avancer progressivement pour reduire l'espace, tout en restant capable de defendre.",
+        "correct_answer_summary": "La bonne decision est d'avancer progressivement, sans te jeter.",
+        "what_to_observe": "Tu es tres eloigne de ton coequipier, tu as 93 boost, ton coequipier peut encore perdre le duel, l'action n'est pas totalement securisee et tu dois rester capable d'avancer vers le ballon plutot que de reculer en urgence.",
+        "what_to_observe_items": [
+          "Tu es tres eloigne de ton coequipier.",
+          "Tu as 93 boost, donc tu n'as pas besoin de chercher un gros boost.",
+          "Ton coequipier est devant et peut encore perdre le duel.",
+          "L'action n'est pas totalement securisee.",
+          "Tu dois rester capable d'avancer vers le ballon plutot que de reculer en urgence."
+        ],
+        "principle": "Etre dernier homme ne veut pas dire rester colle a son but. Il faut couvrir le danger tout en restant assez proche pour soutenir l'action.",
+        "why_tempting": "Comme tu es dernier defenseur, tu peux avoir peur d'avancer et preferer rester tres bas. Mais trop reculer donne beaucoup d'espace aux adversaires.",
+        "risk_avoided": "En avancant progressivement, tu evites deux extremes : etre trop passif au fond du terrain ou overcommit en rejoignant ton coequipier trop vite.",
+        "reflex_phrase": "Je couvre, mais je ne disparais pas de l'action.",
+        "guide_reference": "defense.last_man_progressif",
+        "glossary_terms": [
+          {
+            "term": "last man",
+            "definition": "Dernier joueur entre les adversaires et ton but. Son role principal est d'eviter qu'une erreur donne un but gratuit."
+          },
+          {
+            "term": "duel",
+            "definition": "Situation ou deux joueurs contestent directement la balle ou se disputent la prochaine touche."
+          },
+          {
+            "term": "overcommit",
+            "definition": "Engagement trop risque qui te sort de l'action et laisse ton equipe vulnerable si tu rates."
+          },
+          {
+            "term": "gros boost",
+            "definition": "Pastille de 100 boost situee dans les coins ou sur les cotes. Elle est utile, mais ne doit pas etre prioritaire si tu as deja beaucoup de boost ou si l'action est dangereuse."
+          },
+          {
+            "term": "couverture",
+            "definition": "Position qui permet de proteger ton equipe si l'action devant toi echoue."
+          }
+        ]
+      }
     }
   ]
 }
