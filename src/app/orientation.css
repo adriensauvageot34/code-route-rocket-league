@@ -1,0 +1,104 @@
+.orientation-gate {
+  display: none;
+}
+
+.orientation-card {
+  display: grid;
+  width: min(390px, calc(100vw - 32px));
+  place-items: center;
+  gap: 18px;
+  border: 1px solid rgba(255, 178, 56, 0.34);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(18, 29, 39, 0.96), rgba(6, 9, 13, 0.96)),
+    var(--hud-panel-strong);
+  box-shadow: 0 24px 90px rgba(0, 0, 0, 0.66);
+  padding: 24px;
+  text-align: center;
+}
+
+.orientation-phone {
+  position: relative;
+  width: 82px;
+  height: 132px;
+  border: 3px solid rgba(255, 255, 255, 0.58);
+  border-radius: 16px;
+  transform: rotate(90deg);
+}
+
+.orientation-phone::before,
+.orientation-phone::after {
+  position: absolute;
+  content: "";
+}
+
+.orientation-phone::before {
+  top: 10px;
+  left: 50%;
+  width: 22px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.42);
+  transform: translateX(-50%);
+}
+
+.orientation-phone::after {
+  right: -19px;
+  bottom: 18px;
+  width: 22px;
+  height: 22px;
+  border-top: 3px solid var(--accent);
+  border-right: 3px solid var(--accent);
+  transform: rotate(45deg);
+}
+
+.orientation-phone span {
+  position: absolute;
+  inset: 14px 10px;
+  border-radius: 8px;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(135deg, rgba(255, 178, 56, 0.2), rgba(69, 215, 255, 0.14));
+  background-size:
+    18px 18px,
+    18px 18px,
+    auto;
+}
+
+.orientation-copy h2 {
+  margin-bottom: 8px;
+  font-size: 1.45rem;
+}
+
+.orientation-copy p,
+.orientation-hint {
+  margin-bottom: 0;
+  color: #dbe6f0;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.orientation-action {
+  width: 100%;
+  margin-top: 0;
+}
+
+.orientation-hint {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+@media (orientation: portrait) and (max-width: 920px) {
+  .orientation-gate {
+    position: fixed;
+    z-index: 100;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background:
+      radial-gradient(circle at 50% 16%, rgba(69, 215, 255, 0.14), transparent 16rem),
+      linear-gradient(180deg, rgba(3, 6, 10, 0.98), rgba(8, 12, 17, 0.98));
+    padding: 16px;
+  }
+}
