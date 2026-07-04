@@ -26,7 +26,7 @@ export default function SessionPage() {
   }
 
   return (
-    <AppFrame>
+    <AppFrame variant="game">
       <QuestionScreen
         capture={capture}
         imageExists={imageExists}

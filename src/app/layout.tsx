@@ -4,6 +4,7 @@ import "./question.css";
 import "./landscape.css";
 import "./orientation.css";
 import "./fullscreen-capture.css";
+import "./game-session.css";
 
 export const metadata: Metadata = {
   applicationName: "Code RL",
