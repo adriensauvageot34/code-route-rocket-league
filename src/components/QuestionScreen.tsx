@@ -4,9 +4,15 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent, PointerEvent } from "react";
 import { AnswerOption } from "@/components/AnswerOption";
+import { GlossaryText } from "@/components/GlossaryText";
+import {
+  getAnswerVisualState,
+  getGlobalAnswerState,
+  type GlobalAnswerState
+} from "@/lib/session/answer-evaluation";
 import type { Capture, ContentQuestion, GlossaryTerm } from "@/types/content";
 
 type QuestionScreenProps = {
@@ -20,7 +26,7 @@ type QuestionScreenProps = {
   onNextQuestion: () => void;
 };
 
-type PrimaryActionState = "validate" | "timing" | "correction" | "next";
+type PrimaryActionState = "validate" | "result" | "actions";
 
 const timeLimitSeconds = 15;
 
@@ -35,13 +41,14 @@ export function QuestionScreen({
   onNextQuestion
 }: QuestionScreenProps) {
   const router = useRouter();
+  const activeStartMsRef = useRef<number | null>(null);
+  const elapsedBeforePauseMsRef = useRef(0);
   const [selectedAnswerIds, setSelectedAnswerIds] = useState<string[]>([]);
   const [imageAvailable, setImageAvailable] = useState(imageExists);
   const [isImageExpanded, setIsImageExpanded] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isCorrectionOpen, setIsCorrectionOpen] = useState(false);
-  const [activeGlossaryTerm, setActiveGlossaryTerm] = useState<GlossaryTerm | null>(null);
   const [remainingSeconds, setRemainingSeconds] = useState(timeLimitSeconds);
   const [responseTimeSeconds, setResponseTimeSeconds] = useState<number | null>(null);
   const [primaryActionState, setPrimaryActionState] = useState<PrimaryActionState>("validate");
@@ -50,39 +57,30 @@ export function QuestionScreen({
     return new Map(selectedAnswerIds.map((answerId, index) => [answerId, index + 1]));
   }, [selectedAnswerIds]);
 
-  const isAnswerCorrect = useMemo(() => {
-    if (question.answer_format === "ranking") {
-      return (
-        selectedAnswerIds.length === question.correct_ranking.length &&
-        selectedAnswerIds.every((answerId, index) => question.correct_ranking[index] === answerId)
-      );
+  const globalAnswerState = useMemo<GlobalAnswerState>(() => {
+    if (selectedAnswerIds.length === 0) {
+      return "wrong";
     }
 
-    return (
-      selectedAnswerIds.length === question.correct_answer_ids.length &&
-      question.correct_answer_ids.every((answerId) => selectedAnswerIds.includes(answerId))
-    );
-  }, [question.answer_format, question.correct_answer_ids, question.correct_ranking, selectedAnswerIds]);
+    return getGlobalAnswerState(question, selectedAnswerIds);
+  }, [question, selectedAnswerIds]);
 
   const responseTimeLabel =
-    responseTimeSeconds === null
-      ? ""
-      : `${responseTimeSeconds} ${responseTimeSeconds > 1 ? "secondes" : "seconde"}`;
-
-  const primaryActionLabel = getPrimaryActionLabel(
-    primaryActionState,
-    responseTimeLabel,
-    hasNextQuestion
-  );
+    responseTimeSeconds === null ? "" : `${formatResponseTime(responseTimeSeconds)} s`;
+  const resultLabel = getResultLabel(globalAnswerState);
   const validateActionClassName = [
     "primary-action",
     "validate-action",
     `phase-${primaryActionState}`,
     isSubmitted ? "submitted" : "",
-    isSubmitted ? (isAnswerCorrect ? "correct" : "wrong") : ""
+    isSubmitted ? globalAnswerState : ""
   ]
     .filter(Boolean)
     .join(" ");
+
+  useEffect(() => {
+    activeStartMsRef.current = Date.now();
+  }, []);
 
   useEffect(() => {
     if (isPaused || isSubmitted || remainingSeconds <= 0) {
@@ -97,16 +95,30 @@ export function QuestionScreen({
   }, [isPaused, isSubmitted, remainingSeconds]);
 
   useEffect(() => {
-    if (primaryActionState !== "timing") {
+    if (primaryActionState !== "result") {
       return;
     }
 
     const revealActionId = window.setTimeout(() => {
-      setPrimaryActionState("correction");
-    }, 1500);
+      setPrimaryActionState("actions");
+    }, 2000);
 
     return () => window.clearTimeout(revealActionId);
   }, [primaryActionState]);
+
+  function pauseSession() {
+    if (isPaused || isSubmitted) {
+      return;
+    }
+
+    elapsedBeforePauseMsRef.current += Date.now() - (activeStartMsRef.current ?? Date.now());
+    setIsPaused(true);
+  }
+
+  function resumeSession() {
+    activeStartMsRef.current = Date.now();
+    setIsPaused(false);
+  }
 
   function expandImage(event: PointerEvent<HTMLDivElement>) {
     event.preventDefault();
@@ -158,15 +170,16 @@ export function QuestionScreen({
       return;
     }
 
-    setResponseTimeSeconds(Math.max(0, timeLimitSeconds - remainingSeconds));
+    const activeMs = isPaused ? 0 : Date.now() - (activeStartMsRef.current ?? Date.now());
+    const elapsedMs = elapsedBeforePauseMsRef.current + activeMs;
+
+    setResponseTimeSeconds(Math.max(0, Math.round(elapsedMs / 100) / 10));
     setIsSubmitted(true);
-    setPrimaryActionState("timing");
+    setPrimaryActionState("result");
   }
 
   function openCorrection() {
     setIsCorrectionOpen(true);
-    setActiveGlossaryTerm(null);
-    setPrimaryActionState("next");
   }
 
   function goToNextStep() {
@@ -176,22 +189,6 @@ export function QuestionScreen({
     }
 
     router.push("/");
-  }
-
-  function handlePrimaryAction() {
-    if (primaryActionState === "validate") {
-      submitAnswer();
-      return;
-    }
-
-    if (primaryActionState === "correction") {
-      openCorrection();
-      return;
-    }
-
-    if (primaryActionState === "next") {
-      goToNextStep();
-    }
   }
 
   return (
@@ -215,18 +212,17 @@ export function QuestionScreen({
             role="button"
             tabIndex={0}
           >
-            <div className="game-hud" aria-label="Informations de session">
-              <span className="progress-chip">
-                {questionIndex + 1}/{totalQuestions}
-              </span>
-              <span className="timer-chip" aria-label="Temps restant">
-                {remainingSeconds}s
-              </span>
+            <div className={`game-hud team-${capture.player_team}`} aria-label="Informations de session">
+              <div className="score-hud" aria-label="Question, temps restant et total">
+                <span className="score-hud-cell">{questionIndex + 1}</span>
+                <span className="score-hud-timer">{remainingSeconds}s</span>
+                <span className="score-hud-cell">{totalQuestions}</span>
+              </div>
               <button
                 className="pause-button"
                 onClick={(event) => {
                   event.stopPropagation();
-                  setIsPaused(true);
+                  pauseSession();
                 }}
                 onPointerDown={(event) => event.stopPropagation()}
                 onPointerUp={(event) => event.stopPropagation()}
@@ -258,13 +254,16 @@ export function QuestionScreen({
 
         <div className="question-card">
           <div className="question-copy">
-            <h2>{question.question_text}</h2>
+            <h2>
+              <GlossaryText terms={glossaryTerms} text={question.question_text} />
+            </h2>
           </div>
 
           <div className="answers-list" aria-label="Reponses possibles">
             {question.answers.map((answer, answerIndex) => (
               <AnswerOption
                 answer={answer}
+                glossaryTerms={glossaryTerms}
                 isDisabled={isSubmitted}
                 isSelected={selectedAnswerIds.includes(answer.answer_id)}
                 key={answer.answer_id}
@@ -275,20 +274,38 @@ export function QuestionScreen({
                     ? selectedRankByAnswerId.get(answer.answer_id)
                     : undefined
                 }
+                visualState={getAnswerVisualState(question, selectedAnswerIds, answer.answer_id, isSubmitted)}
               />
             ))}
           </div>
 
           <div className="question-actions">
-            <button
-              aria-live="polite"
-              className={validateActionClassName}
-              disabled={primaryActionState === "validate" && selectedAnswerIds.length === 0}
-              onClick={handlePrimaryAction}
-              type="button"
-            >
-              <span className="validate-label">{primaryActionLabel}</span>
-            </button>
+            {primaryActionState === "actions" ? (
+              <div className="post-result-actions" aria-label="Actions apres validation">
+                <button className="secondary-action result-action" onClick={openCorrection} type="button">
+                  Correction
+                </button>
+                <button className="primary-action result-action" onClick={goToNextStep} type="button">
+                  {hasNextQuestion ? "Suivant" : "Menu"}
+                </button>
+              </div>
+            ) : (
+              <button
+                aria-live="polite"
+                className={validateActionClassName}
+                disabled={
+                  (primaryActionState === "validate" && selectedAnswerIds.length === 0) ||
+                  primaryActionState === "result"
+                }
+                onClick={submitAnswer}
+                type="button"
+              >
+                <span className="validate-label">
+                  {isSubmitted ? resultLabel : "Valider"}
+                  {isSubmitted && responseTimeLabel ? <small>{responseTimeLabel}</small> : null}
+                </span>
+              </button>
+            )}
           </div>
         </div>
       </section>
@@ -313,61 +330,38 @@ export function QuestionScreen({
             </div>
 
             <div className="correction-content">
-              <CorrectionSection label="Bonne reponse attendue" text={question.correction.expected_answer} />
+              <CorrectionSection
+                label="Bonne reponse attendue"
+                terms={glossaryTerms}
+                text={question.correction.expected_answer}
+              />
               <CorrectionSection
                 label="Ce qu'il fallait observer"
-                onTermSelect={setActiveGlossaryTerm}
                 terms={glossaryTerms}
                 text={question.correction.what_to_observe}
               />
               <CorrectionSection
                 label="Principe a retenir"
-                onTermSelect={setActiveGlossaryTerm}
                 terms={glossaryTerms}
                 text={question.correction.principle}
               />
               <CorrectionSection
                 label="Pourquoi l'erreur etait tentante"
-                onTermSelect={setActiveGlossaryTerm}
                 terms={glossaryTerms}
                 text={question.correction.why_tempting}
               />
               <CorrectionSection
                 label="Risque evite"
-                onTermSelect={setActiveGlossaryTerm}
                 terms={glossaryTerms}
                 text={question.correction.risk_avoided}
               />
 
               <section className="reflex-section">
                 <h3>Phrase reflexe</h3>
-                <p>{question.correction.reflex_phrase}</p>
+                <p>
+                  <GlossaryText terms={glossaryTerms} text={question.correction.reflex_phrase} />
+                </p>
               </section>
-
-              {glossaryTerms.length > 0 ? (
-                <section>
-                  <h3>Mots techniques</h3>
-                  <div className="glossary-term-list">
-                    {glossaryTerms.map((term) => (
-                      <button
-                        className="glossary-link glossary-chip"
-                        key={term.term_id}
-                        onClick={() => setActiveGlossaryTerm(term)}
-                        type="button"
-                      >
-                        {term.term}
-                      </button>
-                    ))}
-                  </div>
-                </section>
-              ) : null}
-
-              {activeGlossaryTerm ? (
-                <aside className="glossary-definition" aria-live="polite">
-                  <strong>{activeGlossaryTerm.term}</strong>
-                  <span>{activeGlossaryTerm.definition}</span>
-                </aside>
-              ) : null}
             </div>
           </div>
         </div>
@@ -380,7 +374,7 @@ export function QuestionScreen({
             <h2>Session en pause</h2>
             <p>Le chrono est arrete. Reprends quand tu es pret.</p>
             <div className="pause-actions">
-              <button className="primary-action" onClick={() => setIsPaused(false)} type="button">
+              <button className="primary-action" onClick={resumeSession} type="button">
                 Reprendre
               </button>
               <Link className="secondary-action" href="/">
@@ -420,24 +414,20 @@ export function QuestionScreen({
   );
 }
 
-function getPrimaryActionLabel(
-  state: PrimaryActionState,
-  responseTimeLabel: string,
-  hasNextQuestion: boolean
-) {
-  if (state === "timing") {
-    return responseTimeLabel;
+function getResultLabel(state: GlobalAnswerState) {
+  if (state === "correct") {
+    return "Bonne reponse";
   }
 
-  if (state === "correction") {
-    return "Voir la correction";
+  if (state === "partial") {
+    return "Reponse partielle";
   }
 
-  if (state === "next") {
-    return hasNextQuestion ? "Question suivante" : "Menu principal";
-  }
+  return "Mauvaise reponse";
+}
 
-  return "Valider";
+function formatResponseTime(value: number) {
+  return value.toFixed(1).replace(".", ",");
 }
 
 function CaptureFallback({ label }: { label: string }) {
@@ -458,72 +448,19 @@ function CaptureFallback({ label }: { label: string }) {
 
 function CorrectionSection({
   label,
-  onTermSelect,
   terms,
   text
 }: {
   label: string;
-  onTermSelect?: (term: GlossaryTerm) => void;
-  terms?: GlossaryTerm[];
+  terms: GlossaryTerm[];
   text: string;
 }) {
   return (
     <section>
       <h3>{label}</h3>
       <p>
-        <GlossaryText
-          onTermSelect={onTermSelect ?? (() => undefined)}
-          terms={terms ?? []}
-          text={text}
-        />
+        <GlossaryText terms={terms} text={text} />
       </p>
     </section>
   );
-}
-
-function GlossaryText({
-  onTermSelect,
-  terms,
-  text
-}: {
-  onTermSelect: (term: GlossaryTerm) => void;
-  terms: GlossaryTerm[];
-  text: string;
-}) {
-  if (terms.length === 0) {
-    return text;
-  }
-
-  const orderedTerms = [...terms].sort((first, second) => second.term.length - first.term.length);
-  const matcher = new RegExp(`(${orderedTerms.map((term) => escapeRegExp(term.term)).join("|")})`, "gi");
-  const parts = text.split(matcher);
-
-  return (
-    <>
-      {parts.map((part, index) => {
-        const matchingTerm = orderedTerms.find(
-          (term) => term.term.toLowerCase() === part.toLowerCase()
-        );
-
-        if (!matchingTerm) {
-          return <span key={`${part}-${index}`}>{part}</span>;
-        }
-
-        return (
-          <button
-            className="glossary-link"
-            key={`${matchingTerm.term}-${index}`}
-            onClick={() => onTermSelect(matchingTerm)}
-            type="button"
-          >
-            {part}
-          </button>
-        );
-      })}
-    </>
-  );
-}
-
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
