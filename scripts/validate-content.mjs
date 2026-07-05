@@ -3,6 +3,7 @@ import { join } from "node:path";
 
 const CONTENT_PATH = join(process.cwd(), "src", "data", "content.json");
 const VALID_ANSWER_FORMATS = new Set(["single", "multiple", "ranking"]);
+const VALID_PLAYER_TEAMS = new Set(["orange", "blue"]);
 const REQUIRED_CORRECTION_FIELDS = [
   "expected_answer",
   "what_to_observe",
@@ -70,6 +71,11 @@ for (const capture of captures) {
   const id = capture.capture_id ?? "(sans capture_id)";
   requireString(capture.capture_id, "Capture", id, "capture_id");
   requireString(capture.image_path, "Capture", id, "image_path");
+  requireString(capture.player_team, "Capture", id, "player_team");
+
+  if (typeof capture.player_team === "string" && !VALID_PLAYER_TEAMS.has(capture.player_team)) {
+    addError("Capture", id, "player_team", "valeur autorisee: orange ou blue");
+  }
 
   if (typeof capture.image_path === "string") {
     const imagePath = capture.image_path.replace(/^\/+/, "");
