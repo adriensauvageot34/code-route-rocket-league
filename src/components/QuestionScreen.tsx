@@ -11,6 +11,7 @@ import type { Capture, ContentQuestion, GlossaryTerm } from "@/types/content";
 
 type QuestionScreenProps = {
   capture: Capture;
+  glossaryTerms: GlossaryTerm[];
   imageExists: boolean;
   question: ContentQuestion;
   questionIndex: number;
@@ -23,6 +24,7 @@ type PrimaryActionState = "validate" | "timing" | "correction" | "next";
 
 export function QuestionScreen({
   capture,
+  glossaryTerms,
   imageExists,
   question,
   questionIndex,
@@ -31,7 +33,7 @@ export function QuestionScreen({
   onNextQuestion
 }: QuestionScreenProps) {
   const router = useRouter();
-  const timeLimitSeconds = question.time_limit_seconds ?? 15;
+  const timeLimitSeconds = 15;
   const [selectedAnswerIds, setSelectedAnswerIds] = useState<string[]>([]);
   const [imageAvailable, setImageAvailable] = useState(imageExists);
   const [isImageExpanded, setIsImageExpanded] = useState(false);
@@ -41,27 +43,24 @@ export function QuestionScreen({
   const [activeGlossaryTerm, setActiveGlossaryTerm] = useState<GlossaryTerm | null>(null);
   const [remainingSeconds, setRemainingSeconds] = useState(timeLimitSeconds);
   const [responseTimeSeconds, setResponseTimeSeconds] = useState<number | null>(null);
-  const [primaryActionState, setPrimaryActionState] = useState<PrimaryActionState>("validate");
+  const [primaryActionState, setPrimaryActionState] =
+    useState<PrimaryActionState>("validate");
 
   const correctAnswerIds = useMemo(() => {
-    return question.answers.filter((answer) => answer.is_correct).map((answer) => answer.answer_id);
-  }, [question.answers]);
+    return question.correct_answer_ids;
+  }, [question.correct_answer_ids]);
 
   const selectedRankByAnswerId = useMemo(() => {
     return new Map(selectedAnswerIds.map((answerId, index) => [answerId, index + 1]));
   }, [selectedAnswerIds]);
-
-  const displayedTotalQuestions = Math.max(totalQuestions, 40);
   const isAnswerCorrect = useMemo(() => {
     if (question.answer_format === "ranking") {
-      if (selectedAnswerIds.length !== question.answers.length) {
+      if (selectedAnswerIds.length !== question.correct_ranking.length) {
         return false;
       }
 
       return selectedAnswerIds.every((answerId, index) => {
-        const answer = question.answers.find((candidate) => candidate.answer_id === answerId);
-
-        return answer?.ranking_position === index + 1;
+        return question.correct_ranking[index] === answerId;
       });
     }
 
@@ -70,14 +69,8 @@ export function QuestionScreen({
     }
 
     return correctAnswerIds.every((answerId) => selectedAnswerIds.includes(answerId));
-  }, [correctAnswerIds, question.answer_format, question.answers, selectedAnswerIds]);
-
-  const expectedAnswerText =
-    question.correction.expected_answer ??
-    question.answers
-      .filter((answer) => answer.is_correct)
-      .map((answer) => answer.text)
-      .join(" / ");
+  }, [correctAnswerIds, question.answer_format, question.correct_ranking, selectedAnswerIds]);
+  const expectedAnswerText = question.correction.expected_answer;
   const responseTimeLabel =
     responseTimeSeconds === null
       ? ""
@@ -225,7 +218,7 @@ export function QuestionScreen({
   return (
     <main className="question-page session-game" aria-labelledby="question-title">
       <h1 className="sr-only" id="question-title">
-        {capture.short_label}
+        {question.question_id}
       </h1>
 
       <section className="question-layout">
@@ -245,7 +238,7 @@ export function QuestionScreen({
           >
             <div className="game-hud" aria-label="Informations de session">
               <span className="progress-chip">
-                {questionIndex + 1}/{displayedTotalQuestions}
+                {questionIndex + 1}/{totalQuestions}
               </span>
               <span className="timer-chip" aria-label="Temps restant">
                 {remainingSeconds}s
@@ -266,7 +259,7 @@ export function QuestionScreen({
 
             {imageAvailable ? (
               <img
-                alt={capture.title ?? capture.short_label}
+                alt={capture.description}
                 className="capture-image"
                 draggable={false}
                 onError={() => setImageAvailable(false)}
@@ -276,8 +269,8 @@ export function QuestionScreen({
               <CaptureFallback label={capture.capture_id} />
             )}
 
-            {capture.context_to_display ? (
-              <p className="context-overlay">{capture.context_to_display}</p>
+            {question.context_to_display ? (
+              <p className="context-overlay">{question.context_to_display}</p>
             ) : null}
 
             <span className="image-hold-hint">Maintenir</span>
@@ -290,13 +283,14 @@ export function QuestionScreen({
           </div>
 
           <div className="answers-list" aria-label="Reponses possibles">
-            {question.answers.map((answer) => (
+            {question.answers.map((answer, answerIndex) => (
               <AnswerOption
                 answer={answer}
                 isDisabled={isSubmitted}
                 isSelected={selectedAnswerIds.includes(answer.answer_id)}
                 key={answer.answer_id}
                 onSelect={selectAnswer}
+                order={answerIndex + 1}
                 rank={
                   question.answer_format === "ranking"
                     ? selectedRankByAnswerId.get(answer.answer_id)
@@ -344,50 +338,36 @@ export function QuestionScreen({
             <div className="correction-content">
               <section>
                 <h3>Bonne reponse attendue</h3>
-                <p>{expectedAnswerText}</p>
+                <p>{expectedAnswerText=</p>
               </section>
 
               <section>
                 <h3>Ce qu&apos;il fallait observer</h3>
-                {question.correction.what_to_observe_items ? (
-                  <ul>
-                    {question.correction.what_to_observe_items.map((item) => (
-                      <li key={item}>
-                        <GlossaryText
-                          text={item}
-                          terms={question.correction.glossary_terms}
-                          onTermSelect={setActiveGlossaryTerm}
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>
-                    <GlossaryText
-                      text={question.correction.what_to_observe}
-                      terms={question.correction.glossary_terms}
-                      onTermSelect={setActiveGlossaryTerm}
-                    />
-                  </p>
-                )}
+                <p>
+                  <GlossaryText
+                    text={question.correction.what_to_observe}
+                    terms={glossaryTerms}
+                    onTermSelect={setActiveGlossaryTerm}
+                  />
+                </p>
               </section>
 
               <CorrectionSection
                 label="Principe a retenir"
                 text={question.correction.principle}
-                terms={question.correction.glossary_terms}
+                terms={glossaryTerms}
                 onTermSelect={setActiveGlossaryTerm}
               />
               <CorrectionSection
                 label="Pourquoi l'erreur etait tentante"
                 text={question.correction.why_tempting}
-                terms={question.correction.glossary_terms}
+                terms={glossaryTerms}
                 onTermSelect={setActiveGlossaryTerm}
               />
               <CorrectionSection
                 label="Risque evite"
                 text={question.correction.risk_avoided}
-                terms={question.correction.glossary_terms}
+                terms={glossaryTerms}
                 onTermSelect={setActiveGlossaryTerm}
               />
 
@@ -396,14 +376,14 @@ export function QuestionScreen({
                 <p>{question.correction.reflex_phrase}</p>
               </section>
 
-              {question.correction.glossary_terms ? (
+              {glossaryTerms.length > 0 ? (
                 <section>
                   <h3>Mots techniques</h3>
                   <div className="glossary-term-list">
-                    {question.correction.glossary_terms.map((term) => (
+                    {glossaryTerms.map((term) => (
                       <button
                         className="glossary-link glossary-chip"
-                        key={term.term}
+                        key={term.term_id}
                         onClick={() => setActiveGlossaryTerm(term)}
                         type="button"
                       >
@@ -456,7 +436,7 @@ export function QuestionScreen({
           <div className="lightbox-media">
             {imageAvailable ? (
               <img
-                alt={capture.title ?? capture.short_label}
+                alt={capture.description}
                 className="capture-image"
                 draggable={false}
                 onError={() => setImageAvailable(false)}
