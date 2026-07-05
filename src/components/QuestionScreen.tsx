@@ -234,11 +234,11 @@ export function QuestionScreen({
                   />
                 ) : null}
                 <div className="score-hud-values">
-                  <span className="score-hud-cell">{questionIndex + 1}</span>
-                  <span className={`score-hud-timer clock-${clockState}`}>
+                  <span className="score-hud-cell score-hud-left">{questionIndex + 1}</span>
+                  <span className={`score-hud-timer score-hud-clock clock-${clockState}`}>
                     {formatClock(remainingSeconds)}
                   </span>
-                  <span className="score-hud-cell">{totalQuestions}</span>
+                  <span className="score-hud-cell score-hud-right">{totalQuestions}</span>
                 </div>
               </div>
               <button
