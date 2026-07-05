@@ -45,6 +45,7 @@ export function QuestionScreen({
   const elapsedBeforePauseMsRef = useRef(0);
   const [selectedAnswerIds, setSelectedAnswerIds] = useState<string[]>([]);
   const [imageAvailable, setImageAvailable] = useState(imageExists);
+  const [failedScoreHudImagePath, setFailedScoreHudImagePath] = useState<string | null>(null);
   const [isImageExpanded, setIsImageExpanded] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -67,6 +68,8 @@ export function QuestionScreen({
 
   const responseTimeLabel =
     responseTimeSeconds === null ? "" : `${formatResponseTime(responseTimeSeconds)} s`;
+  const scoreHudImagePath = `/ui/score-hud-${capture.player_team}.png`;
+  const scoreHudImageAvailable = failedScoreHudImagePath !== scoreHudImagePath;
   const resultLabel = getResultLabel(globalAnswerState);
   const validateActionClassName = [
     "primary-action",
@@ -212,11 +215,28 @@ export function QuestionScreen({
             role="button"
             tabIndex={0}
           >
-            <div className={`game-hud team-${capture.player_team}`} aria-label="Informations de session">
-              <div className="score-hud" aria-label="Question, temps restant et total">
-                <span className="score-hud-cell">{questionIndex + 1}</span>
-                <span className="score-hud-timer">{remainingSeconds}s</span>
-                <span className="score-hud-cell">{totalQuestions}</span>
+            <div className="game-hud" aria-label="Informations de session">
+              <div
+                className={`score-hud team-${capture.player_team} ${
+                  scoreHudImageAvailable ? "has-hud-image" : "fallback-hud"
+                }`}
+                aria-label="Question, temps restant et total"
+              >
+                {scoreHudImageAvailable ? (
+                  <img
+                    alt=""
+                    aria-hidden="true"
+                    className="score-hud-image"
+                    draggable={false}
+                    onError={() => setFailedScoreHudImagePath(scoreHudImagePath)}
+                    src={scoreHudImagePath}
+                  />
+                ) : null}
+                <div className="score-hud-values">
+                  <span className="score-hud-cell">{questionIndex + 1}</span>
+                  <span className="score-hud-timer">{formatClock(remainingSeconds)}</span>
+                  <span className="score-hud-cell">{totalQuestions}</span>
+                </div>
               </div>
               <button
                 className="pause-button"
@@ -428,6 +448,14 @@ function getResultLabel(state: GlobalAnswerState) {
 
 function formatResponseTime(value: number) {
   return value.toFixed(1).replace(".", ",");
+}
+
+function formatClock(seconds: number) {
+  const normalizedSeconds = Math.max(0, Math.floor(seconds));
+  const minutes = Math.floor(normalizedSeconds / 60);
+  const remaining = normalizedSeconds % 60;
+
+  return `${minutes}:${remaining.toString().padStart(2, "0")}`;
 }
 
 function CaptureFallback({ label }: { label: string }) {
