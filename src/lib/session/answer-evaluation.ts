@@ -2,7 +2,7 @@ import type { AnswerFormat, ContentQuestion } from "@/types/content";
 
 export type GlobalAnswerState = "correct" | "partial" | "wrong" | "timeout";
 
-export type AnswerVisualState = "neutral" | "selected" | "correct" | "incorrect" | "missed";
+export type AnswerVisualState = "neutral" | "selected" | "correct" | "incorrect" | "missed" | "missing";
 
 export function evaluateSingleAnswer(question: ContentQuestion, selectedAnswerIds: string[]): GlobalAnswerState {
   return selectedAnswerIds[0] === question.correct_answer_ids[0] ? "correct" : "wrong";
@@ -76,7 +76,7 @@ export function getAnswerVisualState(
     const selectedIndex = selectedAnswerIds.indexOf(answerId);
 
     if (selectedIndex === -1) {
-      return "neutral";
+      return question.correct_ranking.includes(answerId) ? "missing" : "neutral";
     }
 
     return question.correct_ranking[selectedIndex] === answerId ? "correct" : "incorrect";
