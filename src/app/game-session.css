@@ -83,10 +83,10 @@
 
 .score-hud {
   position: absolute;
-  top: -1%;
+  top: -1.4%;
   left: 50%;
-  width: clamp(160px, 22%, 340px);
-  aspect-ratio: 4.35 / 1;
+  width: clamp(178px, 25.5%, 390px);
+  aspect-ratio: 3.42 / 1;
   transform: translateX(-50%);
   overflow: hidden;
   color: #ffffff;
@@ -99,10 +99,19 @@
     0 2px 4px rgba(0, 0, 0, 0.62);
 }
 
+.score-hud::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 5% 3% 7%;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(6, 8, 12, 0.98), rgba(2, 3, 6, 0.96));
+}
+
 .score-hud-image {
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: 1;
   width: 100%;
   height: 100%;
   display: block;
@@ -112,8 +121,8 @@
 
 .score-hud-values {
   position: absolute;
-  z-index: 1;
-  inset: 12% 6% 18%;
+  z-index: 2;
+  inset: 14% 7% 19%;
   display: grid;
   grid-template-columns: 1fr 1.45fr 1fr;
   align-items: center;
@@ -162,6 +171,27 @@
 .score-hud-timer {
   color: #ffffff;
   font-size: clamp(0.94rem, 1.9vw, 1.68rem);
+}
+
+.score-hud-timer.clock-warning {
+  color: #ffae35;
+  text-shadow:
+    0 0 10px rgba(255, 139, 28, 0.62),
+    0 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+.score-hud-timer.clock-danger {
+  color: #ff4b4b;
+  text-shadow:
+    0 0 10px rgba(255, 45, 45, 0.7),
+    0 2px 4px rgba(0, 0, 0, 0.72);
+}
+
+.score-hud-timer.clock-expired {
+  color: rgba(210, 218, 224, 0.72);
+  text-shadow:
+    0 0 5px rgba(210, 218, 224, 0.24),
+    0 2px 4px rgba(0, 0, 0, 0.72);
 }
 
 .pause-button {
@@ -625,11 +655,11 @@
   }
 
   .score-hud {
-    width: clamp(128px, 22%, 220px);
+    width: clamp(150px, 25.5%, 260px);
   }
 
   .score-hud-values {
-    inset: 12% 6% 18%;
+    inset: 14% 7% 19%;
   }
 
   .score-hud-cell {
