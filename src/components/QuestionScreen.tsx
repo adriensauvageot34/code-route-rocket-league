@@ -28,7 +28,7 @@ type QuestionScreenProps = {
 
 type PrimaryActionState = "validate" | "result" | "actions";
 
-const timeLimitSeconds = 15;
+const DEFAULT_TIME_LIMIT_SECONDS = 30;
 
 export function QuestionScreen({
   capture,
@@ -49,8 +49,10 @@ export function QuestionScreen({
   const [isImageExpanded, setIsImageExpanded] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isTimedOut, setIsTimedOut] = useState(false);
   const [isCorrectionOpen, setIsCorrectionOpen] = useState(false);
-  const [remainingSeconds, setRemainingSeconds] = useState(timeLimitSeconds);
+  const questionTimeLimitSeconds = getQuestionTimeLimitSeconds(question);
+  const [remainingSeconds, setRemainingSeconds] = useState(questionTimeLimitSeconds);
   const [responseTimeSeconds, setResponseTimeSeconds] = useState<number | null>(null);
   const [primaryActionState, setPrimaryActionState] = useState<PrimaryActionState>("validate");
 
@@ -59,18 +61,23 @@ export function QuestionScreen({
   }, [selectedAnswerIds]);
 
   const globalAnswerState = useMemo<GlobalAnswerState>(() => {
+    if (isTimedOut) {
+      return "timeout";
+    }
+
     if (selectedAnswerIds.length === 0) {
       return "wrong";
     }
 
     return getGlobalAnswerState(question, selectedAnswerIds);
-  }, [question, selectedAnswerIds]);
+  }, [isTimedOut, question, selectedAnswerIds]);
 
   const responseTimeLabel =
     responseTimeSeconds === null ? "" : `${formatResponseTime(responseTimeSeconds)} s`;
   const scoreHudImagePath = `/ui/score-hud-${capture.player_team}.png`;
   const scoreHudImageAvailable = failedScoreHudImagePath !== scoreHudImagePath;
   const clockState = getClockState(remainingSeconds);
+  const isClockUrgent = remainingSeconds > 0 && remainingSeconds <= 4;
   const resultLabel = getResultLabel(globalAnswerState);
   const validateActionClassName = [
     "primary-action",
@@ -83,8 +90,9 @@ export function QuestionScreen({
     .join(" ");
 
   useEffect(() => {
+    elapsedBeforePauseMsRef.current = 0;
     activeStartMsRef.current = Date.now();
-  }, []);
+  }, [question.question_id]);
 
   useEffect(() => {
     if (isPaused || isSubmitted || remainingSeconds <= 0) {
@@ -97,6 +105,22 @@ export function QuestionScreen({
 
     return () => window.clearInterval(timerId);
   }, [isPaused, isSubmitted, remainingSeconds]);
+
+  useEffect(() => {
+    if (isPaused || isSubmitted || remainingSeconds > 0) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setSelectedAnswerIds([]);
+      setResponseTimeSeconds(questionTimeLimitSeconds);
+      setIsTimedOut(true);
+      setIsSubmitted(true);
+      setPrimaryActionState("result");
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [isPaused, isSubmitted, questionTimeLimitSeconds, remainingSeconds]);
 
   useEffect(() => {
     if (primaryActionState !== "result") {
@@ -174,6 +198,10 @@ export function QuestionScreen({
       return;
     }
 
+    if (remainingSeconds <= 0) {
+      return;
+    }
+
     const activeMs = isPaused ? 0 : Date.now() - (activeStartMsRef.current ?? Date.now());
     const elapsedMs = elapsedBeforePauseMsRef.current + activeMs;
 
@@ -235,7 +263,16 @@ export function QuestionScreen({
                 ) : null}
                 <div className="score-hud-values">
                   <span className="score-hud-cell score-hud-left">{questionIndex + 1}</span>
-                  <span className={`score-hud-timer score-hud-clock clock-${clockState}`}>
+                  <span
+                    className={[
+                      "score-hud-timer",
+                      "score-hud-clock",
+                      `clock-${clockState}`,
+                      isClockUrgent ? "is-urgent" : ""
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                  >
                     {formatClock(remainingSeconds)}
                   </span>
                   <span className="score-hud-cell score-hud-right">{totalQuestions}</span>
@@ -297,7 +334,13 @@ export function QuestionScreen({
                     ? selectedRankByAnswerId.get(answer.answer_id)
                     : undefined
                 }
-                visualState={getAnswerVisualState(question, selectedAnswerIds, answer.answer_id, isSubmitted)}
+                visualState={getAnswerVisualState(
+                  question,
+                  selectedAnswerIds,
+                  answer.answer_id,
+                  isSubmitted,
+                  isTimedOut
+                )}
               />
             ))}
           </div>
@@ -325,7 +368,7 @@ export function QuestionScreen({
               >
                 <span className="validate-label">
                   {isSubmitted ? resultLabel : "Valider"}
-                  {isSubmitted && responseTimeLabel ? <small>{responseTimeLabel}</small> : null}
+                  {isSubmitted && !isTimedOut && responseTimeLabel ? <small>{responseTimeLabel}</small> : null}
                 </span>
               </button>
             )}
@@ -438,6 +481,10 @@ export function QuestionScreen({
 }
 
 function getResultLabel(state: GlobalAnswerState) {
+  if (state === "timeout") {
+    return "Temps ecoule";
+  }
+
   if (state === "correct") {
     return "Bonne reponse";
   }
@@ -447,6 +494,14 @@ function getResultLabel(state: GlobalAnswerState) {
   }
 
   return "Mauvaise reponse";
+}
+
+function getQuestionTimeLimitSeconds(question: ContentQuestion) {
+  if (typeof question.time_limit_seconds === "number" && question.time_limit_seconds > 0) {
+    return Math.floor(question.time_limit_seconds);
+  }
+
+  return DEFAULT_TIME_LIMIT_SECONDS;
 }
 
 function formatResponseTime(value: number) {
