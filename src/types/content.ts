@@ -2,9 +2,12 @@ export type AnswerFormat = "single" | "multiple" | "ranking";
 
 export type CategoryType = "cognitive" | "rl";
 
+export type PlayerTeam = "orange" | "blue";
+
 export type Capture = {
   capture_id: string;
   image_path: string;
+  player_team: PlayerTeam;
   description: string;
 };
 
@@ -47,6 +50,8 @@ export type GlossaryTerm = {
   term_id: string;
   term: string;
   definition: string;
+  illustration_path?: string;
+  image_path?: string;
 };
 
 export type Mode = {
