@@ -22,6 +22,8 @@ type QuestionScreenProps = {
 
 type PrimaryActionState = "validate" | "timing" | "correction" | "next";
 
+const timeLimitSeconds = 15;
+
 export function QuestionScreen({
   capture,
   glossaryTerms,
@@ -33,7 +35,6 @@ export function QuestionScreen({
   onNextQuestion
 }: QuestionScreenProps) {
   const router = useRouter();
-  const timeLimitSeconds = 15;
   const [selectedAnswerIds, setSelectedAnswerIds] = useState<string[]>([]);
   const [imageAvailable, setImageAvailable] = useState(imageExists);
   const [isImageExpanded, setIsImageExpanded] = useState(false);
@@ -43,38 +44,31 @@ export function QuestionScreen({
   const [activeGlossaryTerm, setActiveGlossaryTerm] = useState<GlossaryTerm | null>(null);
   const [remainingSeconds, setRemainingSeconds] = useState(timeLimitSeconds);
   const [responseTimeSeconds, setResponseTimeSeconds] = useState<number | null>(null);
-  const [primaryActionState, setPrimaryActionState] =
-    useState<PrimaryActionState>("validate");
-
-  const correctAnswerIds = useMemo(() => {
-    return question.correct_answer_ids;
-  }, [question.correct_answer_ids]);
+  const [primaryActionState, setPrimaryActionState] = useState<PrimaryActionState>("validate");
 
   const selectedRankByAnswerId = useMemo(() => {
     return new Map(selectedAnswerIds.map((answerId, index) => [answerId, index + 1]));
   }, [selectedAnswerIds]);
+
   const isAnswerCorrect = useMemo(() => {
     if (question.answer_format === "ranking") {
-      if (selectedAnswerIds.length !== question.correct_ranking.length) {
-        return false;
-      }
-
-      return selectedAnswerIds.every((answerId, index) => {
-        return question.correct_ranking[index] === answerId;
-      });
+      return (
+        selectedAnswerIds.length === question.correct_ranking.length &&
+        selectedAnswerIds.every((answerId, index) => question.correct_ranking[index] === answerId)
+      );
     }
 
-    if (selectedAnswerIds.length !== correctAnswerIds.length) {
-      return false;
-    }
+    return (
+      selectedAnswerIds.length === question.correct_answer_ids.length &&
+      question.correct_answer_ids.every((answerId) => selectedAnswerIds.includes(answerId))
+    );
+  }, [question.answer_format, question.correct_answer_ids, question.correct_ranking, selectedAnswerIds]);
 
-    return correctAnswerIds.every((answerId) => selectedAnswerIds.includes(answerId));
-  }, [correctAnswerIds, question.answer_format, question.correct_ranking, selectedAnswerIds]);
-  const expectedAnswerText = question.correction.expected_answer;
   const responseTimeLabel =
     responseTimeSeconds === null
       ? ""
       : `${responseTimeSeconds} ${responseTimeSeconds > 1 ? "secondes" : "seconde"}`;
+
   const primaryActionLabel = getPrimaryActionLabel(
     primaryActionState,
     responseTimeLabel,
@@ -116,11 +110,7 @@ export function QuestionScreen({
 
   function expandImage(event: PointerEvent<HTMLDivElement>) {
     event.preventDefault();
-
-    if (event.currentTarget.setPointerCapture) {
-      event.currentTarget.setPointerCapture(event.pointerId);
-    }
-
+    event.currentTarget.setPointerCapture?.(event.pointerId);
     setIsImageExpanded(true);
   }
 
@@ -153,15 +143,6 @@ export function QuestionScreen({
 
     if (question.answer_format === "single") {
       setSelectedAnswerIds((current) => (current[0] === answerId ? [] : [answerId]));
-      return;
-    }
-
-    if (question.answer_format === "multiple") {
-      setSelectedAnswerIds((current) =>
-        current.includes(answerId)
-          ? current.filter((selectedAnswerId) => selectedAnswerId !== answerId)
-          : [...current, answerId]
-      );
       return;
     }
 
@@ -203,16 +184,14 @@ export function QuestionScreen({
       return;
     }
 
-    if (primaryActionState === "timing") {
-      return;
-    }
-
     if (primaryActionState === "correction") {
       openCorrection();
       return;
     }
 
-    goToNextStep();
+    if (primaryActionState === "next") {
+      goToNextStep();
+    }
   }
 
   return (
@@ -323,9 +302,7 @@ export function QuestionScreen({
         >
           <div className="correction-card">
             <div className="correction-head">
-              <div>
-                <h2>Correction</h2>
-              </div>
+              <h2>Correction</h2>
               <button
                 className="secondary-action correction-close"
                 onClick={() => setIsCorrectionOpen(false)}
@@ -336,39 +313,30 @@ export function QuestionScreen({
             </div>
 
             <div className="correction-content">
-              <section>
-                <h3>Bonne reponse attendue</h3>
-                <p>{expectedAnswerText=</p>
-              </section>
-
-              <section>
-                <h3>Ce qu&apos;il fallait observer</h3>
-                <p>
-                  <GlossaryText
-                    text={question.correction.what_to_observe}
-                    terms={glossaryTerms}
-                    onTermSelect={setActiveGlossaryTerm}
-                  />
-                </p>
-              </section>
-
+              <CorrectionSection label="Bonne reponse attendue" text={question.correction.expected_answer} />
+              <CorrectionSection
+                label="Ce qu'il fallait observer"
+                onTermSelect={setActiveGlossaryTerm}
+                terms={glossaryTerms}
+                text={question.correction.what_to_observe}
+              />
               <CorrectionSection
                 label="Principe a retenir"
-                text={question.correction.principle}
-                terms={glossaryTerms}
                 onTermSelect={setActiveGlossaryTerm}
+                terms={glossaryTerms}
+                text={question.correction.principle}
               />
               <CorrectionSection
                 label="Pourquoi l'erreur etait tentante"
-                text={question.correction.why_tempting}
-                terms={glossaryTerms}
                 onTermSelect={setActiveGlossaryTerm}
+                terms={glossaryTerms}
+                text={question.correction.why_tempting}
               />
               <CorrectionSection
                 label="Risque evite"
-                text={question.correction.risk_avoided}
-                terms={glossaryTerms}
                 onTermSelect={setActiveGlossaryTerm}
+                terms={glossaryTerms}
+                text={question.correction.risk_avoided}
               />
 
               <section className="reflex-section">
@@ -495,7 +463,7 @@ function CorrectionSection({
   text
 }: {
   label: string;
-  onTermSelect: (term: GlossaryTerm) => void;
+  onTermSelect?: (term: GlossaryTerm) => void;
   terms?: GlossaryTerm[];
   text: string;
 }) {
@@ -503,7 +471,11 @@ function CorrectionSection({
     <section>
       <h3>{label}</h3>
       <p>
-        <GlossaryText text={text} terms={terms} onTermSelect={onTermSelect} />
+        <GlossaryText
+          onTermSelect={onTermSelect ?? (() => undefined)}
+          terms={terms ?? []}
+          text={text}
+        />
       </p>
     </section>
   );
@@ -515,10 +487,10 @@ function GlossaryText({
   text
 }: {
   onTermSelect: (term: GlossaryTerm) => void;
-  terms?: GlossaryTerm[];
+  terms: GlossaryTerm[];
   text: string;
 }) {
-  if (!terms || terms.length === 0) {
+  if (terms.length === 0) {
     return text;
   }
 
