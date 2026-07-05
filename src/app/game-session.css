@@ -215,6 +215,32 @@
     0 2px 4px rgba(0, 0, 0, 0.72);
 }
 
+.score-hud-timer.is-urgent {
+  animation: clockUrgentPulse 520ms ease-in-out infinite alternate;
+}
+
+@keyframes clockUrgentPulse {
+  from {
+    transform: translate(-50%, -50%) scale(1);
+    text-shadow:
+      0 0 5px rgba(255, 255, 255, 0.22),
+      0 1px 3px rgba(0, 0, 0, 0.72);
+  }
+
+  to {
+    transform: translate(-50%, -50%) scale(1.055);
+    text-shadow:
+      0 0 9px rgba(255, 118, 42, 0.46),
+      0 1px 3px rgba(0, 0, 0, 0.78);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .score-hud-timer.is-urgent {
+    animation: none;
+  }
+}
+
 .pause-button {
   position: absolute;
   top: 10px;
@@ -418,6 +444,12 @@
   border-color: rgba(255, 91, 91, 0.76);
   background: linear-gradient(135deg, #ff6f6f, #cf2e2e);
   color: #190202;
+}
+
+.session-game .validate-action.submitted.timeout {
+  border-color: rgba(255, 174, 53, 0.74);
+  background: linear-gradient(135deg, #ffb347, #c96b1c);
+  color: #170c03;
 }
 
 .session-game .validate-action.phase-result {

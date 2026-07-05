@@ -4,6 +4,7 @@ import { join } from "node:path";
 const CONTENT_PATH = join(process.cwd(), "src", "data", "content.json");
 const VALID_ANSWER_FORMATS = new Set(["single", "multiple", "ranking"]);
 const VALID_PLAYER_TEAMS = new Set(["orange", "blue"]);
+const VALID_VISUAL_FOCUS = new Set(["image", "balanced", "text"]);
 const REQUIRED_CORRECTION_FIELDS = [
   "expected_answer",
   "what_to_observe",
@@ -14,9 +15,14 @@ const REQUIRED_CORRECTION_FIELDS = [
 ];
 
 const errors = [];
+const warnings = [];
 
 function addError(type, id, field, message) {
   errors.push(`${type} ${id} - ${field}: ${message}`);
+}
+
+function addWarning(message) {
+  warnings.push(message);
 }
 
 function requireString(value, type, id, field) {
@@ -95,6 +101,7 @@ for (const question of questions) {
   requireString(question.question_id, "Question", id, "question_id");
   requireString(question.capture_id, "Question", id, "capture_id");
   requireString(question.question_text, "Question", id, "question_text");
+  requireString(question.question_type_label, "Question", id, "question_type_label");
 
   if (question.capture_id && !captureIds.has(question.capture_id)) {
     addError("Question", id, "capture_id", `capture inconnue: ${question.capture_id}`);
@@ -102,6 +109,27 @@ for (const question of questions) {
 
   if (!VALID_ANSWER_FORMATS.has(question.answer_format)) {
     addError("Question", id, "answer_format", `format invalide: ${question.answer_format}`);
+  }
+
+  if (Object.prototype.hasOwnProperty.call(question, "time_limit_seconds")) {
+    if (
+      typeof question.time_limit_seconds !== "number" ||
+      !Number.isFinite(question.time_limit_seconds) ||
+      question.time_limit_seconds <= 0
+    ) {
+      addError("Question", id, "time_limit_seconds", "doit etre un nombre positif");
+    } else if (question.time_limit_seconds < 5 || question.time_limit_seconds > 60) {
+      addError("Question", id, "time_limit_seconds", "doit etre compris entre 5 et 60 secondes");
+    }
+  } else {
+    addWarning(`WARNING: ${id} has no time_limit_seconds. Defaulting to 30 seconds.`);
+  }
+
+  if (
+    Object.prototype.hasOwnProperty.call(question, "visual_focus") &&
+    !VALID_VISUAL_FOCUS.has(question.visual_focus)
+  ) {
+    addError("Question", id, "visual_focus", "valeur autorisee: image, balanced ou text");
   }
 
   if (question.pedagogical_mode && !modeIds.has(question.pedagogical_mode)) {
@@ -249,6 +277,10 @@ function validateCorrection(correction, questionId) {
 }
 
 function finish() {
+  for (const warning of warnings) {
+    console.warn(warning);
+  }
+
   if (errors.length > 0) {
     console.error("Validation du contenu echouee:");
     for (const error of errors) {
