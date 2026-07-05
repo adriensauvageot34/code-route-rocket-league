@@ -2,7 +2,7 @@ import { existsSync } from "fs";
 import { join } from "path";
 import { AppFrame } from "@/components/AppFrame";
 import { SessionRunner } from "@/components/SessionRunner";
-import { getActiveQuestions, getCaptureById } from "@/lib/content";
+import { getActiveQuestions, getCaptureById, getGlossaryTermsForQuestion } from "@/lib/content";
 
 export default function SessionPage() {
   const questions = getActiveQuestions();
@@ -18,6 +18,7 @@ export default function SessionPage() {
     return [
       {
         capture: questionCapture,
+        glossaryTerms: getGlossaryTermsForQuestion(question),
         imageExists: captureImageExists(questionCapture.image_path),
         question
       }

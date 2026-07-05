@@ -26,17 +26,37 @@ L'app est pensee en priorite pour un telephone en mode paysage. Sur ordinateur, 
 
 L'app declare aussi une orientation paysage dans son manifest PWA. Les navigateurs et applications mobiles ne permettent pas tous de forcer la rotation automatiquement. Quand le telephone reste en portrait, un ecran bloque l'app et demande de passer en paysage.
 
-## Ajouter les futures captures
+## Ajouter du content
 
-Place les images de situation dans `public/captures/`, puis reference-les dans les fichiers JSON via un chemin du type :
+Les images doivent etre placees dans `public/captures/`.
+
+Nomme les captures avec un identifiant stable, par exemple :
+
+```text
+CAP-0001.webp
+CAP-0002.webp
+CAP-0003.webp
+```
+
+Dans `src/data/content.json`, renseigne ensuite le chemin public exact :
 
 ```json
-"/captures/nom-de-la-capture.png"
+"/captures/CAP-0001.webp"
 ```
+
+Chaque question doit utiliser le `capture_id` de la capture correspondante. Pour ajouter une nouvelle question, modifie uniquement `src/data/content.json` : il ne faut pas modifier le code de l'app.
+
+Avant de publier, lance :
+
+```bash
+npm run validate:content
+```
+
+Ne mets pas de brouillons dans `content.json` : ce fichier est la source officielle affichee par l'app.
 
 ## Donnees locales
 
-Les captures et questions de la V0 vivent dans `src/data/content.example.json`.
+Les captures, questions, corrections, modes, categories, tags et termes de glossaire vivent dans `src/data/content.json`.
 Les types TypeScript associes sont dans `src/types/content.ts`.
 Le format est documente dans `docs/data-format.md`.
 

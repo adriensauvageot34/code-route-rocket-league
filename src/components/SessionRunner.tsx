@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { QuestionScreen } from "@/components/QuestionScreen";
-import type { Capture, ContentQuestion } from "@/types/content";
+import type { Capture, ContentQuestion, GlossaryTerm } from "@/types/content";
 
 type SessionItem = {
   capture: Capture;
+  glossaryTerms: GlossaryTerm[];
   imageExists: boolean;
   question: ContentQuestion;
 };
@@ -25,6 +26,7 @@ export function SessionRunner({ items }: SessionRunnerProps) {
   return (
     <QuestionScreen
       capture={currentItem.capture}
+      glossaryTerms={currentItem.glossaryTerms}
       hasNextQuestion={questionIndex < items.length - 1}
       imageExists={currentItem.imageExists}
       key={currentItem.question.question_id}
