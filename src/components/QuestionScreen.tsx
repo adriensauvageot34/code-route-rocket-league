@@ -70,6 +70,7 @@ export function QuestionScreen({
     responseTimeSeconds === null ? "" : `${formatResponseTime(responseTimeSeconds)} s`;
   const scoreHudImagePath = `/ui/score-hud-${capture.player_team}.png`;
   const scoreHudImageAvailable = failedScoreHudImagePath !== scoreHudImagePath;
+  const clockState = getClockState(remainingSeconds);
   const resultLabel = getResultLabel(globalAnswerState);
   const validateActionClassName = [
     "primary-action",
@@ -234,7 +235,9 @@ export function QuestionScreen({
                 ) : null}
                 <div className="score-hud-values">
                   <span className="score-hud-cell">{questionIndex + 1}</span>
-                  <span className="score-hud-timer">{formatClock(remainingSeconds)}</span>
+                  <span className={`score-hud-timer clock-${clockState}`}>
+                    {formatClock(remainingSeconds)}
+                  </span>
                   <span className="score-hud-cell">{totalQuestions}</span>
                 </div>
               </div>
@@ -456,6 +459,22 @@ function formatClock(seconds: number) {
   const remaining = normalizedSeconds % 60;
 
   return `${minutes}:${remaining.toString().padStart(2, "0")}`;
+}
+
+function getClockState(seconds: number) {
+  if (seconds <= 0) {
+    return "expired";
+  }
+
+  if (seconds <= 3) {
+    return "danger";
+  }
+
+  if (seconds <= 6) {
+    return "warning";
+  }
+
+  return "normal";
 }
 
 function CaptureFallback({ label }: { label: string }) {
