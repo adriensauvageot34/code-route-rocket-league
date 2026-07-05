@@ -4,6 +4,8 @@ export type CategoryType = "cognitive" | "rl";
 
 export type PlayerTeam = "orange" | "blue";
 
+export type VisualFocus = "image" | "balanced" | "text";
+
 export type Capture = {
   capture_id: string;
   image_path: string;
@@ -32,6 +34,9 @@ export type ContentQuestion = {
   context_to_display?: string;
   question_text: string;
   answer_format: AnswerFormat;
+  time_limit_seconds?: number;
+  visual_focus?: VisualFocus;
+  question_type_label: string;
   pedagogical_mode: string;
   cognitive_category_primary: string;
   cognitive_category_secondary: string | null;
