@@ -69,10 +69,7 @@
 .game-hud {
   position: absolute;
   z-index: 4;
-  inset: 8px 10px auto;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
+  inset: 0;
   pointer-events: none;
 }
 
@@ -85,29 +82,64 @@
 }
 
 .score-hud {
-  width: min(230px, 34%);
-  min-width: 166px;
-  min-height: 44px;
-  display: grid;
-  grid-template-columns: 1fr 1.45fr 1fr;
+  position: absolute;
+  top: -1%;
+  left: 50%;
+  width: clamp(160px, 22%, 340px);
+  aspect-ratio: 4.35 / 1;
+  transform: translateX(-50%);
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
-  background: linear-gradient(180deg, rgba(12, 15, 19, 0.94), rgba(4, 6, 9, 0.88));
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.42);
   color: #ffffff;
-  font-weight: 950;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 900;
+  letter-spacing: 0.025em;
   pointer-events: none;
+  text-shadow:
+    0 0 8px rgba(255, 255, 255, 0.34),
+    0 2px 4px rgba(0, 0, 0, 0.62);
 }
 
-.team-orange .score-hud {
+.score-hud-image {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.4));
+  object-fit: fill;
+}
+
+.score-hud-values {
+  position: absolute;
+  z-index: 1;
+  inset: 12% 6% 18%;
+  display: grid;
+  grid-template-columns: 1fr 1.45fr 1fr;
+  align-items: center;
+  justify-items: center;
+}
+
+.score-hud.fallback-hud {
+  min-height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(12, 15, 19, 0.96), rgba(4, 6, 9, 0.9));
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.42);
+}
+
+.score-hud.fallback-hud .score-hud-values {
+  inset: 0;
+}
+
+.score-hud.team-orange.fallback-hud {
   border-color: rgba(255, 156, 52, 0.38);
   box-shadow:
     0 12px 28px rgba(0, 0, 0, 0.42),
     0 0 0 1px rgba(255, 156, 52, 0.12) inset;
 }
 
-.team-blue .score-hud {
+.score-hud.team-blue.fallback-hud {
   border-color: rgba(91, 171, 255, 0.38);
   box-shadow:
     0 12px 28px rgba(0, 0, 0, 0.42),
@@ -119,25 +151,23 @@
   min-width: 0;
   display: grid;
   place-items: center;
-  padding: 0 8px;
+  padding: 0 4px;
 }
 
 .score-hud-cell {
-  color: rgba(255, 255, 255, 0.88);
-  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: clamp(0.78rem, 1.5vw, 1.34rem);
 }
 
 .score-hud-timer {
-  border-inline: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.06);
   color: #ffffff;
-  font-size: 1.12rem;
+  font-size: clamp(0.94rem, 1.9vw, 1.68rem);
 }
 
 .pause-button {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 10px;
+  left: 10px;
   width: 42px;
   height: 42px;
   display: grid;
@@ -594,26 +624,25 @@
     max-height: calc(100svh - 12px);
   }
 
-  .game-hud {
-    inset: 7px 7px auto;
+  .score-hud {
+    width: clamp(128px, 22%, 220px);
   }
 
-  .score-hud {
-    min-width: 142px;
-    width: min(188px, 34%);
-    min-height: 34px;
-    border-radius: 8px;
+  .score-hud-values {
+    inset: 12% 6% 18%;
   }
 
   .score-hud-cell {
-    font-size: 0.72rem;
+    font-size: clamp(0.62rem, 1.45vw, 0.86rem);
   }
 
   .score-hud-timer {
-    font-size: 0.9rem;
+    font-size: clamp(0.78rem, 1.9vw, 1.06rem);
   }
 
   .pause-button {
+    top: 7px;
+    left: 7px;
     min-height: 34px;
     width: 34px;
     font-size: 0.72rem;
