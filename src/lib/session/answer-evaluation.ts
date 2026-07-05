@@ -1,6 +1,6 @@
 import type { AnswerFormat, ContentQuestion } from "@/types/content";
 
-export type GlobalAnswerState = "correct" | "partial" | "wrong";
+export type GlobalAnswerState = "correct" | "partial" | "wrong" | "timeout";
 
 export type AnswerVisualState = "neutral" | "selected" | "correct" | "incorrect" | "missed";
 
@@ -56,12 +56,20 @@ export function getAnswerVisualState(
   question: ContentQuestion,
   selectedAnswerIds: string[],
   answerId: string,
-  isSubmitted: boolean
+  isSubmitted: boolean,
+  isTimeout = false
 ): AnswerVisualState {
   const isSelected = selectedAnswerIds.includes(answerId);
 
   if (!isSubmitted) {
     return isSelected ? "selected" : "neutral";
+  }
+
+  if (isTimeout) {
+    const correctIds =
+      question.answer_format === "ranking" ? question.correct_ranking : question.correct_answer_ids;
+
+    return correctIds.includes(answerId) ? "missed" : "neutral";
   }
 
   if (question.answer_format === "ranking") {
