@@ -59,6 +59,9 @@ export function QuestionScreen({
   const selectedRankByAnswerId = useMemo(() => {
     return new Map(selectedAnswerIds.map((answerId, index) => [answerId, index + 1]));
   }, [selectedAnswerIds]);
+  const expectedRankByAnswerId = useMemo(() => {
+    return new Map(question.correct_ranking.map((answerId, index) => [answerId, index + 1]));
+  }, [question.correct_ranking]);
 
   const globalAnswerState = useMemo<GlobalAnswerState>(() => {
     if (isTimedOut) {
@@ -78,6 +81,10 @@ export function QuestionScreen({
   const scoreHudImageAvailable = failedScoreHudImagePath !== scoreHudImagePath;
   const clockState = getClockState(remainingSeconds);
   const isClockUrgent = remainingSeconds > 0 && remainingSeconds <= 4;
+  const isRankingQuestion = question.answer_format === "ranking";
+  const isValidateDisabled =
+    primaryActionState === "result" ||
+    (primaryActionState === "validate" && !isRankingQuestion && selectedAnswerIds.length === 0);
   const resultLabel = getResultLabel(globalAnswerState);
   const validateActionClassName = [
     "primary-action",
@@ -194,7 +201,11 @@ export function QuestionScreen({
   }
 
   function submitAnswer() {
-    if (selectedAnswerIds.length === 0 || isSubmitted) {
+    if (isSubmitted) {
+      return;
+    }
+
+    if (!isRankingQuestion && selectedAnswerIds.length === 0) {
       return;
     }
 
@@ -314,35 +325,44 @@ export function QuestionScreen({
 
         <div className="question-card">
           <div className="question-copy">
+            <div className={`question-type-indicator type-${getQuestionTypeVariant(question)}`}>
+              <span className="question-type-icon" aria-hidden="true" />
+              <span>{question.question_type_label}</span>
+            </div>
             <h2>
               <GlossaryText terms={glossaryTerms} text={question.question_text} />
             </h2>
           </div>
 
           <div className="answers-list" aria-label="Reponses possibles">
-            {question.answers.map((answer, answerIndex) => (
-              <AnswerOption
-                answer={answer}
-                glossaryTerms={glossaryTerms}
-                isDisabled={isSubmitted}
-                isSelected={selectedAnswerIds.includes(answer.answer_id)}
-                key={answer.answer_id}
-                onSelect={selectAnswer}
-                order={answerIndex + 1}
-                rank={
-                  question.answer_format === "ranking"
-                    ? selectedRankByAnswerId.get(answer.answer_id)
-                    : undefined
-                }
-                visualState={getAnswerVisualState(
-                  question,
-                  selectedAnswerIds,
-                  answer.answer_id,
-                  isSubmitted,
-                  isTimedOut
-                )}
-              />
-            ))}
+            {question.answers.map((answer) => {
+              const visualState = getAnswerVisualState(
+                question,
+                selectedAnswerIds,
+                answer.answer_id,
+                isSubmitted,
+                isTimedOut
+              );
+
+              return (
+                <AnswerOption
+                  answer={answer}
+                  expectedRank={
+                    isSubmitted && isRankingQuestion
+                      ? expectedRankByAnswerId.get(answer.answer_id)
+                      : undefined
+                  }
+                  glossaryTerms={glossaryTerms}
+                  isDisabled={isSubmitted}
+                  isRanking={isRankingQuestion}
+                  isSelected={selectedAnswerIds.includes(answer.answer_id)}
+                  key={answer.answer_id}
+                  onSelect={selectAnswer}
+                  rank={isRankingQuestion ? selectedRankByAnswerId.get(answer.answer_id) : undefined}
+                  visualState={visualState}
+                />
+              );
+            })}
           </div>
 
           <div className="question-actions">
@@ -359,10 +379,7 @@ export function QuestionScreen({
               <button
                 aria-live="polite"
                 className={validateActionClassName}
-                disabled={
-                  (primaryActionState === "validate" && selectedAnswerIds.length === 0) ||
-                  primaryActionState === "result"
-                }
+                disabled={isValidateDisabled}
                 onClick={submitAnswer}
                 type="button"
               >
@@ -502,6 +519,35 @@ function getQuestionTimeLimitSeconds(question: ContentQuestion) {
   }
 
   return DEFAULT_TIME_LIMIT_SECONDS;
+}
+
+function getQuestionTypeVariant(question: ContentQuestion) {
+  if (question.answer_format === "multiple") {
+    return "multiple";
+  }
+
+  if (question.answer_format === "ranking") {
+    return "ranking";
+  }
+
+  const normalizedLabel = question.question_type_label
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+  if (normalizedLabel.includes("observation")) {
+    return "observation";
+  }
+
+  if (normalizedLabel.includes("anti")) {
+    return "anti-reflex";
+  }
+
+  if (normalizedLabel.includes("role")) {
+    return "role";
+  }
+
+  return "best-option";
 }
 
 function formatResponseTime(value: number) {
