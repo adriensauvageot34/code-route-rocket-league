@@ -11,9 +11,14 @@
 }
 
 .session-game .question-layout {
+  --card-transition-duration: 1000ms;
+  --card-enter-duration: 760ms;
+  --card-transition-ease: cubic-bezier(0.22, 0.72, 0.16, 1);
+  --card-enter-ease: cubic-bezier(0.18, 0.82, 0.2, 1);
   position: relative;
   transform-origin: center;
   isolation: isolate;
+  perspective: 1200px;
 }
 
 .session-game .question-layout::before {
@@ -28,8 +33,9 @@
     rgba(8, 12, 17, 0.78);
   box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
   opacity: 0;
-  transform: translate3d(0, 18px, 0) scale(0.965);
+  transform: translate3d(0, 34px, -20px) scale(0.94);
   pointer-events: none;
+  will-change: transform, opacity;
 }
 
 .session-game .question-layout > .capture-card,
@@ -37,6 +43,8 @@
   position: relative;
   z-index: 1;
   transform-origin: center;
+  backface-visibility: hidden;
+  contain: layout paint;
   will-change: transform, opacity;
 }
 
@@ -45,12 +53,12 @@
 }
 
 .session-game .question-layout.is-transitioning::before {
-  animation: trainingUnderCardRise 240ms cubic-bezier(0.2, 0.78, 0.24, 1) forwards;
+  animation: trainingUnderCardRise var(--card-transition-duration) var(--card-enter-ease) forwards;
 }
 
 .session-game .question-layout.is-transitioning > .capture-card,
 .session-game .question-layout.is-transitioning > .question-card {
-  animation: trainingCardExitRight 260ms cubic-bezier(0.19, 0.76, 0.24, 1) forwards;
+  animation: trainingCardExitRight var(--card-transition-duration) var(--card-transition-ease) forwards;
 }
 
 .session-game .question-layout.is-transitioning.exit-left > .capture-card,
@@ -65,7 +73,7 @@
 
 .session-game .question-layout.enter-from-under > .capture-card,
 .session-game .question-layout.enter-from-under > .question-card {
-  animation: trainingCardEnterFromUnder 190ms cubic-bezier(0.2, 0.78, 0.24, 1) both;
+  animation: trainingCardEnterFromUnder var(--card-enter-duration) var(--card-enter-ease) both;
 }
 
 .session-game .result-action:disabled,
@@ -81,14 +89,24 @@
     transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
   }
 
-  45% {
+  18% {
+    opacity: 1;
+    transform: translate3d(2.5%, -1px, 0) rotate(0.9deg) scale(1.002);
+  }
+
+  58% {
     opacity: 0.96;
-    transform: translate3d(7%, -1px, 0) rotate(2.1deg) scale(0.995);
+    transform: translate3d(18%, -4px, 0) rotate(4deg) scale(0.99);
+  }
+
+  82% {
+    opacity: 0.58;
+    transform: translate3d(34vw, -8px, 0) rotate(7deg) scale(0.97);
   }
 
   100% {
     opacity: 0;
-    transform: translate3d(42vw, -2px, 0) rotate(7deg) scale(0.965);
+    transform: translate3d(54vw, -10px, 0) rotate(9deg) scale(0.952);
   }
 }
 
@@ -98,37 +116,57 @@
     transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
   }
 
-  45% {
+  18% {
+    opacity: 1;
+    transform: translate3d(-2.5%, -1px, 0) rotate(-0.9deg) scale(1.002);
+  }
+
+  58% {
     opacity: 0.96;
-    transform: translate3d(-7%, -1px, 0) rotate(-2.1deg) scale(0.995);
+    transform: translate3d(-18%, -4px, 0) rotate(-4deg) scale(0.99);
+  }
+
+  82% {
+    opacity: 0.58;
+    transform: translate3d(-34vw, -8px, 0) rotate(-7deg) scale(0.97);
   }
 
   100% {
     opacity: 0;
-    transform: translate3d(-42vw, -2px, 0) rotate(-7deg) scale(0.965);
+    transform: translate3d(-54vw, -10px, 0) rotate(-9deg) scale(0.952);
   }
 }
 
 @keyframes trainingUnderCardRise {
   0% {
     opacity: 0;
-    transform: translate3d(0, 18px, 0) scale(0.965);
+    transform: translate3d(0, 34px, -20px) scale(0.94);
   }
 
-  28% {
-    opacity: 0.58;
+  22% {
+    opacity: 0.24;
+  }
+
+  62% {
+    opacity: 0.72;
+    transform: translate3d(0, 13px, -8px) scale(0.972);
   }
 
   100% {
     opacity: 0.9;
-    transform: translate3d(0, 5px, 0) scale(0.985);
+    transform: translate3d(0, 5px, 0) scale(0.988);
   }
 }
 
 @keyframes trainingCardEnterFromUnder {
   0% {
     opacity: 0;
-    transform: translate3d(0, 20px, 0) scale(0.97);
+    transform: translate3d(0, 34px, -20px) scale(0.94);
+  }
+
+  42% {
+    opacity: 0.72;
+    transform: translate3d(0, 14px, -8px) scale(0.974);
   }
 
   100% {
