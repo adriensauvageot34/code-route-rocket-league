@@ -30,7 +30,7 @@ type PrimaryActionState = "validate" | "result" | "actions";
 type ExitDirection = "left" | "right";
 
 const DEFAULT_TIME_LIMIT_SECONDS = 30;
-const EXIT_TRANSITION_MS = 210;
+const EXIT_TRANSITION_MS = 260;
 
 export function QuestionScreen({
   capture,
@@ -120,6 +120,7 @@ export function QuestionScreen({
     .join(" ");
   const questionLayoutClassName = [
     "question-layout",
+    questionIndex > 0 ? "enter-from-under" : "",
     isExiting ? "is-transitioning" : "",
     exitDirection ? `exit-${exitDirection}` : ""
   ]
