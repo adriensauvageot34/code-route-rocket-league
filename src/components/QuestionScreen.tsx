@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { KeyboardEvent, PointerEvent } from "react";
+import type { DragEvent, KeyboardEvent, PointerEvent } from "react";
 import { AnswerOption } from "@/components/AnswerOption";
 import { GlossaryText } from "@/components/GlossaryText";
 import { TrainingCorrectionPanel } from "@/components/TrainingCorrectionPanel";
@@ -13,7 +13,7 @@ import {
   getGlobalAnswerState,
   type GlobalAnswerState
 } from "@/lib/session/answer-evaluation";
-import type { Capture, ContentQuestion, GlossaryTerm } from "@/types/content";
+import type { AnswerFormat, Capture, ContentQuestion, GlossaryTerm, VisualFocus } from "@/types/content";
 import type { TrainingQuestionResult } from "@/types/session";
 
 type QuestionScreenProps = {
@@ -33,6 +33,7 @@ type ExitDirection = "left" | "right";
 
 const DEFAULT_TIME_LIMIT_SECONDS = 30;
 const EXIT_TRANSITION_MS = 1000;
+const VISUAL_FOCUS_VALUES = new Set(["image", "balanced", "text"]);
 
 export function QuestionScreen({
   capture,
@@ -60,6 +61,9 @@ export function QuestionScreen({
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isTimedOut, setIsTimedOut] = useState(false);
   const [isCorrectionOpen, setIsCorrectionOpen] = useState(false);
+  const [isAbandonConfirming, setIsAbandonConfirming] = useState(false);
+  const [isMusicMuted, setIsMusicMuted] = useState(false);
+  const [draggedAnswerId, setDraggedAnswerId] = useState<string | null>(null);
   const questionTimeLimitSeconds = getQuestionTimeLimitSeconds(question);
   const [remainingSeconds, setRemainingSeconds] = useState(questionTimeLimitSeconds);
   const [responseTimeSeconds, setResponseTimeSeconds] = useState<number | null>(null);
@@ -92,11 +96,19 @@ export function QuestionScreen({
   const clockState = getClockState(remainingSeconds);
   const isClockUrgent = remainingSeconds > 0 && remainingSeconds <= 4;
   const isRankingQuestion = question.answer_format === "ranking";
+  const requiredSelectionCount =
+    question.answer_format === "ranking" ? question.answers.length : question.correct_answer_ids.length;
+  const hasRequiredSelection =
+    question.answer_format === "single"
+      ? selectedAnswerIds.length === 1
+      : selectedAnswerIds.length === requiredSelectionCount;
+  const visualFocus = getVisualFocus(question);
+  const questionTypeMeta = getQuestionTypeMeta(question.answer_format);
   const isExiting = exitDirection !== null;
   const isValidateDisabled =
     isExiting ||
     primaryActionState === "result" ||
-    (primaryActionState === "validate" && !isRankingQuestion && selectedAnswerIds.length === 0);
+    (primaryActionState === "validate" && !hasRequiredSelection);
   const resultLabel = getResultLabel(globalAnswerState);
   const correctionImagePath = question.correction.correction_image_path?.trim();
   const preferredCorrectionImagePath = isCorrectionOpen && correctionImagePath ? correctionImagePath : null;
@@ -123,6 +135,8 @@ export function QuestionScreen({
     .join(" ");
   const questionLayoutClassName = [
     "question-layout",
+    `focus-${visualFocus}`,
+    isCorrectionOpen ? "layout-correction" : "",
     questionIndex > 0 ? "enter-from-under" : "",
     isExiting ? "is-transitioning" : "",
     exitDirection ? `exit-${exitDirection}` : ""
@@ -161,7 +175,7 @@ export function QuestionScreen({
         pedagogical_mode: question.pedagogical_mode,
         question,
         question_id: question.question_id,
-        question_type_label: question.question_type_label,
+        question_type_label: getQuestionTypeMeta(question.answer_format).label,
         response_time_seconds: responseSeconds,
         rl_category_primary: question.rl_category_primary,
         rl_category_secondary: question.rl_category_secondary,
@@ -233,16 +247,21 @@ export function QuestionScreen({
   }, [primaryActionState]);
 
   function pauseSession() {
-    if (isExiting || isPaused || isSubmitted) {
+    if (isExiting || isPaused) {
       return;
     }
 
-    elapsedBeforePauseMsRef.current += Date.now() - (activeStartMsRef.current ?? Date.now());
+    if (!isSubmitted) {
+      elapsedBeforePauseMsRef.current += Date.now() - (activeStartMsRef.current ?? Date.now());
+    }
+
+    setIsAbandonConfirming(false);
     setIsPaused(true);
   }
 
   function resumeSession() {
     activeStartMsRef.current = Date.now();
+    setIsAbandonConfirming(false);
     setIsPaused(false);
   }
 
@@ -295,12 +314,48 @@ export function QuestionScreen({
     );
   }
 
+  function startRankingDrag(answerId: string, event: DragEvent<HTMLButtonElement>) {
+    if (!isRankingQuestion || isSubmitted || !selectedAnswerIds.includes(answerId)) {
+      return;
+    }
+
+    setDraggedAnswerId(answerId);
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", answerId);
+  }
+
+  function dragRankingOver(event: DragEvent<HTMLButtonElement>) {
+    if (!isRankingQuestion || isSubmitted || !draggedAnswerId) {
+      return;
+    }
+
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+  }
+
+  function dropRankingAnswer(targetAnswerId: string, event: DragEvent<HTMLButtonElement>) {
+    if (!isRankingQuestion || isSubmitted) {
+      return;
+    }
+
+    event.preventDefault();
+    const sourceAnswerId = draggedAnswerId ?? event.dataTransfer.getData("text/plain");
+
+    if (!sourceAnswerId || sourceAnswerId === targetAnswerId) {
+      setDraggedAnswerId(null);
+      return;
+    }
+
+    setSelectedAnswerIds((current) => moveAnswerBefore(current, sourceAnswerId, targetAnswerId));
+    setDraggedAnswerId(null);
+  }
+
   function submitAnswer() {
     if (isExiting || isSubmitted) {
       return;
     }
 
-    if (!isRankingQuestion && selectedAnswerIds.length === 0) {
+    if (!hasRequiredSelection) {
       return;
     }
 
@@ -448,9 +503,9 @@ export function QuestionScreen({
           ) : (
             <>
               <div className="question-copy">
-                <div className={`question-type-indicator type-${getQuestionTypeVariant(question)}`}>
+                <div className={`question-type-indicator type-${questionTypeMeta.variant}`}>
                   <span className="question-type-icon" aria-hidden="true" />
-                  <span>{question.question_type_label}</span>
+                  <span>{questionTypeMeta.label}</span>
                 </div>
                 <h2>
                   <GlossaryText terms={glossaryTerms} text={question.question_text} />
@@ -470,16 +525,23 @@ export function QuestionScreen({
                   return (
                     <AnswerOption
                       answer={answer}
+                      dragHint={isRankingQuestion && selectedAnswerIds.includes(answer.answer_id) ? "Glisser" : undefined}
                       expectedRank={
                         isSubmitted && isRankingQuestion
                           ? expectedRankByAnswerId.get(answer.answer_id)
                           : undefined
                       }
+                      isDragging={draggedAnswerId === answer.answer_id}
                       glossaryTerms={glossaryTerms}
                       isDisabled={isSubmitted}
+                      isDraggable={isRankingQuestion && selectedAnswerIds.includes(answer.answer_id) && !isSubmitted}
                       isRanking={isRankingQuestion}
                       isSelected={selectedAnswerIds.includes(answer.answer_id)}
                       key={answer.answer_id}
+                      onDragEnd={() => setDraggedAnswerId(null)}
+                      onDragOver={dragRankingOver}
+                      onDragStart={startRankingDrag}
+                      onDrop={dropRankingAnswer}
                       onSelect={selectAnswer}
                       rank={isRankingQuestion ? selectedRankByAnswerId.get(answer.answer_id) : undefined}
                       visualState={visualState}
@@ -528,15 +590,50 @@ export function QuestionScreen({
           <div className="pause-card">
             <span className="eyebrow">Pause</span>
             <h2>Session en pause</h2>
-            <p>Le chrono est arrete. Reprends quand tu es pret.</p>
-            <div className="pause-actions">
-              <button className="primary-action" onClick={resumeSession} type="button">
-                Reprendre
-              </button>
-              <Link className="secondary-action" href="/">
-                Menu principal
-              </Link>
-            </div>
+            {isAbandonConfirming ? (
+              <>
+                <p>Tu perdras ta progression de session.</p>
+                <div className="pause-actions">
+                  <button
+                    className="secondary-action"
+                    onClick={() => setIsAbandonConfirming(false)}
+                    type="button"
+                  >
+                    Continuer la session
+                  </button>
+                  <Link className="danger-action" href="/">
+                    Abandonner
+                  </Link>
+                </div>
+              </>
+            ) : (
+              <>
+                <p>Le chrono est arrete. Reprends quand tu es pret.</p>
+                <div className="pause-audio-slot" aria-label="Musique">
+                  <span>Musique</span>
+                  <button
+                    aria-pressed={isMusicMuted}
+                    className="mute-toggle"
+                    onClick={() => setIsMusicMuted((current) => !current)}
+                    type="button"
+                  >
+                    {isMusicMuted ? "Muet" : "Active"}
+                  </button>
+                </div>
+                <div className="pause-actions">
+                  <button className="primary-action" onClick={resumeSession} type="button">
+                    Reprendre
+                  </button>
+                  <button
+                    className="secondary-action"
+                    onClick={() => setIsAbandonConfirming(true)}
+                    type="button"
+                  >
+                    Abandonner la session
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       ) : null}
@@ -594,33 +691,39 @@ function getQuestionTimeLimitSeconds(question: ContentQuestion) {
   return DEFAULT_TIME_LIMIT_SECONDS;
 }
 
-function getQuestionTypeVariant(question: ContentQuestion) {
-  if (question.answer_format === "multiple") {
-    return "multiple";
+function getVisualFocus(question: ContentQuestion): VisualFocus {
+  if (question.visual_focus && VISUAL_FOCUS_VALUES.has(question.visual_focus)) {
+    return question.visual_focus;
   }
 
-  if (question.answer_format === "ranking") {
-    return "ranking";
+  return "image";
+}
+
+function getQuestionTypeMeta(answerFormat: AnswerFormat) {
+  const meta: Record<AnswerFormat, { label: string; variant: string }> = {
+    multiple: { label: "Multiple", variant: "multiple" },
+    ranking: { label: "Classement", variant: "ranking" },
+    single: { label: "Option", variant: "single" }
+  };
+
+  return meta[answerFormat];
+}
+
+function moveAnswerBefore(answerIds: string[], sourceAnswerId: string, targetAnswerId: string) {
+  const sourceIndex = answerIds.indexOf(sourceAnswerId);
+  const targetIndex = answerIds.indexOf(targetAnswerId);
+
+  if (sourceIndex === -1 || targetIndex === -1) {
+    return answerIds;
   }
 
-  const normalizedLabel = question.question_type_label
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
+  const reordered = [...answerIds];
+  const [movedAnswerId] = reordered.splice(sourceIndex, 1);
+  const nextTargetIndex = reordered.indexOf(targetAnswerId);
 
-  if (normalizedLabel.includes("observation")) {
-    return "observation";
-  }
+  reordered.splice(nextTargetIndex, 0, movedAnswerId);
 
-  if (normalizedLabel.includes("anti")) {
-    return "anti-reflex";
-  }
-
-  if (normalizedLabel.includes("role")) {
-    return "role";
-  }
-
-  return "best-option";
+  return reordered;
 }
 
 function formatResponseTime(value: number) {
