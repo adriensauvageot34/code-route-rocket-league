@@ -2,7 +2,14 @@ import type { AnswerFormat, ContentQuestion } from "@/types/content";
 
 export type GlobalAnswerState = "correct" | "partial" | "wrong" | "timeout";
 
-export type AnswerVisualState = "neutral" | "selected" | "correct" | "incorrect" | "missed" | "missing";
+export type AnswerVisualState =
+  | "neutral"
+  | "selected"
+  | "correct"
+  | "incorrect"
+  | "missed"
+  | "missing"
+  | "omitted";
 
 export function evaluateSingleAnswer(question: ContentQuestion, selectedAnswerIds: string[]): GlobalAnswerState {
   return selectedAnswerIds[0] === question.correct_answer_ids[0] ? "correct" : "wrong";
@@ -90,6 +97,10 @@ export function getAnswerVisualState(
 
   if (isSelected && !isCorrectAnswer) {
     return "incorrect";
+  }
+
+  if (question.answer_format === "multiple" && isCorrectAnswer) {
+    return "omitted";
   }
 
   if (isCorrectAnswer) {

@@ -44,7 +44,9 @@ export function QuestionScreen({
   const activeStartMsRef = useRef<number | null>(null);
   const elapsedBeforePauseMsRef = useRef(0);
   const [selectedAnswerIds, setSelectedAnswerIds] = useState<string[]>([]);
-  const [imageAvailable, setImageAvailable] = useState(imageExists);
+  const [failedImagePaths, setFailedImagePaths] = useState<string[]>(
+    imageExists ? [] : [capture.image_path]
+  );
   const [failedScoreHudImagePath, setFailedScoreHudImagePath] = useState<string | null>(null);
   const [isImageExpanded, setIsImageExpanded] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -86,6 +88,20 @@ export function QuestionScreen({
     primaryActionState === "result" ||
     (primaryActionState === "validate" && !isRankingQuestion && selectedAnswerIds.length === 0);
   const resultLabel = getResultLabel(globalAnswerState);
+  const correctionImagePath = question.correction.correction_image_path?.trim();
+  const preferredCorrectionImagePath = isCorrectionOpen && correctionImagePath ? correctionImagePath : null;
+  const activeImagePath =
+    preferredCorrectionImagePath && !failedImagePaths.includes(preferredCorrectionImagePath)
+      ? preferredCorrectionImagePath
+      : capture.image_path;
+  const activeImageAvailable =
+    activeImagePath === capture.image_path
+      ? imageExists && !failedImagePaths.includes(activeImagePath)
+      : !failedImagePaths.includes(activeImagePath);
+  const activeImageAlt =
+    preferredCorrectionImagePath && activeImagePath === preferredCorrectionImagePath
+      ? `${capture.description} correction`
+      : capture.description;
   const validateActionClassName = [
     "primary-action",
     "validate-action",
@@ -153,6 +169,10 @@ export function QuestionScreen({
   function resumeSession() {
     activeStartMsRef.current = Date.now();
     setIsPaused(false);
+  }
+
+  function markImageFailed(imagePath: string) {
+    setFailedImagePaths((current) => (current.includes(imagePath) ? current : [...current, imagePath]));
   }
 
   function expandImage(event: PointerEvent<HTMLDivElement>) {
@@ -303,13 +323,13 @@ export function QuestionScreen({
               </button>
             </div>
 
-            {imageAvailable ? (
+            {activeImageAvailable ? (
               <img
-                alt={capture.description}
+                alt={activeImageAlt}
                 className="capture-image"
                 draggable={false}
-                onError={() => setImageAvailable(false)}
-                src={capture.image_path}
+                onError={() => markImageFailed(activeImagePath)}
+                src={activeImagePath}
               />
             ) : (
               <CaptureFallback label={capture.capture_id} />
@@ -323,132 +343,86 @@ export function QuestionScreen({
           </div>
         </div>
 
-        <div className="question-card">
-          <div className="question-copy">
-            <div className={`question-type-indicator type-${getQuestionTypeVariant(question)}`}>
-              <span className="question-type-icon" aria-hidden="true" />
-              <span>{question.question_type_label}</span>
-            </div>
-            <h2>
-              <GlossaryText terms={glossaryTerms} text={question.question_text} />
-            </h2>
-          </div>
-
-          <div className="answers-list" aria-label="Reponses possibles">
-            {question.answers.map((answer) => {
-              const visualState = getAnswerVisualState(
-                question,
-                selectedAnswerIds,
-                answer.answer_id,
-                isSubmitted,
-                isTimedOut
-              );
-
-              return (
-                <AnswerOption
-                  answer={answer}
-                  expectedRank={
-                    isSubmitted && isRankingQuestion
-                      ? expectedRankByAnswerId.get(answer.answer_id)
-                      : undefined
-                  }
-                  glossaryTerms={glossaryTerms}
-                  isDisabled={isSubmitted}
-                  isRanking={isRankingQuestion}
-                  isSelected={selectedAnswerIds.includes(answer.answer_id)}
-                  key={answer.answer_id}
-                  onSelect={selectAnswer}
-                  rank={isRankingQuestion ? selectedRankByAnswerId.get(answer.answer_id) : undefined}
-                  visualState={visualState}
-                />
-              );
-            })}
-          </div>
-
-          <div className="question-actions">
-            {primaryActionState === "actions" ? (
-              <div className="post-result-actions" aria-label="Actions apres validation">
-                <button className="secondary-action result-action" onClick={openCorrection} type="button">
-                  Correction
-                </button>
-                <button className="primary-action result-action" onClick={goToNextStep} type="button">
-                  {hasNextQuestion ? "Suivant" : "Menu"}
-                </button>
+        <div className={`question-card ${isCorrectionOpen ? "is-correction-mode" : ""}`}>
+          {isCorrectionOpen ? (
+            <CorrectionPanel
+              actionLabel="J'ai compris"
+              glossaryTerms={glossaryTerms}
+              onAction={goToNextStep}
+              question={question}
+            />
+          ) : (
+            <>
+              <div className="question-copy">
+                <div className={`question-type-indicator type-${getQuestionTypeVariant(question)}`}>
+                  <span className="question-type-icon" aria-hidden="true" />
+                  <span>{question.question_type_label}</span>
+                </div>
+                <h2>
+                  <GlossaryText terms={glossaryTerms} text={question.question_text} />
+                </h2>
               </div>
-            ) : (
-              <button
-                aria-live="polite"
-                className={validateActionClassName}
-                disabled={isValidateDisabled}
-                onClick={submitAnswer}
-                type="button"
-              >
-                <span className="validate-label">
-                  {isSubmitted ? resultLabel : "Valider"}
-                  {isSubmitted && !isTimedOut && responseTimeLabel ? <small>{responseTimeLabel}</small> : null}
-                </span>
-              </button>
-            )}
-          </div>
+
+              <div className="answers-list" aria-label="Reponses possibles">
+                {question.answers.map((answer) => {
+                  const visualState = getAnswerVisualState(
+                    question,
+                    selectedAnswerIds,
+                    answer.answer_id,
+                    isSubmitted,
+                    isTimedOut
+                  );
+
+                  return (
+                    <AnswerOption
+                      answer={answer}
+                      expectedRank={
+                        isSubmitted && isRankingQuestion
+                          ? expectedRankByAnswerId.get(answer.answer_id)
+                          : undefined
+                      }
+                      glossaryTerms={glossaryTerms}
+                      isDisabled={isSubmitted}
+                      isRanking={isRankingQuestion}
+                      isSelected={selectedAnswerIds.includes(answer.answer_id)}
+                      key={answer.answer_id}
+                      onSelect={selectAnswer}
+                      rank={isRankingQuestion ? selectedRankByAnswerId.get(answer.answer_id) : undefined}
+                      visualState={visualState}
+                    />
+                  );
+                })}
+              </div>
+
+              <div className="question-actions">
+                {primaryActionState === "actions" ? (
+                  <div className="post-result-actions" aria-label="Actions apres validation">
+                    <button className="secondary-action result-action" onClick={openCorrection} type="button">
+                      Correction
+                    </button>
+                    <button className="primary-action result-action" onClick={goToNextStep} type="button">
+                      {hasNextQuestion ? "Suivant" : "Menu"}
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    aria-live="polite"
+                    className={validateActionClassName}
+                    disabled={isValidateDisabled}
+                    onClick={submitAnswer}
+                    type="button"
+                  >
+                    <span className="validate-label">
+                      {isSubmitted ? resultLabel : "Valider"}
+                      {isSubmitted && !isTimedOut && responseTimeLabel ? <small>{responseTimeLabel}</small> : null}
+                    </span>
+                  </button>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </section>
-
-      {isCorrectionOpen ? (
-        <div
-          className="correction-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Correction pedagogique"
-        >
-          <div className="correction-card">
-            <div className="correction-head">
-              <h2>Correction</h2>
-              <button
-                className="secondary-action correction-close"
-                onClick={() => setIsCorrectionOpen(false)}
-                type="button"
-              >
-                Fermer
-              </button>
-            </div>
-
-            <div className="correction-content">
-              <CorrectionSection
-                label="Bonne reponse attendue"
-                terms={glossaryTerms}
-                text={question.correction.expected_answer}
-              />
-              <CorrectionSection
-                label="Ce qu'il fallait observer"
-                terms={glossaryTerms}
-                text={question.correction.what_to_observe}
-              />
-              <CorrectionSection
-                label="Principe a retenir"
-                terms={glossaryTerms}
-                text={question.correction.principle}
-              />
-              <CorrectionSection
-                label="Pourquoi l'erreur etait tentante"
-                terms={glossaryTerms}
-                text={question.correction.why_tempting}
-              />
-              <CorrectionSection
-                label="Risque evite"
-                terms={glossaryTerms}
-                text={question.correction.risk_avoided}
-              />
-
-              <section className="reflex-section">
-                <h3>Phrase reflexe</h3>
-                <p>
-                  <GlossaryText terms={glossaryTerms} text={question.correction.reflex_phrase} />
-                </p>
-              </section>
-            </div>
-          </div>
-        </div>
-      ) : null}
 
       {isPaused ? (
         <div className="pause-overlay" role="dialog" aria-modal="true" aria-label="Session en pause">
@@ -479,13 +453,13 @@ export function QuestionScreen({
           role="dialog"
         >
           <div className="lightbox-media">
-            {imageAvailable ? (
+            {activeImageAvailable ? (
               <img
-                alt={capture.description}
+                alt={activeImageAlt}
                 className="capture-image"
                 draggable={false}
-                onError={() => setImageAvailable(false)}
-                src={capture.image_path}
+                onError={() => markImageFailed(activeImagePath)}
+                src={activeImagePath}
               />
             ) : (
               <CaptureFallback label={capture.capture_id} />
@@ -594,6 +568,76 @@ function CaptureFallback({ label }: { label: string }) {
   );
 }
 
+function CorrectionPanel({
+  actionLabel,
+  glossaryTerms,
+  onAction,
+  question
+}: {
+  actionLabel: string;
+  glossaryTerms: GlossaryTerm[];
+  onAction: () => void;
+  question: ContentQuestion;
+}) {
+  const title = getCorrectionTitle(question.cognitive_category_primary);
+  const iconVariant = getCorrectionIconVariant(question.cognitive_category_primary);
+  const reflexPhrase = question.correction.reflex_phrase?.trim();
+
+  return (
+    <section className="integrated-correction" aria-label="Correction pedagogique">
+      <div className="integrated-correction-head">
+        <span className={`correction-title-icon icon-${iconVariant}`} aria-hidden="true" />
+        <h2>{title}</h2>
+      </div>
+
+      <div className="integrated-correction-scroll">
+        {reflexPhrase ? (
+          <section className="reflex-sticky-card">
+            <h3>Phrase reflexe</h3>
+            <p>
+              <GlossaryText terms={glossaryTerms} text={reflexPhrase} />
+            </p>
+          </section>
+        ) : null}
+
+        <section className="expected-answer-card">
+          <span className="expected-answer-icon" aria-hidden="true" />
+          <div>
+            <h3>Bonne reponse attendue</h3>
+            <p>
+              <GlossaryText terms={glossaryTerms} text={question.correction.expected_answer} />
+            </p>
+          </div>
+        </section>
+
+        <CorrectionSection
+          label="A observer"
+          terms={glossaryTerms}
+          text={question.correction.what_to_observe}
+        />
+        <CorrectionSection label="Principe" terms={glossaryTerms} text={question.correction.principle} />
+        <CorrectionSection
+          label="Erreur tentante"
+          terms={glossaryTerms}
+          text={question.correction.why_tempting}
+        />
+        <CorrectionSection
+          label="Risque evite"
+          terms={glossaryTerms}
+          text={question.correction.risk_avoided}
+        />
+      </div>
+
+      <div className="integrated-correction-footer">
+        <button className="primary-action understood-action" onClick={onAction} type="button">
+          <span className="understood-icon" aria-hidden="true" />
+          <span>{actionLabel}</span>
+        </button>
+      </div>
+    </section>
+  );
+}
+
 function CorrectionSection({
   label,
   terms,
@@ -601,14 +645,63 @@ function CorrectionSection({
 }: {
   label: string;
   terms: GlossaryTerm[];
-  text: string;
+  text?: string;
 }) {
+  if (!text?.trim()) {
+    return null;
+  }
+
   return (
-    <section>
+    <section className="correction-section">
       <h3>{label}</h3>
       <p>
         <GlossaryText terms={terms} text={text} />
       </p>
     </section>
   );
+}
+
+function getCorrectionTitle(categoryId: string) {
+  const labels: Record<string, string> = {
+    anticipation: "Anticipation",
+    decision_choice: "Choix de decision",
+    decision_making: "Choix de decision",
+    inhibition: "Inhibition",
+    observation_reperage: "Observation",
+    prioritization: "Priorisation",
+    risk_evaluation: "Evaluation du risque",
+    role_identification: "Role",
+    situation_understanding: "Lecture de situation",
+    visual_scan: "Observation"
+  };
+
+  return labels[categoryId] ?? "Lecture de situation";
+}
+
+function getCorrectionIconVariant(categoryId: string) {
+  if (categoryId === "prioritization") {
+    return "priority";
+  }
+
+  if (categoryId === "inhibition") {
+    return "inhibition";
+  }
+
+  if (categoryId === "risk_evaluation") {
+    return "risk";
+  }
+
+  if (categoryId === "anticipation") {
+    return "anticipation";
+  }
+
+  if (categoryId === "decision_choice" || categoryId === "decision_making") {
+    return "decision";
+  }
+
+  if (categoryId === "role_identification") {
+    return "role";
+  }
+
+  return "observation";
 }
