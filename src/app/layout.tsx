@@ -6,6 +6,7 @@ import "./orientation.css";
 import "./fullscreen-capture.css";
 import "./game-session.css";
 import "./correction-panel.css";
+import "./training-summary.css";
 
 export const metadata: Metadata = {
   applicationName: "Code RL",

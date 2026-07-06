@@ -3,17 +3,18 @@
 /* eslint-disable @next/next/no-img-element -- Local gameplay captures must render without Next image optimization cache. */
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent, PointerEvent } from "react";
 import { AnswerOption } from "@/components/AnswerOption";
 import { GlossaryText } from "@/components/GlossaryText";
+import { TrainingCorrectionPanel } from "@/components/TrainingCorrectionPanel";
 import {
   getAnswerVisualState,
   getGlobalAnswerState,
   type GlobalAnswerState
 } from "@/lib/session/answer-evaluation";
 import type { Capture, ContentQuestion, GlossaryTerm } from "@/types/content";
+import type { TrainingQuestionResult } from "@/types/session";
 
 type QuestionScreenProps = {
   capture: Capture;
@@ -23,6 +24,7 @@ type QuestionScreenProps = {
   questionIndex: number;
   totalQuestions: number;
   hasNextQuestion: boolean;
+  onQuestionResult: (result: TrainingQuestionResult) => void;
   onNextQuestion: () => void;
 };
 
@@ -40,11 +42,12 @@ export function QuestionScreen({
   questionIndex,
   totalQuestions,
   hasNextQuestion,
+  onQuestionResult,
   onNextQuestion
 }: QuestionScreenProps) {
-  const router = useRouter();
   const activeStartMsRef = useRef<number | null>(null);
   const elapsedBeforePauseMsRef = useRef(0);
+  const recordedResultRef = useRef<TrainingQuestionResult | null>(null);
   const isExitingRef = useRef(false);
   const exitTimeoutRef = useRef<number | null>(null);
   const [selectedAnswerIds, setSelectedAnswerIds] = useState<string[]>([]);
@@ -127,6 +130,52 @@ export function QuestionScreen({
     .filter(Boolean)
     .join(" ");
 
+  const recordQuestionResult = useCallback(
+    (answerIds: string[], state: GlobalAnswerState, responseSeconds: number) => {
+      if (recordedResultRef.current) {
+        return;
+      }
+
+      const triggeredErrorTags = Array.from(
+        new Set(
+          answerIds.flatMap((answerId) => {
+            const answer = question.answers.find((currentAnswer) => currentAnswer.answer_id === answerId);
+
+            return answer?.error_tags ?? [];
+          })
+        )
+      );
+      const result: TrainingQuestionResult = {
+        answer_format: question.answer_format,
+        capture,
+        capture_id: question.capture_id,
+        cognitive_category_primary: question.cognitive_category_primary,
+        cognitive_category_secondary: question.cognitive_category_secondary,
+        correction: question.correction,
+        correction_image_path: question.correction.correction_image_path,
+        error_tags: triggeredErrorTags,
+        global_state: state,
+        glossary_terms: glossaryTerms,
+        image_exists: imageExists,
+        image_path: capture.image_path,
+        pedagogical_mode: question.pedagogical_mode,
+        question,
+        question_id: question.question_id,
+        question_type_label: question.question_type_label,
+        response_time_seconds: responseSeconds,
+        rl_category_primary: question.rl_category_primary,
+        rl_category_secondary: question.rl_category_secondary,
+        selected_answer_ids: [...answerIds],
+        selected_ranking: question.answer_format === "ranking" ? [...answerIds] : [],
+        time_limit_seconds: questionTimeLimitSeconds
+      };
+
+      recordedResultRef.current = result;
+      onQuestionResult(result);
+    },
+    [capture, glossaryTerms, imageExists, onQuestionResult, question, questionTimeLimitSeconds]
+  );
+
   useEffect(() => {
     return () => {
       if (exitTimeoutRef.current !== null) {
@@ -138,6 +187,7 @@ export function QuestionScreen({
   useEffect(() => {
     elapsedBeforePauseMsRef.current = 0;
     activeStartMsRef.current = Date.now();
+    recordedResultRef.current = null;
   }, [question.question_id]);
 
   useEffect(() => {
@@ -163,11 +213,12 @@ export function QuestionScreen({
       setIsTimedOut(true);
       setIsSubmitted(true);
       setPrimaryActionState("result");
+      recordQuestionResult([], "timeout", questionTimeLimitSeconds);
       vibrateTraining([20, 40, 20]);
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
-  }, [isExiting, isPaused, isSubmitted, questionTimeLimitSeconds, remainingSeconds]);
+  }, [isExiting, isPaused, isSubmitted, questionTimeLimitSeconds, recordQuestionResult, remainingSeconds]);
 
   useEffect(() => {
     if (primaryActionState !== "result") {
@@ -260,10 +311,12 @@ export function QuestionScreen({
     const activeMs = isPaused ? 0 : Date.now() - (activeStartMsRef.current ?? Date.now());
     const elapsedMs = elapsedBeforePauseMsRef.current + activeMs;
     const submittedAnswerState = getGlobalAnswerState(question, selectedAnswerIds);
+    const submittedResponseTimeSeconds = Math.max(0, Math.round(elapsedMs / 100) / 10);
 
-    setResponseTimeSeconds(Math.max(0, Math.round(elapsedMs / 100) / 10));
+    setResponseTimeSeconds(submittedResponseTimeSeconds);
     setIsSubmitted(true);
     setPrimaryActionState("result");
+    recordQuestionResult(selectedAnswerIds, submittedAnswerState, submittedResponseTimeSeconds);
 
     if (submittedAnswerState === "correct") {
       vibrateTraining(20);
@@ -289,7 +342,7 @@ export function QuestionScreen({
         return;
       }
 
-      router.push("/");
+      onNextQuestion();
     }, EXIT_TRANSITION_MS);
   }
 
@@ -385,7 +438,7 @@ export function QuestionScreen({
 
         <div className={`question-card ${isCorrectionOpen ? "is-correction-mode" : ""}`}>
           {isCorrectionOpen ? (
-            <CorrectionPanel
+            <TrainingCorrectionPanel
               actionLabel="J'ai compris"
               isActionDisabled={isExiting}
               glossaryTerms={glossaryTerms}
@@ -447,7 +500,7 @@ export function QuestionScreen({
                       onClick={goToNextStep}
                       type="button"
                     >
-                      {hasNextQuestion ? "Suivant" : "Menu"}
+                      {hasNextQuestion ? "Suivant" : "Bilan"}
                     </button>
                   </div>
                 ) : (
@@ -612,151 +665,6 @@ function CaptureFallback({ label }: { label: string }) {
       </div>
     </div>
   );
-}
-
-function CorrectionPanel({
-  actionLabel,
-  glossaryTerms,
-  isActionDisabled,
-  onAction,
-  question
-}: {
-  actionLabel: string;
-  glossaryTerms: GlossaryTerm[];
-  isActionDisabled: boolean;
-  onAction: () => void;
-  question: ContentQuestion;
-}) {
-  const title = getCorrectionTitle(question.cognitive_category_primary);
-  const iconVariant = getCorrectionIconVariant(question.cognitive_category_primary);
-  const reflexPhrase = question.correction.reflex_phrase?.trim();
-
-  return (
-    <section className="integrated-correction" aria-label="Correction pedagogique">
-      <div className="integrated-correction-head">
-        <span className={`correction-title-icon icon-${iconVariant}`} aria-hidden="true" />
-        <h2>{title}</h2>
-      </div>
-
-      <div className="integrated-correction-scroll">
-        {reflexPhrase ? (
-          <section className="reflex-sticky-card">
-            <h3>Phrase reflexe</h3>
-            <p>
-              <GlossaryText terms={glossaryTerms} text={reflexPhrase} />
-            </p>
-          </section>
-        ) : null}
-
-        <section className="expected-answer-card">
-          <span className="expected-answer-icon" aria-hidden="true" />
-          <div>
-            <h3>Bonne reponse attendue</h3>
-            <p>
-              <GlossaryText terms={glossaryTerms} text={question.correction.expected_answer} />
-            </p>
-          </div>
-        </section>
-
-        <CorrectionSection
-          label="A observer"
-          terms={glossaryTerms}
-          text={question.correction.what_to_observe}
-        />
-        <CorrectionSection label="Principe" terms={glossaryTerms} text={question.correction.principle} />
-        <CorrectionSection
-          label="Erreur tentante"
-          terms={glossaryTerms}
-          text={question.correction.why_tempting}
-        />
-        <CorrectionSection
-          label="Risque evite"
-          terms={glossaryTerms}
-          text={question.correction.risk_avoided}
-        />
-      </div>
-
-      <div className="integrated-correction-footer">
-        <button
-          className="primary-action understood-action"
-          disabled={isActionDisabled}
-          onClick={onAction}
-          type="button"
-        >
-          <span className="understood-icon" aria-hidden="true" />
-          <span>{actionLabel}</span>
-        </button>
-      </div>
-    </section>
-  );
-}
-
-function CorrectionSection({
-  label,
-  terms,
-  text
-}: {
-  label: string;
-  terms: GlossaryTerm[];
-  text?: string;
-}) {
-  if (!text?.trim()) {
-    return null;
-  }
-
-  return (
-    <section className="correction-section">
-      <h3>{label}</h3>
-      <p>
-        <GlossaryText terms={terms} text={text} />
-      </p>
-    </section>
-  );
-}
-
-function getCorrectionTitle(categoryId: string) {
-  const labels: Record<string, string> = {
-    anticipation: "Anticipation",
-    decision_choice: "Choix de decision",
-    decision_making: "Choix de decision",
-    inhibition: "Inhibition",
-    observation_reperage: "Observation",
-    prioritization: "Priorisation",
-    risk_evaluation: "Evaluation du risque",
-    role_identification: "Role",
-    situation_understanding: "Lecture de situation",
-    visual_scan: "Observation"
-  };
-
-  return labels[categoryId] ?? "Lecture de situation";
-}
-
-function getCorrectionIconVariant(categoryId: string) {
-  if (categoryId === "prioritization") {
-    return "priority";
-  }
-
-  if (categoryId === "inhibition") {
-    return "inhibition";
-  }
-
-  if (categoryId === "risk_evaluation") {
-    return "risk";
-  }
-
-  if (categoryId === "anticipation") {
-    return "anticipation";
-  }
-
-  if (categoryId === "decision_choice" || categoryId === "decision_making") {
-    return "decision";
-  }
-
-  if (categoryId === "role_identification") {
-    return "role";
-  }
-
-  return "observation";
 }
 
 function vibrateTraining(pattern: number | number[]) {
