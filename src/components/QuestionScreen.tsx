@@ -27,8 +27,10 @@ type QuestionScreenProps = {
 };
 
 type PrimaryActionState = "validate" | "result" | "actions";
+type ExitDirection = "left" | "right";
 
 const DEFAULT_TIME_LIMIT_SECONDS = 30;
+const EXIT_TRANSITION_MS = 210;
 
 export function QuestionScreen({
   capture,
@@ -43,6 +45,8 @@ export function QuestionScreen({
   const router = useRouter();
   const activeStartMsRef = useRef<number | null>(null);
   const elapsedBeforePauseMsRef = useRef(0);
+  const isExitingRef = useRef(false);
+  const exitTimeoutRef = useRef<number | null>(null);
   const [selectedAnswerIds, setSelectedAnswerIds] = useState<string[]>([]);
   const [failedImagePaths, setFailedImagePaths] = useState<string[]>(
     imageExists ? [] : [capture.image_path]
@@ -57,6 +61,7 @@ export function QuestionScreen({
   const [remainingSeconds, setRemainingSeconds] = useState(questionTimeLimitSeconds);
   const [responseTimeSeconds, setResponseTimeSeconds] = useState<number | null>(null);
   const [primaryActionState, setPrimaryActionState] = useState<PrimaryActionState>("validate");
+  const [exitDirection, setExitDirection] = useState<ExitDirection | null>(null);
 
   const selectedRankByAnswerId = useMemo(() => {
     return new Map(selectedAnswerIds.map((answerId, index) => [answerId, index + 1]));
@@ -84,7 +89,9 @@ export function QuestionScreen({
   const clockState = getClockState(remainingSeconds);
   const isClockUrgent = remainingSeconds > 0 && remainingSeconds <= 4;
   const isRankingQuestion = question.answer_format === "ranking";
+  const isExiting = exitDirection !== null;
   const isValidateDisabled =
+    isExiting ||
     primaryActionState === "result" ||
     (primaryActionState === "validate" && !isRankingQuestion && selectedAnswerIds.length === 0);
   const resultLabel = getResultLabel(globalAnswerState);
@@ -111,6 +118,21 @@ export function QuestionScreen({
   ]
     .filter(Boolean)
     .join(" ");
+  const questionLayoutClassName = [
+    "question-layout",
+    isExiting ? "is-transitioning" : "",
+    exitDirection ? `exit-${exitDirection}` : ""
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  useEffect(() => {
+    return () => {
+      if (exitTimeoutRef.current !== null) {
+        window.clearTimeout(exitTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     elapsedBeforePauseMsRef.current = 0;
@@ -130,7 +152,7 @@ export function QuestionScreen({
   }, [isPaused, isSubmitted, remainingSeconds]);
 
   useEffect(() => {
-    if (isPaused || isSubmitted || remainingSeconds > 0) {
+    if (isPaused || isSubmitted || isExiting || remainingSeconds > 0) {
       return;
     }
 
@@ -140,10 +162,11 @@ export function QuestionScreen({
       setIsTimedOut(true);
       setIsSubmitted(true);
       setPrimaryActionState("result");
+      vibrateTraining([20, 40, 20]);
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
-  }, [isPaused, isSubmitted, questionTimeLimitSeconds, remainingSeconds]);
+  }, [isExiting, isPaused, isSubmitted, questionTimeLimitSeconds, remainingSeconds]);
 
   useEffect(() => {
     if (primaryActionState !== "result") {
@@ -158,7 +181,7 @@ export function QuestionScreen({
   }, [primaryActionState]);
 
   function pauseSession() {
-    if (isPaused || isSubmitted) {
+    if (isExiting || isPaused || isSubmitted) {
       return;
     }
 
@@ -204,7 +227,7 @@ export function QuestionScreen({
   }
 
   function selectAnswer(answerId: string) {
-    if (isSubmitted) {
+    if (isExiting || isSubmitted) {
       return;
     }
 
@@ -221,7 +244,7 @@ export function QuestionScreen({
   }
 
   function submitAnswer() {
-    if (isSubmitted) {
+    if (isExiting || isSubmitted) {
       return;
     }
 
@@ -235,10 +258,15 @@ export function QuestionScreen({
 
     const activeMs = isPaused ? 0 : Date.now() - (activeStartMsRef.current ?? Date.now());
     const elapsedMs = elapsedBeforePauseMsRef.current + activeMs;
+    const submittedAnswerState = getGlobalAnswerState(question, selectedAnswerIds);
 
     setResponseTimeSeconds(Math.max(0, Math.round(elapsedMs / 100) / 10));
     setIsSubmitted(true);
     setPrimaryActionState("result");
+
+    if (submittedAnswerState === "correct") {
+      vibrateTraining(20);
+    }
   }
 
   function openCorrection() {
@@ -246,12 +274,22 @@ export function QuestionScreen({
   }
 
   function goToNextStep() {
-    if (hasNextQuestion) {
-      onNextQuestion();
+    if (isExitingRef.current || isExiting) {
       return;
     }
 
-    router.push("/");
+    isExitingRef.current = true;
+    setIsImageExpanded(false);
+    setExitDirection(globalAnswerState === "correct" ? "right" : "left");
+
+    exitTimeoutRef.current = window.setTimeout(() => {
+      if (hasNextQuestion) {
+        onNextQuestion();
+        return;
+      }
+
+      router.push("/");
+    }, EXIT_TRANSITION_MS);
   }
 
   return (
@@ -260,7 +298,7 @@ export function QuestionScreen({
         {question.question_id}
       </h1>
 
-      <section className="question-layout">
+      <section className={questionLayoutClassName}>
         <div className="capture-card" aria-label="Capture de situation">
           <div
             aria-label="Maintenir la capture en plein ecran"
@@ -311,6 +349,7 @@ export function QuestionScreen({
               </div>
               <button
                 className="pause-button"
+                disabled={isExiting}
                 onClick={(event) => {
                   event.stopPropagation();
                   pauseSession();
@@ -335,7 +374,7 @@ export function QuestionScreen({
               <CaptureFallback label={capture.capture_id} />
             )}
 
-            {question.context_to_display ? (
+            {question.context_to_display && !isExiting ? (
               <p className="context-overlay">{question.context_to_display}</p>
             ) : null}
 
@@ -347,6 +386,7 @@ export function QuestionScreen({
           {isCorrectionOpen ? (
             <CorrectionPanel
               actionLabel="J'ai compris"
+              isActionDisabled={isExiting}
               glossaryTerms={glossaryTerms}
               onAction={goToNextStep}
               question={question}
@@ -400,7 +440,12 @@ export function QuestionScreen({
                     <button className="secondary-action result-action" onClick={openCorrection} type="button">
                       Correction
                     </button>
-                    <button className="primary-action result-action" onClick={goToNextStep} type="button">
+                    <button
+                      className="primary-action result-action"
+                      disabled={isExiting}
+                      onClick={goToNextStep}
+                      type="button"
+                    >
                       {hasNextQuestion ? "Suivant" : "Menu"}
                     </button>
                   </div>
@@ -571,11 +616,13 @@ function CaptureFallback({ label }: { label: string }) {
 function CorrectionPanel({
   actionLabel,
   glossaryTerms,
+  isActionDisabled,
   onAction,
   question
 }: {
   actionLabel: string;
   glossaryTerms: GlossaryTerm[];
+  isActionDisabled: boolean;
   onAction: () => void;
   question: ContentQuestion;
 }) {
@@ -629,7 +676,12 @@ function CorrectionPanel({
       </div>
 
       <div className="integrated-correction-footer">
-        <button className="primary-action understood-action" onClick={onAction} type="button">
+        <button
+          className="primary-action understood-action"
+          disabled={isActionDisabled}
+          onClick={onAction}
+          type="button"
+        >
           <span className="understood-icon" aria-hidden="true" />
           <span>{actionLabel}</span>
         </button>
@@ -704,4 +756,12 @@ function getCorrectionIconVariant(categoryId: string) {
   }
 
   return "observation";
+}
+
+function vibrateTraining(pattern: number | number[]) {
+  if (typeof navigator === "undefined" || typeof navigator.vibrate !== "function") {
+    return;
+  }
+
+  navigator.vibrate(pattern);
 }

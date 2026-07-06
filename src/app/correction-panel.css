@@ -10,6 +10,55 @@
   color: #ffe9c4;
 }
 
+.session-game .question-layout {
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
+.session-game .question-layout.is-transitioning {
+  animation: trainingCardExitRight 210ms cubic-bezier(0.2, 0.78, 0.24, 1) forwards;
+  pointer-events: none;
+}
+
+.session-game .question-layout.is-transitioning.exit-left {
+  animation-name: trainingCardExitLeft;
+}
+
+.session-game .question-layout.is-transitioning.exit-right {
+  animation-name: trainingCardExitRight;
+}
+
+.session-game .result-action:disabled,
+.session-game .understood-action:disabled,
+.session-game .pause-button:disabled {
+  cursor: default;
+  opacity: 0.64;
+}
+
+@keyframes trainingCardExitRight {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(8%, 0, 0) rotate(0.7deg) scale(0.985);
+  }
+}
+
+@keyframes trainingCardExitLeft {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(-8%, 0, 0) rotate(-0.7deg) scale(0.985);
+  }
+}
+
 .session-game .question-card.is-correction-mode {
   display: grid;
   grid-template-rows: minmax(0, 1fr);
@@ -291,8 +340,18 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .session-game .question-layout.is-transitioning {
+    animation: trainingCardReducedExit 80ms linear forwards;
+  }
+
   .understood-icon {
     animation: none;
+  }
+}
+
+@keyframes trainingCardReducedExit {
+  to {
+    opacity: 0;
   }
 }
 
