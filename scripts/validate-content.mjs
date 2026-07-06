@@ -14,14 +14,9 @@ const REQUIRED_CORRECTION_FIELDS = [
 const OPTIONAL_CORRECTION_FIELDS = ["risk_avoided", "reflex_phrase", "correction_image_path"];
 
 const errors = [];
-const warnings = [];
 
 function addError(type, id, field, message) {
   errors.push(`${type} ${id} - ${field}: ${message}`);
-}
-
-function addWarning(message) {
-  warnings.push(message);
 }
 
 function requireString(value, type, id, field) {
@@ -100,7 +95,13 @@ for (const question of questions) {
   requireString(question.question_id, "Question", id, "question_id");
   requireString(question.capture_id, "Question", id, "capture_id");
   requireString(question.question_text, "Question", id, "question_text");
-  requireString(question.question_type_label, "Question", id, "question_type_label");
+  if (
+    Object.prototype.hasOwnProperty.call(question, "question_type_label") &&
+    question.question_type_label !== null &&
+    typeof question.question_type_label !== "string"
+  ) {
+    addError("Question", id, "question_type_label", "doit etre un texte si renseigne");
+  }
 
   if (question.capture_id && !captureIds.has(question.capture_id)) {
     addError("Question", id, "capture_id", `capture inconnue: ${question.capture_id}`);
@@ -110,18 +111,16 @@ for (const question of questions) {
     addError("Question", id, "answer_format", `format invalide: ${question.answer_format}`);
   }
 
-  if (Object.prototype.hasOwnProperty.call(question, "time_limit_seconds")) {
-    if (
-      typeof question.time_limit_seconds !== "number" ||
-      !Number.isFinite(question.time_limit_seconds) ||
-      question.time_limit_seconds <= 0
-    ) {
-      addError("Question", id, "time_limit_seconds", "doit etre un nombre positif");
-    } else if (question.time_limit_seconds < 5 || question.time_limit_seconds > 60) {
-      addError("Question", id, "time_limit_seconds", "doit etre compris entre 5 et 60 secondes");
-    }
-  } else {
-    addWarning(`WARNING: ${id} has no time_limit_seconds. Defaulting to 30 seconds.`);
+  if (!Object.prototype.hasOwnProperty.call(question, "time_limit_seconds")) {
+    addError("Question", id, "time_limit_seconds", "champ obligatoire manquant");
+  } else if (
+    typeof question.time_limit_seconds !== "number" ||
+    !Number.isFinite(question.time_limit_seconds) ||
+    question.time_limit_seconds <= 0
+  ) {
+    addError("Question", id, "time_limit_seconds", "doit etre un nombre positif");
+  } else if (question.time_limit_seconds < 5 || question.time_limit_seconds > 60) {
+    addError("Question", id, "time_limit_seconds", "doit etre compris entre 5 et 60 secondes");
   }
 
   if (
@@ -286,10 +285,6 @@ function validateCorrection(correction, questionId) {
 }
 
 function finish() {
-  for (const warning of warnings) {
-    console.warn(warning);
-  }
-
   if (errors.length > 0) {
     console.error("Validation du contenu echouee:");
     for (const error of errors) {

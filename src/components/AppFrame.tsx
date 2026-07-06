@@ -24,7 +24,7 @@ export function AppFrame({ children, variant = "default" }: AppFrameProps) {
       ) : null}
 
       <div className="app-content">{children}</div>
-      <OrientationGate />
+      {variant === "game" ? <OrientationGate /> : null}
     </div>
   );
 }

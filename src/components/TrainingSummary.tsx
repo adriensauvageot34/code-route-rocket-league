@@ -444,7 +444,7 @@ function getAnswerFormatLabel(format: AnswerFormat) {
 }
 
 function getQuestionChipLabel(result: TrainingQuestionResult) {
-  return result.question_type_label?.trim() || getAnswerFormatLabel(result.answer_format);
+  return getAnswerFormatLabel(result.answer_format);
 }
 
 function getQuickErrorMessage(count: number) {

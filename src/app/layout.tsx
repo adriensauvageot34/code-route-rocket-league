@@ -7,6 +7,7 @@ import "./fullscreen-capture.css";
 import "./game-session.css";
 import "./correction-panel.css";
 import "./training-summary.css";
+import "./session-polish.css";
 
 export const metadata: Metadata = {
   applicationName: "Code RL",
