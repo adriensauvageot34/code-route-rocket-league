@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import "./home.css";
 import "./question.css";
 import "./landscape.css";
 import "./orientation.css";
