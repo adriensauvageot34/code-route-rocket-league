@@ -1,0 +1,165 @@
+.game-session-frame .orientation-gate {
+  z-index: 240;
+}
+
+.session-game .question-layout.focus-image {
+  grid-template-columns: minmax(0, 3fr) minmax(230px, 1fr);
+}
+
+.session-game .question-layout.focus-balanced {
+  grid-template-columns: minmax(0, 3fr) minmax(260px, 2fr);
+}
+
+.session-game .question-layout.focus-text {
+  grid-template-columns: 1fr;
+  grid-template-rows: minmax(0, 42svh) minmax(0, 1fr);
+}
+
+.session-game .question-layout.layout-correction,
+.session-game .question-layout.focus-text.layout-correction {
+  grid-template-columns: minmax(0, 13fr) minmax(300px, 7fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.session-game .focus-text:not(.layout-correction) .capture-media {
+  max-width: min(100%, calc(42svh * 16 / 9));
+  max-height: 42svh;
+}
+
+.session-game .layout-correction .capture-media {
+  max-width: calc((100svh - 16px) * 16 / 9);
+  max-height: calc(100svh - 16px);
+}
+
+.session-game .focus-text:not(.layout-correction) .context-overlay {
+  max-width: min(66%, 620px);
+}
+
+.question-type-indicator.type-single .question-type-icon {
+  border-radius: 50%;
+}
+
+.question-type-indicator.type-single .question-type-icon::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.session-game .answer-option.is-ranking.selected {
+  cursor: grab;
+}
+
+.session-game .answer-option.is-ranking.selected:active {
+  cursor: grabbing;
+}
+
+.session-game .answer-option.is-dragging {
+  border-color: rgba(255, 255, 255, 0.58);
+  opacity: 0.72;
+  transform: scale(0.985);
+}
+
+.session-game .answer-drag-hint {
+  flex: 0 0 auto;
+  align-self: center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.62rem;
+  font-weight: 850;
+  line-height: 1;
+  padding: 5px 7px;
+  text-transform: uppercase;
+}
+
+.session-game .validate-action.submitted.timeout {
+  border-color: rgba(255, 91, 91, 0.76);
+  background: linear-gradient(135deg, #ff6f6f, #cf2e2e);
+  color: #190202;
+}
+
+.pause-audio-slot {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  border: 1px solid rgba(98, 130, 162, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+  color: #ffffff;
+  font-size: 0.84rem;
+  font-weight: 850;
+  padding: 8px 10px;
+}
+
+.mute-toggle {
+  min-height: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 850;
+  padding: 0 10px;
+}
+
+.mute-toggle[aria-pressed="true"] {
+  border-color: rgba(255, 174, 53, 0.48);
+  background: rgba(255, 174, 53, 0.14);
+}
+
+.pause-actions .danger-action {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  border: 1px solid rgba(255, 91, 91, 0.5);
+  border-radius: 8px;
+  background: rgba(255, 91, 91, 0.13);
+  color: #ffd0d0;
+  font-size: 0.92rem;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.pause-actions .danger-action:hover {
+  border-color: rgba(255, 120, 120, 0.68);
+  background: rgba(255, 91, 91, 0.18);
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .session-game .question-layout.focus-balanced {
+    grid-template-columns: minmax(0, 3fr) minmax(210px, 2fr);
+  }
+
+  .session-game .question-layout.focus-text {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 39svh) minmax(0, 1fr);
+  }
+
+  .session-game .question-layout.layout-correction,
+  .session-game .question-layout.focus-text.layout-correction {
+    grid-template-columns: minmax(0, calc((100svh - 12px) * 16 / 9)) minmax(210px, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .session-game .focus-text:not(.layout-correction) .capture-media {
+    max-width: min(100%, calc(39svh * 16 / 9));
+    max-height: 39svh;
+  }
+
+  .session-game .context-overlay {
+    max-width: min(56%, 440px);
+  }
+
+  .session-game .answer-drag-hint {
+    display: none;
+  }
+}
