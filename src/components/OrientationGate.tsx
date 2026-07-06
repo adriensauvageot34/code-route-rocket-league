@@ -11,7 +11,7 @@ type OrientationController = ScreenOrientation & {
 };
 
 export function OrientationGate() {
-  const [hint, setHint] = useState("L'app est pensee pour etre jouee en paysage.");
+  const [hint, setHint] = useState("Si l'ecran ne tourne pas, desactive le verrouillage de rotation.");
 
   async function requestLandscapeMode() {
     setHint("Demande du mode paysage...");
@@ -40,7 +40,7 @@ export function OrientationGate() {
       // Orientation locking is not available in every browser or embedded app.
     }
 
-    setHint("Tourne ton telephone en paysage pour continuer.");
+    setHint("Si l'ecran ne tourne pas, desactive le verrouillage de rotation.");
   }
 
   return (
@@ -51,10 +51,9 @@ export function OrientationGate() {
         </div>
         <div className="orientation-copy">
           <span className="eyebrow">Mode paysage requis</span>
-          <h2>Tourne ton telephone</h2>
+          <h2>Tourne ton telephone pour lancer l&apos;entrainement.</h2>
           <p>
-            Les situations Rocket League sont plus lisibles en paysage, comme un
-            jeu mobile.
+            Si l&apos;ecran ne tourne pas, desactive le verrouillage de rotation.
           </p>
         </div>
         <button className="primary-action orientation-action" onClick={requestLandscapeMode} type="button">
