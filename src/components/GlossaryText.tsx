@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element -- Glossary terms may later carry local illustrations. */
 
 import { useMemo, useState } from "react";
+import type { CSSProperties } from "react";
 import type { KeyboardEvent, PointerEvent } from "react";
 import type { GlossaryTerm } from "@/types/content";
 
@@ -12,7 +13,7 @@ type GlossaryTextProps = {
 };
 
 export function GlossaryText({ terms, text }: GlossaryTextProps) {
-  const [activeTerm, setActiveTerm] = useState<GlossaryTerm | null>(null);
+  const [activeTerm, setActiveTerm] = useState<ActiveGlossaryTerm | null>(null);
   const parts = useMemo(() => splitTextWithTerms(text, terms), [terms, text]);
 
   if (parts.length === 1 && parts[0].type === "text") {
@@ -23,7 +24,7 @@ export function GlossaryText({ terms, text }: GlossaryTextProps) {
     event.preventDefault();
     event.stopPropagation();
     event.currentTarget.setPointerCapture?.(event.pointerId);
-    setActiveTerm(term);
+    setActiveTerm(getActiveGlossaryTerm(event.currentTarget, term));
   }
 
   function hideTerm(event?: PointerEvent<HTMLSpanElement>) {
@@ -41,7 +42,7 @@ export function GlossaryText({ terms, text }: GlossaryTextProps) {
     if (event.key === " " || event.key === "Enter") {
       event.preventDefault();
       event.stopPropagation();
-      setActiveTerm(term);
+      setActiveTerm(getActiveGlossaryTerm(event.currentTarget, term));
     }
   }
 
@@ -71,7 +72,7 @@ export function GlossaryText({ terms, text }: GlossaryTextProps) {
             }}
             onKeyDown={(event) => showTermFromKeyboard(event, part.term)}
             onKeyUp={hideTermFromKeyboard}
-            onMouseEnter={() => setActiveTerm(part.term)}
+            onMouseEnter={(event) => setActiveTerm(getActiveGlossaryTerm(event.currentTarget, part.term))}
             onMouseLeave={() => setActiveTerm(null)}
             onPointerCancel={hideTerm}
             onPointerDown={(event) => showTerm(event, part.term)}
@@ -86,17 +87,33 @@ export function GlossaryText({ terms, text }: GlossaryTextProps) {
       })}
 
       {activeTerm ? (
-        <span className="glossary-popover" role="tooltip">
-          <strong>{activeTerm.term}</strong>
-          <span>{activeTerm.definition}</span>
-          {activeTerm.image_path || activeTerm.illustration_path ? (
-            <img alt="" src={activeTerm.image_path ?? activeTerm.illustration_path} />
+        <span
+          className={`glossary-popover placement-${activeTerm.placement}`}
+          role="tooltip"
+          style={
+            {
+              "--popover-left": `${activeTerm.left}px`,
+              "--popover-top": `${activeTerm.top}px`
+            } as CSSProperties
+          }
+        >
+          <strong>{activeTerm.term.term}</strong>
+          <span>{activeTerm.term.definition}</span>
+          {activeTerm.term.image_path || activeTerm.term.illustration_path ? (
+            <img alt="" src={activeTerm.term.image_path ?? activeTerm.term.illustration_path} />
           ) : null}
         </span>
       ) : null}
     </>
   );
 }
+
+type ActiveGlossaryTerm = {
+  left: number;
+  placement: "above" | "below";
+  term: GlossaryTerm;
+  top: number;
+};
 
 type TextPart = {
   type: "text";
@@ -130,4 +147,21 @@ function splitTextWithTerms(text: string, terms: GlossaryTerm[]): Array<TextPart
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function getActiveGlossaryTerm(element: HTMLElement, term: GlossaryTerm): ActiveGlossaryTerm {
+  const rect = element.getBoundingClientRect();
+  const placement = rect.top < 118 ? "below" : "above";
+  const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+  const horizontalPadding = Math.min(144, Math.max(72, viewportWidth / 2 - 12));
+  const minLeft = horizontalPadding;
+  const maxLeft = Math.max(minLeft, viewportWidth - horizontalPadding);
+  const naturalLeft = rect.left + rect.width / 2;
+
+  return {
+    left: Math.min(Math.max(naturalLeft, minLeft), maxLeft),
+    placement,
+    term,
+    top: placement === "below" ? rect.bottom + 8 : rect.top - 8
+  };
 }
