@@ -35,9 +35,9 @@ export type ContentQuestion = {
   context_to_display?: string;
   question_text: string;
   answer_format: AnswerFormat;
-  time_limit_seconds?: number;
+  time_limit_seconds: number;
   visual_focus?: VisualFocus;
-  question_type_label: string;
+  question_type_label?: string;
   pedagogical_mode: string;
   cognitive_category_primary: string;
   cognitive_category_secondary: string | null;
