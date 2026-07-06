@@ -30,7 +30,7 @@ type PrimaryActionState = "validate" | "result" | "actions";
 type ExitDirection = "left" | "right";
 
 const DEFAULT_TIME_LIMIT_SECONDS = 30;
-const EXIT_TRANSITION_MS = 260;
+const EXIT_TRANSITION_MS = 1000;
 
 export function QuestionScreen({
   capture,
