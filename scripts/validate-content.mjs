@@ -9,10 +9,9 @@ const REQUIRED_CORRECTION_FIELDS = [
   "expected_answer",
   "what_to_observe",
   "principle",
-  "why_tempting",
-  "risk_avoided",
-  "reflex_phrase"
+  "why_tempting"
 ];
+const OPTIONAL_CORRECTION_FIELDS = ["risk_avoided", "reflex_phrase", "correction_image_path"];
 
 const errors = [];
 const warnings = [];
@@ -273,6 +272,16 @@ function validateCorrection(correction, questionId) {
 
   for (const field of REQUIRED_CORRECTION_FIELDS) {
     requireString(correction[field], "Question", questionId, `correction.${field}`);
+  }
+
+  for (const field of OPTIONAL_CORRECTION_FIELDS) {
+    if (
+      Object.prototype.hasOwnProperty.call(correction, field) &&
+      correction[field] !== null &&
+      typeof correction[field] !== "string"
+    ) {
+      addError("Question", questionId, `correction.${field}`, "doit etre un texte si renseigne");
+    }
   }
 }
 
