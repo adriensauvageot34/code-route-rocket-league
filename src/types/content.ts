@@ -24,8 +24,9 @@ export type Correction = {
   what_to_observe: string;
   principle: string;
   why_tempting: string;
-  risk_avoided: string;
-  reflex_phrase: string;
+  risk_avoided?: string;
+  reflex_phrase?: string;
+  correction_image_path?: string;
 };
 
 export type ContentQuestion = {
