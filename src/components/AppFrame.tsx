@@ -2,12 +2,20 @@ import { OrientationGate } from "@/components/OrientationGate";
 
 type AppFrameProps = {
   children: React.ReactNode;
-  variant?: "default" | "game";
+  variant?: "default" | "game" | "home";
 };
 
 export function AppFrame({ children, variant = "default" }: AppFrameProps) {
   return (
-    <div className={variant === "game" ? "app-frame game-session-frame" : "app-frame"}>
+    <div
+      className={
+        variant === "game"
+          ? "app-frame game-session-frame"
+          : variant === "home"
+            ? "app-frame home-frame"
+            : "app-frame"
+      }
+    >
       {variant === "default" ? (
         <header className="top-bar">
           <div className="brand-mark" aria-label="Code de la route Rocket League">
