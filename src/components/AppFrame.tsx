@@ -27,7 +27,7 @@ export function AppFrame({ children, variant = "default" }: AppFrameProps) {
               <span className="brand-subtitle">Decision training</span>
             </div>
           </div>
-          <span className="top-status">Base locale prete</span>
+          <span className="top-status">Pret a s&apos;entrainer</span>
         </header>
       ) : null}
 
