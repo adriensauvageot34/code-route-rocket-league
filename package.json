@@ -7,6 +7,7 @@
     "dev:next": "next dev",
     "build": "next build",
     "start": "next start",
+    "test": "node scripts/test-home.mjs",
     "validate": "npm run validate:content",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
