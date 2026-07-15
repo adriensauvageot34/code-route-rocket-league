@@ -118,6 +118,7 @@ assert(parallaxController.includes("requestAnimationFrame"), "Parallax must use 
 assert(parallaxController.includes("cancelAnimationFrame"), "Parallax must cancel its frame on teardown.");
 assert(parallaxController.includes('removeEventListener("pointermove"'), "Parallax must remove its pointer listener on teardown.");
 assert(parallaxController.includes('matchMedia("(hover: hover) and (pointer: fine)"'), "Pointer input must be limited to fine pointers.");
+assert(parallaxController.includes("if (finePointerQuery.matches)"), "Coarse pointers must use automatic drift without pointer listeners.");
 assert(parallaxController.includes("AUTO_DRIFT_X"), "Parallax must include automatic idle drift.");
 assert(!parallaxController.includes("useState"), "Parallax must not use React state on animation frames.");
 assert(!parallaxController.toLowerCase().includes("gyroscope"), "Home parallax must not request gyroscope access.");
