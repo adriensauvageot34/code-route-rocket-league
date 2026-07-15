@@ -643,7 +643,67 @@
 .mode-illustration.is-competitive.is-launching .scene-group[data-scene-group="fennec"] .scene-launch,
 .mode-illustration.is-competitive.is-launching
   .scene-group[data-scene-group="fennec-exhaust-energy"]
-  .scene-launcÎü-¢Gß≤⁄Óù∆≠y—me {
+  .scene-launch {
+  animation: competitive-launch-fennec var(--home-launch-duration) cubic-bezier(0.2, 0.72, 0.2, 1) both;
+}
+
+.mode-illustration.is-competitive.is-launching .competitive-cage-neon {
+  animation: competitive-launch-neon var(--home-launch-duration) ease-in-out both;
+}
+
+.mode-illustration.is-competitive.is-launching .competitive-projectors-glow {
+  animation: competitive-launch-projectors var(--home-launch-duration) ease-in-out both;
+}
+
+.mode-illustration.is-competitive.is-launching .competitive-projectors-haze {
+  animation: competitive-launch-haze var(--home-launch-duration) ease-in-out both;
+}
+
+.mode-illustration.is-competitive.is-launching .competitive-exhaust-energy {
+  animation: competitive-launch-exhaust var(--home-launch-duration) ease-in-out both;
+}
+
+.mode-illustration.is-competitive.is-launching .competitive-ground-impact {
+  transform-origin: 61% 76%;
+  animation: competitive-launch-impact var(--home-launch-duration) ease-out both;
+}
+
+.mode-illustration.is-competitive.is-launching .competitive-motion-trail {
+  transform-origin: 76% 72%;
+  animation: competitive-launch-trail var(--home-launch-duration) cubic-bezier(0.2, 0.68, 0.2, 1) both;
+}
+
+.mode-illustration.is-competitive.is-launching .competitive-ground-reflection {
+  animation: competitive-launch-reflection var(--home-launch-duration) ease-in-out both;
+}
+
+.home-launch-overlay {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.home-launch-asset-frame {
+  position: absolute;
+  top: var(--home-launch-frame-top);
+  left: var(--home-launch-frame-left);
+  width: var(--home-launch-frame-width);
+  height: var(--home-launch-frame-height);
+  transform-origin: var(--home-launch-origin-x) var(--home-launch-origin-y);
+  mix-blend-mode: screen;
+}
+
+.home-launch-asset {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
+}
+
+.home-launch-overlay.is-training .home-launch-asset-frame {
   animation: home-training-launch-wave var(--home-launch-duration) cubic-bezier(0.16, 0.72, 0.12, 1) both;
 }
 
