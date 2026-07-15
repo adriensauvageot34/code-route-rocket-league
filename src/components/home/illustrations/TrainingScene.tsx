@@ -21,10 +21,13 @@ export function TrainingScene() {
 
       <SceneGroup depth="fennec" layer={3} name="fennec">
         <SceneLayer asset={assets.fennecBase} />
+      </SceneGroup>
+
+      <SceneGroup blendMode="screen" depth="fennec" layer={4} name="fennec-lights-glow">
         <SceneLayer asset={assets.lightsVioletGlow} />
       </SceneGroup>
 
-      <SceneGroup depth="foreground" future layer={4} name="transition">
+      <SceneGroup blendMode="screen" depth="foreground" future layer={5} name="transition">
         <SceneLayer asset={assets.transitionWaveGold} />
       </SceneGroup>
     </div>

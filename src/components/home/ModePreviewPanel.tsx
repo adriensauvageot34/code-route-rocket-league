@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ModeIllustration } from "@/components/home/illustrations/ModeIllustration";
 import { PrimaryHomeAction } from "@/components/home/PrimaryHomeAction";
 import type { HomeModePreview } from "@/types/home";
 
@@ -28,9 +27,7 @@ export function ModePreviewPanel({ preview }: ModePreviewPanelProps) {
   }, []);
 
   return (
-    <section className="mode-preview-panel" aria-live="polite">
-      <ModeIllustration mode={preview.mode} />
-
+    <div className="mode-preview-panel" aria-live="polite">
       <div className="mode-preview-copy">
         <span className="mode-preview-eyebrow">{preview.mode === "training" ? "Mode actif" : "Apercu verrouille"}</span>
         <h2>{preview.title}</h2>
@@ -47,6 +44,6 @@ export function ModePreviewPanel({ preview }: ModePreviewPanelProps) {
           {showFeedback ? preview.action.feedback : ""}
         </p>
       </div>
-    </section>
+    </div>
   );
 }

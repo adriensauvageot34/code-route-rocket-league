@@ -20,8 +20,8 @@ type UseParallaxControllerOptions = {
 };
 
 const POINTER_IDLE_DELAY_MS = 1200;
-const AUTO_DRIFT_X = 0.16;
-const AUTO_DRIFT_Y = 0.12;
+const AUTO_DRIFT_X = 0.3;
+const AUTO_DRIFT_Y = 0.22;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
