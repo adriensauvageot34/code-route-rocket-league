@@ -407,8 +407,83 @@
   user-select: none;
 }
 
+.training-analysis-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.training-analysis-zone {
+  color: #66cfff;
+  opacity: 0.5;
+  filter: drop-shadow(0 0 5px rgba(76, 190, 255, 0.7));
+  animation: training-analysis-scan var(--analysis-cycle) ease-in-out var(--analysis-delay) infinite;
+}
+
+.training-analysis-zone-guide,
+.training-analysis-zone-core {
+  fill: none;
+  stroke: currentColor;
+}
+
+.training-analysis-zone-guide {
+  stroke-width: 2;
+  stroke-dasharray: 12 10;
+  opacity: 0.55;
+}
+
+.training-analysis-zone-core {
+  stroke-width: 3;
+  opacity: 0.92;
+}
+
+.training-ball-energy {
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
+.training-lights-glow {
+  opacity: 0.56;
+  filter: brightness(0.94) saturate(1.08);
+  animation: training-lights-breathe 4.6s ease-in-out infinite;
+}
+
+.competitive-cage-neon {
+  opacity: 0.7;
+  filter: brightness(0.94) saturate(1.06);
+  animation: competitive-cage-neon-breathe 4.8s ease-in-out infinite;
+}
+
+.competitive-projectors-glow {
+  opacity: 0.34;
+  filter: brightness(0.88) saturate(1.08);
+  animation: competitive-projectors-glow-breathe 5.6s ease-in-out -1.8s infinite;
+}
+
+.competitive-projectors-haze {
+  opacity: 0.16;
+  filter: blur(0.8px) brightness(0.9) saturate(1.05);
+  animation: competitive-projectors-haze-breathe 6.2s ease-in-out -3.1s infinite;
+}
+
+.competitive-ground-reflection {
+  opacity: 0.2;
+  filter: brightness(0.9) saturate(1.04);
+  animation: competitive-ground-reflection-breathe 5.2s ease-in-out -1.2s infinite;
+}
+
 .competitive-exhaust-energy {
+  opacity: 0.58;
   transform: translate3d(3.8%, 6%, 0);
+  transform-origin: 72% 73%;
+  animation: competitive-exhaust-pulse 2.8s ease-in-out infinite;
+}
+
+.competitive-motion-trail {
+  opacity: 0;
+  transition: opacity 220ms ease;
 }
 
 .mode-preview-copy h2,
@@ -509,7 +584,26 @@
   animation-play-state: paused;
 }
 
+.mode-illustration.is-launching .training-analysis-zone,
+.mode-illustration.is-launching .training-lights-glow,
+.mode-illustration.is-launching .competitive-cage-neon,
+.mode-illustration.is-launching .competitive-projectors-glow,
+.mode-illustration.is-launching .competitive-projectors-haze,
+.mode-illustration.is-launching .competitive-ground-reflection,
+.mode-illustration.is-launching .competitive-exhaust-energy {
+  animation-play-state: paused;
+}
+
+.mode-illustration.is-training.is-launching .training-ball-energy {
+  opacity: 0.78;
+}
+
+.mode-illustration.is-competitive.is-launching .competitive-motion-trail {
+  opacity: 0.78;
+}
+
 .mode-illustration.is-launching .scene-group[data-scene-group="decor"] .scene-launch,
+.mode-illustration.is-launching .scene-group[data-scene-group="analysis-zones"] .scene-launch,
 .mode-illustration.is-launching .scene-group[data-scene-group="analysis-distant-cars"] .scene-launch,
 .mode-illustration.is-launching .scene-group[data-scene-group="cage"] .scene-launch,
 .mode-illustration.is-launching .scene-group[data-scene-group^="cage-projectors"] .scene-launch,
@@ -690,6 +784,102 @@
   to {
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes training-analysis-scan {
+  0%,
+  5%,
+  22%,
+  100% {
+    color: #66cfff;
+    opacity: 0.5;
+    filter: drop-shadow(0 0 5px rgba(76, 190, 255, 0.7));
+  }
+
+  7%,
+  16% {
+    color: #f4c35d;
+    opacity: 0.94;
+    filter: drop-shadow(0 0 9px rgba(244, 195, 93, 0.9));
+  }
+}
+
+@keyframes training-lights-breathe {
+  0%,
+  100% {
+    opacity: 0.48;
+    filter: brightness(0.86) saturate(1.02);
+  }
+
+  50% {
+    opacity: 0.76;
+    filter: brightness(1.12) saturate(1.18);
+  }
+}
+
+@keyframes competitive-cage-neon-breathe {
+  0%,
+  100% {
+    opacity: 0.58;
+    filter: brightness(0.86) saturate(1.02);
+  }
+
+  50% {
+    opacity: 0.82;
+    filter: brightness(1.08) saturate(1.16);
+  }
+}
+
+@keyframes competitive-projectors-glow-breathe {
+  0%,
+  100% {
+    opacity: 0.26;
+    filter: brightness(0.82) saturate(1.02);
+  }
+
+  50% {
+    opacity: 0.46;
+    filter: brightness(1.06) saturate(1.14);
+  }
+}
+
+@keyframes competitive-projectors-haze-breathe {
+  0%,
+  100% {
+    opacity: 0.11;
+    filter: blur(1px) brightness(0.82) saturate(1.02);
+  }
+
+  50% {
+    opacity: 0.23;
+    filter: blur(0.6px) brightness(1.02) saturate(1.1);
+  }
+}
+
+@keyframes competitive-ground-reflection-breathe {
+  0%,
+  100% {
+    opacity: 0.15;
+    filter: brightness(0.84) saturate(1.02);
+  }
+
+  50% {
+    opacity: 0.28;
+    filter: brightness(1.04) saturate(1.1);
+  }
+}
+
+@keyframes competitive-exhaust-pulse {
+  0%,
+  100% {
+    opacity: 0.48;
+    transform: translate3d(3.8%, 6%, 0) scaleX(0.985) scaleY(0.98);
+  }
+
+  50% {
+    opacity: 0.72;
+    transform: translate3d(3.8%, 6%, 0) scaleX(1.018) scaleY(1.025);
   }
 }
 
@@ -930,8 +1120,44 @@
   .scene-canvas,
   .scene-parallax,
   .scene-idle,
-  .scene-launch {
+  .scene-launch,
+  .training-analysis-zone,
+  .training-lights-glow,
+  .competitive-cage-neon,
+  .competitive-projectors-glow,
+  .competitive-projectors-haze,
+  .competitive-ground-reflection,
+  .competitive-exhaust-energy {
     animation: none;
     transition: none;
+  }
+
+  .training-analysis-zone {
+    color: #66cfff;
+    opacity: 0.62;
+    filter: drop-shadow(0 0 5px rgba(76, 190, 255, 0.62));
+  }
+
+  .training-lights-glow,
+  .competitive-cage-neon {
+    opacity: 0.64;
+    filter: brightness(0.96) saturate(1.08);
+  }
+
+  .competitive-projectors-glow {
+    opacity: 0.34;
+  }
+
+  .competitive-projectors-haze {
+    opacity: 0.16;
+  }
+
+  .competitive-ground-reflection {
+    opacity: 0.2;
+  }
+
+  .competitive-exhaust-energy {
+    opacity: 0.58;
+    transform: translate3d(3.8%, 6%, 0);
   }
 }

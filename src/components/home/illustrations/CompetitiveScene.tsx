@@ -12,19 +12,19 @@ export function CompetitiveScene() {
 
       <SceneGroup depth="focal" layer={1} name="cage">
         <SceneLayer asset={assets.cageBase} />
-        <SceneLayer asset={assets.cageNeonGold} />
+        <SceneLayer asset={assets.cageNeonGold} className="competitive-cage-neon" />
       </SceneGroup>
 
       <SceneGroup blendMode="screen" depth="focal" layer={2} name="cage-projectors-glow">
-        <SceneLayer asset={assets.cageProjectorsGlow} />
+        <SceneLayer asset={assets.cageProjectorsGlow} className="competitive-projectors-glow" />
       </SceneGroup>
 
       <SceneGroup blendMode="screen" depth="focal" layer={3} name="cage-projectors-haze">
-        <SceneLayer asset={assets.cageProjectorsHaze} />
+        <SceneLayer asset={assets.cageProjectorsHaze} className="competitive-projectors-haze" />
       </SceneGroup>
 
       <SceneGroup blendMode="screen" depth="distant" layer={4} name="ground-reflection">
-        <SceneLayer asset={assets.groundReflection} />
+        <SceneLayer asset={assets.groundReflection} className="competitive-ground-reflection" />
       </SceneGroup>
 
       <SceneGroup depth="fennec" layer={5} name="fennec">
@@ -36,7 +36,7 @@ export function CompetitiveScene() {
       </SceneGroup>
 
       <SceneGroup depth="foreground" layer={7} name="motion-trail">
-        <SceneLayer asset={assets.motionTrail} />
+        <SceneLayer asset={assets.motionTrail} className="competitive-motion-trail" />
       </SceneGroup>
 
       <SceneGroup depth="foreground" future layer={8} name="impact">
