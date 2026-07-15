@@ -1,151 +1,140 @@
 import type {
-  HomeDashboardModules,
   HomeDashboardViewModel,
   HomeDashboardViewModelInput,
   HomeFeatureAvailability,
-  HomeModeAvailability,
   HomeModePreview,
-  PermitStatus,
-  RecentSession,
-  WeeklyPriority
+  HomeStatisticsSummary,
+  HomeViewAvailability,
+  TargetedSessionsSummary,
+  WeeklyFocus,
 } from "@/types/home";
 
 const defaultFeatures: HomeFeatureAvailability = {
   placement: false,
   competitive: false,
   targetedSessions: false,
-  accounts: false,
-  advancedResources: false
 };
 
-const defaultWeeklyPriority: WeeklyPriority = {
-  state: "none",
-  title: "Priorite hebdomadaire",
-  description: "Fais une premiere session pour construire une priorite fiable."
+const defaultWeeklyFocus: WeeklyFocus = {
+  state: "pending",
+  title: "Axe de travail de la semaine",
+  statusLabel: "\u00c0 confirmer",
+  description: "Fais des sessions pour identifier une priorite fiable.",
 };
 
-const defaultRecentSession: RecentSession = {
-  state: "none",
-  title: "Derniere session",
-  description: "Fais une premiere session pour debloquer ton bilan."
-};
-
-const defaultPermitStatus: PermitStatus = {
+const defaultTargetedSessions: TargetedSessionsSummary = {
   state: "locked",
-  label: "Permis verrouille",
-  description: "Ton permis de match se debloquera quand les donnees seront suffisantes."
+  title: "Sessions ciblees",
+  description: "Plusieurs sessions sont necessaires pour construire ton profil et proposer un travail cible.",
 };
 
 export function createHomeDashboardViewModel(
-  input: HomeDashboardViewModelInput = {}
+  input: HomeDashboardViewModelInput = {},
 ): HomeDashboardViewModel {
   const featureAvailability = { ...defaultFeatures, ...input.featureAvailability };
   const playerStage = input.playerStage ?? "building_profile";
-  const selectedMode = input.selectedMode ?? "training";
+  const selectedView = input.selectedView ?? "statistics";
 
-  const modeAvailability: HomeModeAvailability[] = [
+  const viewAvailability: HomeViewAvailability[] = [
+    {
+      id: "statistics",
+      title: "Statistiques",
+      description: "Suis ta progression et retrouve tes sessions.",
+      state: "available",
+    },
     {
       id: "training",
       title: "Entrainement",
       description: "Travaille tes decisions 2v2 avec correction et bilan.",
-      state: "available"
+      state: "available",
     },
     {
       id: "competitive",
       title: "Competitif",
       description: "Challenge-toi en condition de match.",
       state: featureAvailability.competitive ? "available" : "locked",
-      lockReason: "Obtiens ton permis de match."
-    }
+      lockReason: "Permis n\u00e9cessaire",
+    },
   ];
 
   return {
     playerStage,
-    selectedMode,
+    selectedView,
+    permitProgress: clampPercentage(input.permitProgress ?? 0),
     featureAvailability,
-    modeAvailability,
+    viewAvailability,
     hero: {
       title: "Lis le jeu.",
       accentTitle: "Decide mieux.",
-      description: "Un cockpit d'entrainement Rocket League centre sur tes decisions, avec des etats honnetes tant que le profil se construit."
+      description:
+        "Un cockpit d'entrainement Rocket League centre sur tes decisions, avec des etats honnetes tant que le profil se construit.",
     },
-    previews: createModePreviews(featureAvailability),
-    modules: createModules(input)
+    modePreviews: createModePreviews(featureAvailability),
+    statistics: createStatisticsSummary(input, featureAvailability),
   };
 }
 
-function createModePreviews(featureAvailability: HomeFeatureAvailability): Record<"training" | "competitive", HomeModePreview> {
+function createModePreviews(
+  featureAvailability: HomeFeatureAvailability,
+): Record<"training" | "competitive", HomeModePreview> {
   const trainingAction = featureAvailability.placement
     ? {
         label: "Commencer mon placement",
         disabled: true,
-        feedback: "Le placement est prepare, mais pas encore relie a une route jouable."
+        feedback: "Le placement est prepare, mais pas encore relie a une route jouable.",
       }
     : {
         label: "Lancer une session",
         href: "/session",
-        ariaLabel: "Lancer une session d'entrainement"
+        ariaLabel: "Lancer une session d'entrainement",
       };
 
   return {
     training: {
       mode: "training",
       title: "Lis le jeu. Decide mieux.",
-      description: "Enchaine des situations 2v2 realistes, lis les roles, puis consolide tes choix avec une correction et un bilan.",
+      description:
+        "Enchaine des situations 2v2 realistes, lis les roles, puis consolide tes choix avec une correction et un bilan.",
       bullets: ["Decisions 2v2", "Situations realistes", "Correction et bilan"],
-      action: trainingAction
+      action: trainingAction,
     },
     competitive: {
       mode: "competitive",
       title: "Challenge-toi en condition de match.",
-      description: "Le mode competitif reste un apercu verrouille tant que le permis de match n'est pas disponible.",
+      description: "Decouvre l'apercu competitif pendant que ton permis se construit.",
       bullets: ["Apercu selectionnable", "Permis de match requis", "Progression sans classement"],
       action: {
-        label: "Mode verrouille",
+        label: "Permis n\u00e9cessaire",
         disabled: true,
-        feedback: "Debloque ce mode en validant tes bases.",
-        ariaLabel: "Mode competitif verrouille"
-      }
-    }
+        feedback: "Ma\u00eetrise les bases pour obtenir le permis.",
+        ariaLabel: "Permis n\u00e9cessaire pour le mode competitif",
+      },
+    },
   };
 }
 
-function createModules(input: HomeDashboardViewModelInput): HomeDashboardModules {
+function createStatisticsSummary(
+  input: HomeDashboardViewModelInput,
+  featureAvailability: HomeFeatureAvailability,
+): HomeStatisticsSummary {
   return {
-    weeklyPriority: {
-      ...defaultWeeklyPriority,
-      ...input.weeklyPriority
+    weeklyFocus: {
+      ...defaultWeeklyFocus,
+      ...input.weeklyFocus,
     },
-    recentSession: {
-      ...defaultRecentSession,
-      ...input.recentSession
-    },
-    primaryWeakness: input.primaryWeakness,
-    secondaryWeaknesses: (input.secondaryWeaknesses ?? []).slice(0, 2),
-    skillSummaries:
-      input.skillSummaries ??
-      [
-        { skill: "Positionnement", state: "not_evaluated", label: "Non evalue" },
-        { skill: "Defense", state: "not_evaluated", label: "Non evalue" },
-        { skill: "Gestion du boost", state: "not_evaluated", label: "Non evalue" }
-      ],
-    permitStatus: {
-      ...defaultPermitStatus,
-      ...input.permitStatus
-    },
-    history: {
-      state: "none",
-      title: "Historique",
-      description: "Aucune session enregistree pour le moment.",
-      ...input.history
-    },
-    resources: input.resources ?? [],
+    strengths: (input.strengths ?? []).slice(0, 3),
+    weaknesses: (input.weaknesses ?? []).slice(0, 3),
     targetedSessions: {
-      id: "targetedSessions",
-      title: "Sessions ciblees",
-      description: "Cette option arrivera quand le profil disposera de suffisamment de donnees fiables.",
-      state: "locked",
-      ...input.targetedSessions
-    }
+      ...defaultTargetedSessions,
+      state: featureAvailability.targetedSessions ? "available" : "locked",
+      ...input.targetedSessions,
+    },
+    recentSessions: (input.recentSessions ?? []).slice(0, 3),
+    allSessionsHref: input.allSessionsHref,
   };
+}
+
+function clampPercentage(value: number): number {
+  const normalizedValue = Number.isFinite(value) ? Math.round(value) : 0;
+  return Math.min(100, Math.max(0, normalizedValue));
 }

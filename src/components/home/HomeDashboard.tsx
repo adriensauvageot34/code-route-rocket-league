@@ -1,20 +1,25 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
-import { HomeDashboardModules } from "@/components/home/HomeDashboardModules";
 import { HomeHeader } from "@/components/home/HomeHeader";
 import { HomeLaunchOverlay } from "@/components/home/HomeLaunchOverlay";
-import { ModeSelector } from "@/components/home/ModeSelector";
+import { HomeStatisticsPanel } from "@/components/home/HomeStatisticsPanel";
+import { HomeViewSelector } from "@/components/home/HomeViewSelector";
 import {
   ModeIllustration,
-  type ModeIllustrationHandle
+  type ModeIllustrationHandle,
 } from "@/components/home/illustrations/ModeIllustration";
 import {
   HOME_LAUNCH_DURATION_MS,
   type HomeLaunchGeometry,
 } from "@/lib/home/homeLaunch";
-import type { HomeAction, HomeDashboardViewModel, HomeModeId } from "@/types/home";
+import type {
+  HomeAction,
+  HomeDashboardViewModel,
+  HomeModeId,
+  HomeViewId,
+} from "@/types/home";
 
 type HomeDashboardProps = {
   viewModel: HomeDashboardViewModel;
@@ -30,26 +35,29 @@ const homeDashboardStyle: HomeDashboardStyle = {
 
 export function HomeDashboard({ viewModel }: HomeDashboardProps) {
   const router = useRouter();
-  const [selectedMode, setSelectedMode] = useState<HomeModeId>(viewModel.selectedMode);
+  const [selectedView, setSelectedView] = useState<HomeViewId>(viewModel.selectedView);
   const [launchingMode, setLaunchingMode] = useState<HomeModeId | null>(null);
   const [launchGeometry, setLaunchGeometry] = useState<HomeLaunchGeometry | null>(null);
   const illustrationRef = useRef<ModeIllustrationHandle>(null);
   const launchTimerRef = useRef<number | null>(null);
-  const headerStatus = useMemo(
-    () => ({ playerStage: viewModel.playerStage, permitStatus: viewModel.modules.permitStatus }),
-    [viewModel.playerStage, viewModel.modules.permitStatus]
-  );
 
-  function handleSelectMode(mode: HomeModeId) {
-    if (!launchingMode) setSelectedMode(mode);
+  function handleSelectView(view: HomeViewId) {
+    if (!launchingMode) setSelectedView(view);
   }
 
   function handleLaunch(action: HomeAction) {
-    if (!action.href || launchingMode || launchTimerRef.current !== null) return;
+    if (
+      selectedView !== "training" ||
+      !action.href ||
+      launchingMode ||
+      launchTimerRef.current !== null
+    ) {
+      return;
+    }
 
     const destination = action.href;
     setLaunchGeometry(illustrationRef.current?.getLaunchGeometry() ?? null);
-    setLaunchingMode(selectedMode);
+    setLaunchingMode("training");
     void illustrationRef.current?.resetParallax(200);
     launchTimerRef.current = window.setTimeout(() => {
       launchTimerRef.current = null;
@@ -76,7 +84,7 @@ export function HomeDashboard({ viewModel }: HomeDashboardProps) {
       className="home-dashboard"
       style={homeDashboardStyle}
     >
-      <HomeHeader playerStage={headerStatus.playerStage} permitStatus={headerStatus.permitStatus} />
+      <HomeHeader permitProgress={viewModel.permitProgress} playerStage={viewModel.playerStage} />
 
       <section className="home-main-stage" aria-label="Accueil entrainement">
         <div className="home-control-column">
@@ -89,27 +97,30 @@ export function HomeDashboard({ viewModel }: HomeDashboardProps) {
             <p>{viewModel.hero.description}</p>
           </div>
 
-          <ModeSelector
+          <HomeViewSelector
             isLaunching={launchingMode !== null}
-            modes={viewModel.modeAvailability}
+            modePreviews={viewModel.modePreviews}
             onLaunch={handleLaunch}
-            onSelectMode={handleSelectMode}
-            previews={viewModel.previews}
-            selectedMode={selectedMode}
+            onSelectView={handleSelectView}
+            selectedView={selectedView}
+            views={viewModel.viewAvailability}
           />
         </div>
 
-        <div className="home-visual-stage">
-          <ModeIllustration
-            key={selectedMode}
-            launching={launchingMode === selectedMode}
-            mode={selectedMode}
-            ref={illustrationRef}
-          />
+        <div className={`home-context-stage is-${selectedView}`}>
+          {selectedView === "statistics" ? (
+            <HomeStatisticsPanel statistics={viewModel.statistics} />
+          ) : (
+            <ModeIllustration
+              key={selectedView}
+              launching={launchingMode === selectedView}
+              mode={selectedView}
+              ref={illustrationRef}
+            />
+          )}
         </div>
       </section>
 
-      <HomeDashboardModules modules={viewModel.modules} playerStage={viewModel.playerStage} />
       <HomeLaunchOverlay geometry={launchGeometry} mode={launchingMode} />
     </main>
   );
