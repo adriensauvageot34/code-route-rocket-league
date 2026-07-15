@@ -426,6 +426,13 @@
 
 .scene-parallax {
   transform-origin: center;
+  transform: translate3d(
+      var(--scene-parallax-x, 0px),
+      var(--scene-parallax-y, 0px),
+      0
+    )
+    rotate(var(--scene-parallax-rotation, 0deg))
+    scale(var(--scene-parallax-scale, 1));
 }
 
 .mode-illustration[data-motion-active="true"] .scene-parallax {
@@ -434,31 +441,6 @@
 
 .scene-canvas {
   animation: scene-mode-enter 560ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
-}
-
-.scene-parallax[data-depth="background"] {
-  transform: translate3d(var(--parallax-background-x), var(--parallax-background-y), 0)
-    rotate(var(--parallax-background-rotation)) scale(1.02);
-}
-
-.scene-parallax[data-depth="distant"] {
-  transform: translate3d(var(--parallax-distant-x), var(--parallax-distant-y), 0)
-    rotate(var(--parallax-distant-rotation)) scale(1.03);
-}
-
-.scene-parallax[data-depth="focal"] {
-  transform: translate3d(var(--parallax-focal-x), var(--parallax-focal-y), 0)
-    rotate(var(--parallax-focal-rotation)) scale(1.04);
-}
-
-.scene-parallax[data-depth="fennec"] {
-  transform: translate3d(var(--parallax-fennec-x), var(--parallax-fennec-y), 0)
-    rotate(var(--parallax-fennec-rotation)) scale(1.05);
-}
-
-.scene-parallax[data-depth="foreground"] {
-  transform: translate3d(var(--parallax-foreground-x), var(--parallax-foreground-y), 0)
-    rotate(var(--parallax-foreground-rotation)) scale(1.06);
 }
 
 .scene-idle,
@@ -494,41 +476,139 @@
   user-select: none;
 }
 
-.training-analysis-overlay {
+.training-radar-overlay,
+.training-radar-targets {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  overflow: visible;
+  pointer-events: none;
 }
 
-.training-analysis-zone {
-  color: #66cfff;
-  opacity: 0.5;
-  filter: drop-shadow(0 0 5px rgba(76, 190, 255, 0.7));
-  animation: training-analysis-scan var(--analysis-cycle) ease-in-out var(--analysis-delay) infinite;
-}
-
-.training-analysis-zone-guide,
-.training-analysis-zone-core {
-  fill: none;
-  stroke: currentColor;
-}
-
-.training-analysis-zone-guide {
-  stroke-width: 2;
-  stroke-dasharray: 12 10;
-  opacity: 0.55;
-}
-
-.training-analysis-zone-core {
-  stroke-width: 3;
-  opacity: 0.92;
-}
-
-.training-ball-energy {
+.training-radar-overlay {
+  overflow: hidden;
   opacity: 0;
-  transition: opacity 220ms ease;
+}
+
+.training-radar-overlay.is-active {
+  opacity: 1;
+}
+
+.training-radar-motion {
+  opacity: 0;
+  transform: translate3d(var(--radar-start-x), 0, 0);
+  transform-box: view-box;
+}
+
+.training-radar-overlay.is-active .training-radar-motion {
+  animation: training-radar-traverse var(--radar-travel-duration) linear
+    var(--radar-entry-duration) both;
+}
+
+.training-tactical-terrain {
+  opacity: 0.58;
+  mix-blend-mode: screen;
+  filter: brightness(1.05) saturate(0.9);
+}
+
+.training-radar-trail {
+  filter: drop-shadow(0 0 8px rgba(104, 111, 255, 0.24));
+}
+
+.training-radar-line-glow,
+.training-radar-line-core {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.training-radar-line-glow {
+  stroke: rgba(112, 120, 255, 0.48);
+  stroke-width: 15;
+  filter: blur(3px);
+}
+
+.training-radar-line-core {
+  stroke: rgba(225, 247, 255, 0.94);
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 4px rgba(120, 157, 255, 0.84));
+}
+
+.training-radar-car-target {
+  position: absolute;
+  pointer-events: none;
+}
+
+.training-radar-car-wireframe,
+.training-radar-car-glow,
+.training-radar-ball-energy {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.training-radar-car-wireframe,
+.training-radar-car-glow {
+  opacity: 0;
+}
+
+.training-radar-car-wireframe {
+  transition: opacity var(--training-target-rise-duration) ease-out;
+}
+
+.training-radar-car-glow {
+  mix-blend-mode: screen;
+  transition: opacity var(--training-target-rise-duration) ease-out;
+}
+
+.training-radar-car-target[data-radar-phase="glow"] .training-radar-car-wireframe,
+.training-radar-car-target[data-radar-phase="hold"] .training-radar-car-wireframe {
+  opacity: 0.68;
+}
+
+.training-radar-car-target[data-radar-phase="glow"] .training-radar-car-glow {
+  opacity: 0.24;
+}
+
+.training-radar-car-target[data-radar-phase="hold"] .training-radar-car-glow {
+  opacity: 0;
+  transition-duration: var(--training-target-glow-duration);
+}
+
+.training-radar-car-target[data-radar-phase="fade"] .training-radar-car-wireframe,
+.training-radar-car-target[data-radar-phase="fade"] .training-radar-car-glow {
+  opacity: 0;
+  transition-duration: var(--training-target-fade-duration);
+}
+
+.training-radar-ball-energy {
+  opacity: 0;
+  mix-blend-mode: screen;
+  transition:
+    opacity var(--training-target-rise-duration) ease-out,
+    filter var(--training-target-rise-duration) ease-out;
+}
+
+.training-radar-ball-energy[data-radar-phase="glow"] {
+  opacity: 0.78;
+  filter: brightness(1.42) saturate(1.18);
+}
+
+.training-radar-ball-energy[data-radar-phase="hold"] {
+  opacity: 0.62;
+  filter: brightness(1.12) saturate(1.08);
+  transition-duration: var(--training-target-glow-duration);
+}
+
+.training-radar-ball-energy[data-radar-phase="fade"] {
+  opacity: 0;
+  filter: brightness(0.92) saturate(1);
+  transition-duration: var(--training-target-fade-duration);
+}
+
+.training-ball-launch-energy {
+  opacity: 0;
 }
 
 .training-lights-glow {
@@ -669,7 +749,6 @@
   animation-play-state: paused;
 }
 
-.mode-illustration.is-launching .training-analysis-zone,
 .mode-illustration.is-launching .training-lights-glow,
 .mode-illustration.is-launching .competitive-cage-neon,
 .mode-illustration.is-launching .competitive-projectors-glow,
@@ -684,10 +763,20 @@
   opacity: 1;
 }
 
-.mode-illustration.is-training.is-launching .scene-group[data-scene-group="decor"] .scene-launch,
-.mode-illustration.is-training.is-launching .scene-group[data-scene-group="analysis-zones"] .scene-launch,
-.mode-illustration.is-training.is-launching .scene-group[data-scene-group="analysis-distant-cars"] .scene-launch,
-.mode-illustration.is-training.is-launching .scene-group[data-scene-group="fennec"] .scene-launch {
+.mode-illustration.is-training.is-launching
+  .scene-group:is(
+    [data-scene-group="training-sky"],
+    [data-scene-group="training-far-skyline"],
+    [data-scene-group="training-mid-buildings"],
+    [data-scene-group="training-near-buildings"],
+    [data-scene-group="training-ground"],
+    [data-scene-group="training-radar-surface"],
+    [data-scene-group="training-distant-cars"],
+    [data-scene-group="training-radar-sweep"],
+    [data-scene-group="training-radar-targets"],
+    [data-scene-group="fennec"]
+  )
+  .scene-launch {
   animation: training-launch-calm var(--home-launch-duration) ease-in-out both;
 }
 
@@ -701,7 +790,7 @@
   animation: training-launch-headlights var(--home-launch-duration) ease-in-out both;
 }
 
-.mode-illustration.is-training.is-launching .training-ball-energy {
+.mode-illustration.is-training.is-launching .training-ball-launch-energy {
   animation: training-launch-ball-energy var(--home-launch-duration) ease-in-out both;
 }
 
@@ -827,17 +916,25 @@
 .mode-illustration[data-motion-active="false"] .scene-canvas,
 .mode-illustration[data-motion-active="false"] .scene-idle,
 .mode-illustration[data-motion-active="false"] .scene-launch,
-.mode-illustration[data-motion-active="false"] .training-analysis-zone,
 .mode-illustration[data-motion-active="false"] .training-lights-glow,
 .mode-illustration[data-motion-active="false"] .competitive-cage-neon,
 .mode-illustration[data-motion-active="false"] .competitive-projectors-glow,
 .mode-illustration[data-motion-active="false"] .competitive-projectors-haze,
 .mode-illustration[data-motion-active="false"] .competitive-ground-reflection,
 .mode-illustration[data-motion-active="false"] .competitive-exhaust-energy,
-.mode-illustration[data-motion-active="false"] .training-ball-energy,
+.mode-illustration[data-motion-active="false"] .training-ball-launch-energy,
 .mode-illustration[data-motion-active="false"] .competitive-ground-impact,
 .mode-illustration[data-motion-active="false"] .competitive-motion-trail {
   animation-play-state: paused;
+}
+
+.mode-illustration[data-motion-active="false"] .training-radar-overlay,
+.mode-illustration[data-motion-active="false"] .training-radar-targets {
+  opacity: 0;
+}
+
+.mode-illustration[data-motion-active="false"] .training-radar-motion {
+  animation: none;
 }
 
 .home-statistics-panel {
@@ -1073,21 +1170,23 @@
   }
 }
 
-@keyframes training-analysis-scan {
-  0%,
-  5%,
-  22%,
-  100% {
-    color: #66cfff;
-    opacity: 0.5;
-    filter: drop-shadow(0 0 5px rgba(76, 190, 255, 0.7));
+@keyframes training-radar-traverse {
+  0% {
+    opacity: 0;
+    transform: translate3d(var(--radar-start-x), 0, 0);
   }
 
-  7%,
-  16% {
-    color: #f4c35d;
-    opacity: 0.94;
-    filter: drop-shadow(0 0 9px rgba(244, 195, 93, 0.9));
+  8% {
+    opacity: 1;
+  }
+
+  88% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--radar-end-x), 0, 0);
   }
 }
 
@@ -1817,14 +1916,18 @@
   .scene-parallax,
   .scene-idle,
   .scene-launch,
-  .training-analysis-zone,
+  .training-radar-overlay,
+  .training-radar-motion,
+  .training-radar-car-wireframe,
+  .training-radar-car-glow,
+  .training-radar-ball-energy,
   .training-lights-glow,
   .competitive-cage-neon,
   .competitive-projectors-glow,
   .competitive-projectors-haze,
   .competitive-ground-reflection,
   .competitive-exhaust-energy,
-  .training-ball-energy,
+  .training-ball-launch-energy,
   .training-transition-wave-local,
   .competitive-ground-impact,
   .competitive-motion-trail,
@@ -1847,10 +1950,9 @@
     animation: home-launch-reduced-fade var(--home-launch-duration) ease-in both;
   }
 
-  .training-analysis-zone {
-    color: #66cfff;
-    opacity: 0.62;
-    filter: drop-shadow(0 0 5px rgba(76, 190, 255, 0.62));
+  .training-radar-overlay,
+  .training-radar-targets {
+    opacity: 0;
   }
 
   .training-lights-glow,

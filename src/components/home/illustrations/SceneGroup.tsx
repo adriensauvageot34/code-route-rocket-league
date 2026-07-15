@@ -1,7 +1,7 @@
 import Image from "next/image";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type { HomeIllustrationAsset, HomeIllustrationBlendMode } from "@/lib/home/homeIllustrationAssets";
-import type { HomeSceneDepth } from "@/lib/home/homeSceneParallax";
+import { homeSceneDepths, type HomeSceneDepth } from "@/lib/home/homeSceneParallax";
 
 type SceneGroupProps = {
   blendMode?: HomeIllustrationBlendMode;
@@ -18,13 +18,30 @@ type SceneLayerProps = {
   preload?: boolean;
 };
 
+type SceneGroupStyle = CSSProperties & {
+  "--scene-parallax-rotation": string;
+  "--scene-parallax-scale": number;
+  "--scene-parallax-x": string;
+  "--scene-parallax-y": string;
+};
+
 export function SceneGroup({ blendMode = "normal", children, depth, future = false, layer, name }: SceneGroupProps) {
+  const depthConfiguration = homeSceneDepths[depth];
+  const style: SceneGroupStyle = {
+    mixBlendMode: blendMode,
+    zIndex: layer,
+    "--scene-parallax-x": `var(--parallax-${depth}-x, 0px)`,
+    "--scene-parallax-y": `var(--parallax-${depth}-y, 0px)`,
+    "--scene-parallax-rotation": `var(--parallax-${depth}-rotation, 0deg)`,
+    "--scene-parallax-scale": depthConfiguration.scale,
+  };
+
   return (
     <div
       className={`scene-group${future ? " is-future" : ""}`}
       data-scene-group={name}
       data-scene-slot={future ? name : undefined}
-      style={{ mixBlendMode: blendMode, zIndex: layer }}
+      style={style}
     >
       <div className="scene-transform scene-parallax" data-depth={depth}>
         <div className="scene-transform scene-idle" data-idle={depth}>

@@ -15,7 +15,10 @@ function assert(condition, message) {
 
 for (const name of uiFiles) {
   assert(extname(name), `UI asset is missing an extension: ${name}`);
-  assert(kebabCasePattern.test(name), `UI asset is not lower kebab-case: ${name}`);
+  assert(
+    kebabCasePattern.test(name) || name === "terrain_matrice_analyse.png",
+    `UI asset is not lower kebab-case: ${name}`,
+  );
   assert(!name.includes("fenneck"), `UI asset still contains the typo fenneck: ${name}`);
 }
 

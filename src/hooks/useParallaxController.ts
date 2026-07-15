@@ -20,8 +20,8 @@ type UseParallaxControllerOptions = {
 };
 
 const POINTER_IDLE_DELAY_MS = 1200;
-const AUTO_DRIFT_X = 0.3;
-const AUTO_DRIFT_Y = 0.22;
+const AUTO_DRIFT_PERIOD_MS = 16000;
+const AUTO_DRIFT_Y = 0.04;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -83,6 +83,7 @@ export function useParallaxController({ active }: UseParallaxControllerOptions) 
     let pointerInside = false;
     let lastPointerAt = 0;
     let lastFrameAt = performance.now();
+    let autoStartedAt = lastFrameAt;
 
     function handlePointerMove(event: PointerEvent) {
       if (!finePointerQuery.matches || resetRef.current) return;
@@ -121,8 +122,10 @@ export function useParallaxController({ active }: UseParallaxControllerOptions) 
       } else {
         const pointerIsFresh =
           finePointerQuery.matches && pointerInside && timestamp - lastPointerAt < POINTER_IDLE_DELAY_MS;
-        const targetX = pointerIsFresh ? pointerTarget.x : Math.sin(timestamp / 3200) * AUTO_DRIFT_X;
-        const targetY = pointerIsFresh ? pointerTarget.y : Math.cos(timestamp / 3700) * AUTO_DRIFT_Y;
+        const autoProgress = ((timestamp - autoStartedAt) % AUTO_DRIFT_PERIOD_MS) / AUTO_DRIFT_PERIOD_MS;
+        const autoAngle = autoProgress * Math.PI * 2;
+        const targetX = pointerIsFresh ? pointerTarget.x : -Math.sin(autoAngle);
+        const targetY = pointerIsFresh ? pointerTarget.y : Math.sin(autoAngle * 2) * AUTO_DRIFT_Y;
         const interpolation = 1 - Math.exp(-frameDuration / 190);
 
         currentRef.current.x += (targetX - currentRef.current.x) * interpolation;
@@ -149,6 +152,7 @@ export function useParallaxController({ active }: UseParallaxControllerOptions) 
     function startAnimation() {
       if (animationFrameRef.current !== null || reducedMotionQuery.matches) return;
       lastFrameAt = performance.now();
+      autoStartedAt = lastFrameAt;
       animationRunningRef.current = true;
       animationFrameRef.current = window.requestAnimationFrame(animate);
     }

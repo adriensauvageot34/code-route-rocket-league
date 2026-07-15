@@ -15,14 +15,15 @@ const expectedFiles = [
   "src/components/home/PrimaryHomeAction.tsx",
   "src/components/home/illustrations/ModeIllustration.tsx",
   "src/components/home/illustrations/TrainingScene.tsx",
-  "src/components/home/illustrations/TrainingAnalysisOverlay.tsx",
+  "src/components/home/illustrations/TrainingRadarOverlay.tsx",
+  "src/components/home/illustrations/TrainingRadarSequence.tsx",
   "src/components/home/illustrations/CompetitiveScene.tsx",
   "src/components/home/illustrations/SceneGroup.tsx",
   "src/lib/home/homeDashboardViewModel.ts",
   "src/lib/home/getHomeDashboardViewModel.ts",
   "src/lib/home/homeSceneParallax.ts",
   "src/lib/home/homeLaunch.ts",
-  "src/lib/home/trainingAnalysisZones.ts",
+  "src/lib/home/trainingRadarTargets.ts",
   "src/hooks/useParallaxController.ts",
   "src/types/home.ts",
 ];
@@ -64,13 +65,14 @@ const modePreview = files["src/components/home/ModePreviewPanel.tsx"];
 const primaryAction = files["src/components/home/PrimaryHomeAction.tsx"];
 const modeIllustration = files["src/components/home/illustrations/ModeIllustration.tsx"];
 const trainingScene = files["src/components/home/illustrations/TrainingScene.tsx"];
-const trainingAnalysisOverlay = files["src/components/home/illustrations/TrainingAnalysisOverlay.tsx"];
+const trainingRadarOverlay = files["src/components/home/illustrations/TrainingRadarOverlay.tsx"];
+const trainingRadarSequence = files["src/components/home/illustrations/TrainingRadarSequence.tsx"];
 const competitiveScene = files["src/components/home/illustrations/CompetitiveScene.tsx"];
 const sceneGroup = files["src/components/home/illustrations/SceneGroup.tsx"];
 const sceneDepths = files["src/lib/home/homeSceneParallax.ts"];
 const homeLaunch = files["src/lib/home/homeLaunch.ts"];
 const parallaxController = files["src/hooks/useParallaxController.ts"];
-const trainingAnalysisZones = files["src/lib/home/trainingAnalysisZones.ts"];
+const trainingRadarTargets = files["src/lib/home/trainingRadarTargets.ts"];
 const types = files["src/types/home.ts"];
 const viewModel = files["src/lib/home/homeDashboardViewModel.ts"];
 const css = files["src/app/home.css"];
@@ -149,16 +151,33 @@ assert(tooltip.includes('removeEventListener("pointerdown"'), "Tooltip outside-c
 assert(primaryAction.includes("AccessibleTooltip") && !primaryAction.includes(" disabled={isLaunching}"), "Locked Competitive info must stay interactive.");
 assert(primaryAction.includes("event.preventDefault()") && primaryAction.includes("onLaunch(action)"), "Training CTA must retain controlled launch.");
 
-assert(modeIllustration.includes('mode === "training" ? <TrainingScene /> : <CompetitiveScene />'), "One selected scene must render.");
+assert(modeIllustration.includes("<TrainingScene active={active} launching={launching} />") && modeIllustration.includes("<CompetitiveScene />"), "One selected scene must render with Training lifecycle state.");
 assert(modeIllustration.includes("getLaunchGeometry") && modeIllustration.includes("resetParallax"), "Scene launch handle must stay intact.");
 assert(sceneGroup.includes("scene-parallax") && sceneGroup.includes("scene-idle") && sceneGroup.includes("scene-launch"), "Scene transform wrappers must stay independent.");
-assert(sceneGroup.includes("style={{ mixBlendMode: blendMode, zIndex: layer }}"), "Black-screen blend mode must stay at group level.");
-assert(trainingScene.includes('name="analysis-zones"') && trainingScene.includes('name="analysis-distant-cars"'), "Training analysis groups must remain.");
+assert(sceneGroup.includes("homeSceneDepths[depth]") && sceneGroup.includes('"--scene-parallax-scale"'), "Scene transforms must use centralized depth configuration.");
+for (const asset of ["parallaxSky", "parallaxFarSkyline", "parallaxMidBuildings", "parallaxNearBuildings", "parallaxGroundBarrier"]) {
+  assert(trainingScene.includes(`assets.${asset}`), `Training parallax layer missing: ${asset}`);
+}
+assert(!trainingScene.includes("TrainingAnalysisOverlay") && !trainingScene.includes("assets.background"), "Legacy Training background and analysis circles must not render.");
+assert(!trainingScene.includes("distantCarsOcclusion"), "Legacy distant-car occlusion sheet must not render.");
+for (const asset of ["distantCarLeft", "distantCarBackRight", "distantCarFrontRight"]) {
+  assert(trainingScene.includes(`assets.${asset}`), `Separated Training car missing: ${asset}`);
+}
+assert(trainingScene.includes('name="training-radar-surface"') && trainingScene.includes('name="training-radar-sweep"') && trainingScene.includes('name="training-radar-targets"'), "Training radar layers must remain separated.");
 assert(trainingScene.includes('name="ball"') && trainingScene.includes('name="fennec"'), "Training ball and Fennec groups must remain.");
 assert(trainingScene.includes('className="training-transition-wave-local"'), "Prepared Training transition layer must remain.");
-assert(trainingAnalysisOverlay.includes('viewBox="0 0 1672 941"'), "Training analysis must share the logical canvas.");
-for (const zone of ["left-car", "far-right-car", "near-right-car", "ball"]) {
-  assert(trainingAnalysisZones.includes(`id: "${zone}"`), `Missing training analysis zone: ${zone}`);
+assert(trainingRadarOverlay.includes('viewBox="0 0 1672 941"') && trainingRadarOverlay.includes("TRAINING_RADAR_FIELD_PATH"), "Training radar must share and clip to the logical field canvas.");
+assert(trainingRadarOverlay.includes('mix-blend-mode') === false && css.includes("mix-blend-mode: screen"), "Black tactical terrain must be screen blended in CSS.");
+assert(trainingRadarSequence.includes("document.visibilityState") && trainingRadarSequence.includes("IntersectionObserver") && trainingRadarSequence.includes("prefers-reduced-motion"), "Radar lifecycle must follow page, illustration, and motion visibility.");
+assert(!trainingRadarSequence.includes("requestAnimationFrame"), "Radar must not create a per-frame React loop.");
+for (const target of ["left-car", "back-right-car", "front-right-car", "ball"]) {
+  assert(trainingRadarTargets.includes(`id: "${target}"`), `Missing training radar target: ${target}`);
+}
+for (const timing of ["passDurationMs: 4600", "glowDurationMs: 320", "visibleDurationMs: 3000", "fadeDurationMs: 550"]) {
+  assert(trainingRadarTargets.includes(timing), `Missing centralized radar timing: ${timing}`);
+}
+for (const placement of ['left: "34.76%"', 'left: "69.28%"', 'left: "73.84%"']) {
+  assert(trainingRadarTargets.includes(placement), `Missing calibrated wireframe placement: ${placement}`);
 }
 assert(competitiveScene.includes('name="cage"') && competitiveScene.includes('name="ground-reflection"'), "Competitive cage composition must remain.");
 assert(competitiveScene.includes('name="motion-trail"') && competitiveScene.includes('name="fennec"'), "Competitive car composition must remain.");
@@ -166,7 +185,12 @@ for (const depth of ["3", "5", "7", "11", "14"]) {
   assert(sceneDepths.includes(`translation: ${depth}`), `Missing parallax depth: ${depth}px`);
 }
 assert(sceneDepths.includes("rotation: 0.2"), "Parallax rotation must remain capped at 0.2deg.");
+for (const trainingDepth of ["trainingSky", "trainingSkyline", "trainingMid", "trainingNear", "trainingGround", "trainingActors", "trainingFennec"]) {
+  assert(sceneDepths.includes(`${trainingDepth}:`), `Missing Training parallax depth: ${trainingDepth}`);
+}
+assert(sceneDepths.includes("translation: 17") && sceneDepths.includes("translation: 20") && sceneDepths.includes("translation: 24"), "Training near layers must keep their requested camera amplitudes.");
 assert(parallaxController.includes("requestAnimationFrame") && parallaxController.includes("cancelAnimationFrame"), "Parallax must create and cancel its frame.");
+assert(parallaxController.includes("AUTO_DRIFT_PERIOD_MS = 16000") && parallaxController.includes("-Math.sin(autoAngle)"), "Automatic camera must follow one 16-second center-left-center-right cycle.");
 assert(parallaxController.includes('removeEventListener("pointermove"'), "Parallax pointer listener must clean up.");
 assert(parallaxController.includes('document.removeEventListener("visibilitychange"'), "Parallax visibility listener must clean up.");
 assert(parallaxController.includes("intersectionObserver?.disconnect()"), "Parallax observer must disconnect.");
@@ -190,6 +214,7 @@ for (const separatedGroup of ["statistics-weekly-focus", "statistics-insight", "
 assert(css.includes("aspect-ratio: 1672 / 941"), "Scene ratio must remain 1672x941.");
 assert(css.includes('.mode-illustration[data-motion-active="false"]'), "Hidden and offscreen scene motion must pause.");
 assert(css.includes("@media (prefers-reduced-motion: reduce)"), "Reduced motion support must remain.");
+assert(css.includes("@keyframes training-radar-traverse") && !css.includes("@keyframes training-analysis-scan"), "Training must use the clipped field radar instead of legacy circles.");
 assert(css.includes("@keyframes training-launch-ball-energy") && css.includes("@keyframes home-training-launch-wave"), "Training launch keyframes must remain untouched.");
 assert(css.includes("@keyframes competitive-launch-fennec"), "Competitive prepared launch keyframes must remain.");
 

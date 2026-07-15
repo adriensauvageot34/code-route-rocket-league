@@ -14,6 +14,49 @@ export type HomeIllustrationAsset = {
 
 export const homeIllustrationAssets = {
   training: {
+    parallaxSky: {
+      path: "/ui/parallax-plan-05-ciel.png",
+      role: "training parallax starry sky",
+      dimensions: { width: 1672, height: 941 },
+      alpha: "opaque",
+      blendMode: "normal"
+    },
+    parallaxFarSkyline: {
+      path: "/ui/parallax-plan-04-skyline-lointaine.png",
+      role: "training parallax far skyline",
+      dimensions: { width: 1672, height: 941 },
+      alpha: "transparent",
+      blendMode: "normal"
+    },
+    parallaxMidBuildings: {
+      path: "/ui/parallax-plan-03-batiments-intermediaires.png",
+      role: "training parallax middle buildings",
+      dimensions: { width: 1672, height: 941 },
+      alpha: "transparent",
+      blendMode: "normal"
+    },
+    parallaxNearBuildings: {
+      path: "/ui/parallax-plan-02-batiments-proches.png",
+      role: "training parallax near buildings",
+      dimensions: { width: 1672, height: 941 },
+      alpha: "transparent",
+      blendMode: "normal"
+    },
+    parallaxGroundBarrier: {
+      path: "/ui/parallax-plan-01-sol-barriere.png",
+      role: "training parallax pitch and barrier",
+      dimensions: { width: 1672, height: 941 },
+      alpha: "transparent",
+      blendMode: "normal"
+    },
+    tacticalTerrain: {
+      path: "/ui/terrain_matrice_analyse.png",
+      role: "hidden tactical pitch matrix revealed by radar",
+      dimensions: { width: 1536, height: 1024 },
+      alpha: "none",
+      blendMode: "screen",
+      notes: "Black-backed source is always clipped, masked, and screen blended."
+    },
     background: {
       path: "/ui/training-background.png",
       role: "training stadium background",
@@ -62,6 +105,69 @@ export const homeIllustrationAssets = {
       dimensions: { width: 1672, height: 941 },
       alpha: "transparent",
       blendMode: "normal"
+    },
+    distantCarLeft: {
+      path: "/ui/training-distant-car-left.png",
+      role: "training distant left car",
+      dimensions: { width: 1672, height: 941 },
+      alpha: "transparent",
+      blendMode: "normal"
+    },
+    distantCarFrontRight: {
+      path: "/ui/training-distant-car-front-right.png",
+      role: "training distant front-right car",
+      dimensions: { width: 1672, height: 941 },
+      alpha: "transparent",
+      blendMode: "normal"
+    },
+    distantCarBackRight: {
+      path: "/ui/training-distant-car-back-right.png",
+      role: "training distant back-right car",
+      dimensions: { width: 1672, height: 941 },
+      alpha: "transparent",
+      blendMode: "normal"
+    },
+    wireframeCar01: {
+      path: "/ui/training-wireframe-car-01-transparent.png",
+      role: "wireframe overlay matched to the distant left car",
+      dimensions: { width: 1607, height: 979 },
+      alpha: "transparent",
+      blendMode: "normal"
+    },
+    wireframeCar01Glow: {
+      path: "/ui/training-wireframe-car-01-radar-glow.png",
+      role: "radar glow matched to wireframe car 01",
+      dimensions: { width: 1607, height: 979 },
+      alpha: "transparent",
+      blendMode: "screen"
+    },
+    wireframeCar02: {
+      path: "/ui/training-wireframe-car-02-transparent.png",
+      role: "wireframe overlay matched to the distant back-right car",
+      dimensions: { width: 1612, height: 975 },
+      alpha: "transparent",
+      blendMode: "normal"
+    },
+    wireframeCar02Glow: {
+      path: "/ui/training-wireframe-car-02-radar-glow.png",
+      role: "radar glow matched to wireframe car 02",
+      dimensions: { width: 1612, height: 975 },
+      alpha: "transparent",
+      blendMode: "screen"
+    },
+    wireframeCar03: {
+      path: "/ui/training-wireframe-car-03-transparent.png",
+      role: "wireframe overlay matched to the distant front-right car",
+      dimensions: { width: 1619, height: 972 },
+      alpha: "transparent",
+      blendMode: "normal"
+    },
+    wireframeCar03Glow: {
+      path: "/ui/training-wireframe-car-03-radar-glow.png",
+      role: "radar glow matched to wireframe car 03",
+      dimensions: { width: 1619, height: 972 },
+      alpha: "transparent",
+      blendMode: "screen"
     }
   },
   competitive: {
