@@ -7,7 +7,7 @@ type FullscreenTarget = HTMLElement & {
 };
 
 type OrientationController = ScreenOrientation & {
-  lock?: (orientation: OrientationLockType) => Promise<void>;
+  lock?: (orientation: "landscape") => Promise<void>;
 };
 
 export function OrientationGate() {

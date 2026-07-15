@@ -4,6 +4,7 @@ const expectedFiles = [
   "src/app/page.tsx",
   "src/app/home.css",
   "src/components/AppFrame.tsx",
+  "src/components/OrientationGate.tsx",
   "src/components/home/HomeDashboard.tsx",
   "src/components/home/HomeHeader.tsx",
   "src/components/home/HomeLaunchOverlay.tsx",
@@ -50,6 +51,7 @@ function assert(condition, message) {
 const files = Object.fromEntries(expectedFiles.map((path) => [path, read(path)]));
 const page = files["src/app/page.tsx"];
 const appFrame = files["src/components/AppFrame.tsx"];
+const orientationGate = files["src/components/OrientationGate.tsx"];
 const homeDashboard = files["src/components/home/HomeDashboard.tsx"];
 const homeLaunchOverlay = files["src/components/home/HomeLaunchOverlay.tsx"];
 const types = files["src/types/home.ts"];
@@ -76,6 +78,8 @@ assert(page.includes('variant="home"'), "Home page must use the home frame varia
 assert(!page.includes("ModeCard"), "Home page must not use the old ModeCard.");
 assert(!page.includes("getQuestionSummaries"), "Home page must not read question summaries directly.");
 assert(appFrame.includes('variant?: "default" | "game" | "home"'), "AppFrame must expose the home variant.");
+assert(!orientationGate.includes("OrientationLockType"), "The landscape gate must compile without experimental DOM types.");
+assert(orientationGate.includes('lock?: (orientation: "landscape")'), "The session landscape request must keep its existing behavior.");
 
 const requiredTypeSnippets = [
   'HomePlayerStage = "needs_placement" | "building_profile" | "active"',
