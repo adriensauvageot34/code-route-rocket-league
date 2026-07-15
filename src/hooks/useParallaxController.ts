@@ -67,8 +67,9 @@ export function useParallaxController({ active }: UseParallaxControllerOptions) 
   }, []);
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+    const currentContainer = containerRef.current;
+    if (!currentContainer) return;
+    const container: HTMLDivElement = currentContainer;
 
     writeParallaxVariables(container, { x: 0, y: 0 });
     if (!active) return;
