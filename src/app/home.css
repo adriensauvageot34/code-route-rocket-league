@@ -342,6 +342,9 @@
 
 .scene-parallax {
   transform-origin: center;
+}
+
+.mode-illustration[data-motion-active="true"] .scene-parallax {
   will-change: transform;
 }
 
@@ -737,6 +740,22 @@
     rgba(14, 6, 19, 0.99) 100%
   );
   animation: home-competitive-launch-cover var(--home-launch-duration) ease-in both;
+}
+
+.mode-illustration[data-motion-active="false"] .scene-canvas,
+.mode-illustration[data-motion-active="false"] .scene-idle,
+.mode-illustration[data-motion-active="false"] .scene-launch,
+.mode-illustration[data-motion-active="false"] .training-analysis-zone,
+.mode-illustration[data-motion-active="false"] .training-lights-glow,
+.mode-illustration[data-motion-active="false"] .competitive-cage-neon,
+.mode-illustration[data-motion-active="false"] .competitive-projectors-glow,
+.mode-illustration[data-motion-active="false"] .competitive-projectors-haze,
+.mode-illustration[data-motion-active="false"] .competitive-ground-reflection,
+.mode-illustration[data-motion-active="false"] .competitive-exhaust-energy,
+.mode-illustration[data-motion-active="false"] .training-ball-energy,
+.mode-illustration[data-motion-active="false"] .competitive-ground-impact,
+.mode-illustration[data-motion-active="false"] .competitive-motion-trail {
+  animation-play-state: paused;
 }
 
 .mode-lock-feedback {
@@ -1455,7 +1474,57 @@
   }
 }
 
-@media (max-width: 760px) {
+@media (min-width: 821px) and (max-height: 800px) {
+  .home-dashboard {
+    padding-block: 18px;
+  }
+
+  .home-top {
+    margin-bottom: 16px;
+  }
+
+  .home-control-column {
+    gap: 18px;
+  }
+
+  .home-copy {
+    padding-top: 12px;
+  }
+
+  .home-copy h1 {
+    margin-block: 10px 14px;
+    font-size: 3rem;
+  }
+
+  .mode-selector {
+    gap: 10px;
+  }
+
+  .mode-selector-choice {
+    min-height: 96px;
+    padding: 16px;
+  }
+
+  .mode-preview-panel {
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .mode-preview-list {
+    gap: 6px;
+  }
+
+  .home-primary-action {
+    min-height: 52px;
+  }
+
+  .home-visual-stage {
+    min-height: 0;
+    padding-top: 12px;
+  }
+}
+
+@media (max-width: 820px) {
   .home-dashboard {
     padding: 16px;
   }

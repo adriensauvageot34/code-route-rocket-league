@@ -77,6 +77,9 @@ export function useParallaxController({ active }: UseParallaxControllerOptions) 
     const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const finePointerQuery = window.matchMedia("(hover: hover) and (pointer: fine)");
     const pointerTarget: Point = { x: 0, y: 0 };
+    let documentVisible = document.visibilityState === "visible";
+    let illustrationVisible = true;
+    let intersectionObserver: IntersectionObserver | null = null;
     let pointerInside = false;
     let lastPointerAt = 0;
     let lastFrameAt = performance.now();
@@ -150,9 +153,21 @@ export function useParallaxController({ active }: UseParallaxControllerOptions) 
       animationFrameRef.current = window.requestAnimationFrame(animate);
     }
 
+    function syncAnimationState() {
+      const shouldAnimate = documentVisible && illustrationVisible && !reducedMotionQuery.matches;
+      container.dataset.motionActive = shouldAnimate ? "true" : "false";
+
+      if (shouldAnimate) startAnimation();
+      else stopAnimation();
+    }
+
     function handleMotionPreferenceChange() {
-      if (reducedMotionQuery.matches) stopAnimation();
-      else startAnimation();
+      syncAnimationState();
+    }
+
+    function handleVisibilityChange() {
+      documentVisible = document.visibilityState === "visible";
+      syncAnimationState();
     }
 
     if (finePointerQuery.matches) {
@@ -160,13 +175,29 @@ export function useParallaxController({ active }: UseParallaxControllerOptions) 
       container.addEventListener("pointerleave", handlePointerLeave, { passive: true });
     }
     reducedMotionQuery.addEventListener("change", handleMotionPreferenceChange);
-    startAnimation();
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    if ("IntersectionObserver" in window) {
+      intersectionObserver = new IntersectionObserver(
+        ([entry]) => {
+          illustrationVisible = entry?.isIntersecting ?? true;
+          syncAnimationState();
+        },
+        { rootMargin: "80px", threshold: 0.01 }
+      );
+      intersectionObserver.observe(container);
+    }
+
+    syncAnimationState();
 
     return () => {
       container.removeEventListener("pointermove", handlePointerMove);
       container.removeEventListener("pointerleave", handlePointerLeave);
       reducedMotionQuery.removeEventListener("change", handleMotionPreferenceChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      intersectionObserver?.disconnect();
       stopAnimation();
+      delete container.dataset.motionActive;
       centerLockedRef.current = false;
     };
   }, [active]);

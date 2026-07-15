@@ -1,4 +1,4 @@
-import type { KeyboardEvent } from "react";
+import { useRef, type KeyboardEvent } from "react";
 import { ModePreviewPanel } from "@/components/home/ModePreviewPanel";
 import type { HomeAction, HomeModeAvailability, HomeModeId, HomeModePreview } from "@/types/home";
 
@@ -19,13 +19,23 @@ export function ModeSelector({
   previews,
   selectedMode
 }: ModeSelectorProps) {
+  const choiceRefs = useRef<Array<HTMLButtonElement | null>>([]);
+
   function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
-    if (!["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"].includes(event.key)) return;
+    const handledKeys = ["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp", "Home", "End"];
+    if (!handledKeys.includes(event.key)) return;
 
     event.preventDefault();
     const direction = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : -1;
-    const nextMode = modes[(index + direction + modes.length) % modes.length];
+    const nextIndex =
+      event.key === "Home"
+        ? 0
+        : event.key === "End"
+          ? modes.length - 1
+          : (index + direction + modes.length) % modes.length;
+    const nextMode = modes[nextIndex];
     onSelectMode(nextMode.id);
+    choiceRefs.current[nextIndex]?.focus();
   }
 
   return (
@@ -33,6 +43,7 @@ export function ModeSelector({
       className={`mode-selector${isLaunching ? " is-launching" : ""}`}
       role="radiogroup"
       aria-label="Choix du mode"
+      aria-orientation="vertical"
     >
       {modes.map((mode, index) => {
         const isSelected = mode.id === selectedMode;
@@ -44,6 +55,9 @@ export function ModeSelector({
           >
             <button
               className="mode-selector-choice"
+              ref={(element) => {
+                choiceRefs.current[index] = element;
+              }}
               type="button"
               role="radio"
               aria-checked={isSelected}

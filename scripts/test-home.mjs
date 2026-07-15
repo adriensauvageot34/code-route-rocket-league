@@ -70,6 +70,7 @@ const trainingAnalysisZones = files["src/lib/home/trainingAnalysisZones.ts"];
 const primaryAction = files["src/components/home/PrimaryHomeAction.tsx"];
 const modules = files["src/components/home/HomeDashboardModules.tsx"];
 const weaknessCard = files["src/components/home/WeaknessSummaryCard.tsx"];
+const skillProgressCard = files["src/components/home/SkillProgressCard.tsx"];
 const css = files["src/app/home.css"];
 
 assert(page.includes("HomeDashboard"), "Home page must render HomeDashboard.");
@@ -111,8 +112,10 @@ assert(weaknessCard.includes("secondaryWeaknesses.slice(0, 2)"), "Weakness card 
 assert(modeSelector.includes('role="radiogroup"'), "Mode selector must be a keyboard-readable radiogroup.");
 assert(modeSelector.includes('role="radio"'), "Mode choices must expose radio semantics.");
 assert(modeSelector.includes("ArrowRight"), "Mode selector must handle arrow-key navigation.");
+assert(modeSelector.includes('"Home", "End"') && modeSelector.includes("choiceRefs.current[nextIndex]?.focus()"), "Radio navigation must move focus with arrows, Home and End.");
+assert(modeSelector.includes('aria-orientation="vertical"'), "Mode selector must expose its visual orientation.");
 assert(modeSelector.includes("ModePreviewPanel") && modeSelector.includes("previews[mode.id]"), "The selected card must contain its detailed preview.");
-assert(modePreview.includes("aria-live"), "Locked feedback must be announced accessibly.");
+assert(modePreview.includes('role="status"') && modePreview.includes('aria-atomic="true"'), "Locked feedback must be announced once as an atomic status.");
 assert(!modePreview.includes("ModeIllustration"), "The card detail must not contain the illustration.");
 assert(homeDashboard.includes('className="home-control-column"'), "Hero copy and mode cards must share the left column.");
 assert(homeDashboard.includes('className="home-visual-stage"'), "The illustration must have a dedicated right column.");
@@ -142,6 +145,7 @@ assert(homeLaunchOverlay.includes('mode === "training"') && homeLaunchOverlay.in
 assert(sceneGroup.includes("scene-parallax") && sceneGroup.includes("scene-idle") && sceneGroup.includes("scene-launch"), "Scene transforms must use independent nested wrappers.");
 assert(sceneGroup.includes("style={{ mixBlendMode: blendMode, zIndex: layer }}"), "Black-screen assets must blend at group level against the complete scene.");
 assert(!sceneGroup.includes("asset.blendMode"), "Black-screen blending must not be trapped on an image inside a transformed group.");
+assert(sceneGroup.includes('(max-width: 820px) 100vw'), "Image sizing must follow the tablet portrait stacking breakpoint.");
 assert(trainingScene.includes('name="analysis-zones"'), "Training vector analysis group must exist.");
 assert(trainingScene.includes('name="analysis-distant-cars"'), "Training distant analysis group must exist.");
 assert(trainingScene.includes('name="ball"') && trainingScene.includes('name="fennec"'), "Training ball and Fennec groups must exist.");
@@ -178,6 +182,9 @@ assert(sceneDepths.includes("rotation: 0.2"), "Maximum parallax rotation must re
 assert(parallaxController.includes("requestAnimationFrame"), "Parallax must use requestAnimationFrame.");
 assert(parallaxController.includes("cancelAnimationFrame"), "Parallax must cancel its frame on teardown.");
 assert(parallaxController.includes('removeEventListener("pointermove"'), "Parallax must remove its pointer listener on teardown.");
+assert(parallaxController.includes('document.addEventListener("visibilitychange"') && parallaxController.includes('document.removeEventListener("visibilitychange"'), "Parallax must pause with the page and clean up its visibility listener.");
+assert(parallaxController.includes("IntersectionObserver") && parallaxController.includes("intersectionObserver?.disconnect()"), "Parallax must pause offscreen and disconnect its observer.");
+assert(parallaxController.includes("container.dataset.motionActive"), "CSS idle loops must share the controller visibility state.");
 assert(parallaxController.includes('matchMedia("(hover: hover) and (pointer: fine)"'), "Pointer input must be limited to fine pointers.");
 assert(parallaxController.includes("if (finePointerQuery.matches)"), "Coarse pointers must use automatic drift without pointer listeners.");
 assert(parallaxController.includes("AUTO_DRIFT_X"), "Parallax must include automatic idle drift.");
@@ -189,6 +196,8 @@ assert(primaryAction.includes('isLaunching ? "Lancement..."'), "The launching CT
 assert(modules.includes("PlayerProfileCard"), "Placement/profile module must exist.");
 assert(modules.includes("WeeklyPriorityCard"), "Weekly priority module must exist.");
 assert(modules.includes("LockedFeatureCard"), "Targeted sessions must be locked, not active.");
+assert(!skillProgressCard.includes("formatSkillLabel"), "Skill labels must not pass through a no-op formatter.");
+assert(viewModel.includes('"Progression sans classement"'), "Competitive wording must remain honest and player-facing.");
 
 const forbiddenVisibleWording = [
   "v0",
@@ -253,6 +262,8 @@ assert(css.includes("@keyframes competitive-launch-fennec"), "Competitive launch
 assert(css.includes("translate3d(22%, -5%, 0)"), "The competitive Fennec must move toward the right during launch.");
 assert(css.includes("@keyframes competitive-launch-impact") && css.includes("@keyframes competitive-launch-trail"), "Competitive impact and trail must be launch-only effects.");
 assert(css.includes("animation-play-state: paused"), "Idle animations must pause during launch.");
+assert(css.includes('.mode-illustration[data-motion-active="false"]'), "Idle CSS loops must pause while the scene is hidden or offscreen.");
+assert(css.includes('.mode-illustration[data-motion-active="true"] .scene-parallax'), "will-change must be limited to an actively animated scene.");
 assert(css.includes("var(--home-launch-duration)"), "All launch animations must use the shared duration.");
 assert(css.includes(".home-launch-overlay") && css.includes("position: fixed") && css.includes("pointer-events: none"), "The global overlay must cover the viewport without intercepting input.");
 assert(css.includes(".home-launch-asset-frame") && css.includes("mix-blend-mode: screen"), "Global black-screen launch assets must blend against the home.");
@@ -261,7 +272,8 @@ assert(css.includes("@keyframes home-launch-reduced-fade"), "Reduced motion must
 assert(css.includes(".scene-parallax[data-depth=\"foreground\"]"), "Foreground parallax CSS must exist.");
 assert(css.includes(".training-analysis-zone") && css.includes("prefers-reduced-motion: reduce"), "Reduced motion must cover the detailed idle cycles.");
 assert(css.includes("@media (max-width: 1180px)"), "Laptop breakpoint must exist.");
-assert(css.includes("@media (max-width: 760px)"), "Mobile portrait breakpoint must exist.");
+assert(css.includes("@media (min-width: 821px) and (max-height: 800px)"), "Short laptop layouts must keep the CTA visible early.");
+assert(css.includes("@media (max-width: 820px)"), "Tablet and mobile portrait layouts must stack before 768px.");
 assert(css.includes("@media (prefers-reduced-motion: reduce)"), "Reduced motion media query must exist.");
 assert(!existsSync("src/components/ModeCard.tsx"), "Old ModeCard component should not remain as a second home source.");
 

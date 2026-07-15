@@ -44,7 +44,7 @@ export function SceneLayer({ asset, className, preload = false }: SceneLayerProp
       draggable={false}
       fill
       priority={preload}
-      sizes="(max-width: 760px) 100vw, (max-width: 1180px) 66vw, 34vw"
+      sizes="(max-width: 820px) 100vw, (max-width: 1180px) 66vw, 34vw"
       src={asset.path}
       unoptimized
     />

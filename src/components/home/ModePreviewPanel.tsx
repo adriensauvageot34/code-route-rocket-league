@@ -29,7 +29,7 @@ export function ModePreviewPanel({ isLaunching, onLaunch, preview }: ModePreview
   }, []);
 
   return (
-    <div className="mode-preview-panel" aria-live="polite">
+    <div className="mode-preview-panel">
       <div className="mode-preview-copy">
         <span className="mode-preview-eyebrow">{preview.mode === "training" ? "Mode actif" : "Apercu verrouille"}</span>
         <h2>{preview.title}</h2>
@@ -47,7 +47,11 @@ export function ModePreviewPanel({ isLaunching, onLaunch, preview }: ModePreview
           onLaunch={onLaunch}
           onLockedAction={handleLockedAction}
         />
-        <p className={`mode-lock-feedback${showFeedback ? " is-visible" : ""}`} aria-live="polite">
+        <p
+          aria-atomic="true"
+          className={`mode-lock-feedback${showFeedback ? " is-visible" : ""}`}
+          role="status"
+        >
           {showFeedback ? preview.action.feedback : ""}
         </p>
       </div>
