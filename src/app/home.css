@@ -222,6 +222,10 @@
   text-align: left;
 }
 
+.mode-selector-choice:disabled {
+  cursor: default;
+}
+
 .mode-selector-card.is-selected .mode-selector-choice {
   min-height: 0;
   padding-bottom: 16px;
@@ -490,10 +494,45 @@
 }
 
 .home-primary-action.is-locked,
-.home-primary-action[aria-disabled="true"] {
+.home-primary-action[aria-disabled="true"]:not(.is-launching) {
   background: rgba(255, 255, 255, 0.08);
   box-shadow: none;
   color: #c8bdd2;
+}
+
+.home-primary-action.is-launching {
+  pointer-events: none;
+  animation: home-launch-action 700ms ease-in-out infinite alternate;
+}
+
+.mode-illustration.is-launching .scene-idle {
+  animation-play-state: paused;
+}
+
+.mode-illustration.is-launching .scene-group[data-scene-group="decor"] .scene-launch,
+.mode-illustration.is-launching .scene-group[data-scene-group="analysis-distant-cars"] .scene-launch,
+.mode-illustration.is-launching .scene-group[data-scene-group="cage"] .scene-launch,
+.mode-illustration.is-launching .scene-group[data-scene-group^="cage-projectors"] .scene-launch,
+.mode-illustration.is-launching .scene-group[data-scene-group="ground-reflection"] .scene-launch {
+  animation: scene-launch-camera 2000ms cubic-bezier(0.2, 0.75, 0.2, 1) both;
+}
+
+.mode-illustration.is-launching .scene-group[data-scene-group="ball"] .scene-launch {
+  animation: scene-launch-ball 2000ms ease-in-out both;
+}
+
+.mode-illustration.is-training.is-launching .scene-group[data-scene-group="fennec"] .scene-launch,
+.mode-illustration.is-training.is-launching .scene-group[data-scene-group="fennec-lights-glow"] .scene-launch {
+  animation: scene-launch-training-fennec 2000ms cubic-bezier(0.35, 0, 0.15, 1) both;
+}
+
+.mode-illustration.is-competitive.is-launching .scene-group[data-scene-group="fennec"] .scene-launch,
+.mode-illustration.is-competitive.is-launching .scene-group[data-scene-group="fennec-exhaust-energy"] .scene-launch {
+  animation: scene-launch-competitive-fennec 2000ms cubic-bezier(0.35, 0, 0.15, 1) both;
+}
+
+.mode-illustration.is-competitive.is-launching .scene-group[data-scene-group="motion-trail"] .scene-launch {
+  animation: scene-launch-competitive-trail 2000ms cubic-bezier(0.25, 0.7, 0.15, 1) both;
 }
 
 .mode-lock-feedback {
@@ -632,6 +671,16 @@
   }
 }
 
+@keyframes home-launch-action {
+  from {
+    filter: brightness(1);
+  }
+
+  to {
+    filter: brightness(1.12);
+  }
+}
+
 @keyframes scene-mode-enter {
   from {
     opacity: 0.35;
@@ -641,6 +690,70 @@
   to {
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes scene-launch-camera {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  to {
+    transform: translate3d(-1%, 0.5%, 0) scale(1.07);
+  }
+}
+
+@keyframes scene-launch-ball {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  65% {
+    transform: translate3d(-1%, -1%, 0) scale(1.08);
+  }
+
+  100% {
+    transform: translate3d(-3%, -1%, 0) scale(1.03);
+  }
+}
+
+@keyframes scene-launch-training-fennec {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  12% {
+    transform: translate3d(1.2%, 0.5%, 0) scale(0.995);
+  }
+
+  100% {
+    transform: translate3d(-18%, -2%, 0) scale(1.04);
+  }
+}
+
+@keyframes scene-launch-competitive-fennec {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  10% {
+    transform: translate3d(1%, 0.4%, 0) scale(0.995);
+  }
+
+  100% {
+    transform: translate3d(-24%, -1%, 0) scale(1.03);
+  }
+}
+
+@keyframes scene-launch-competitive-trail {
+  from {
+    opacity: 0.78;
+    transform: translate3d(0, 0, 0) scaleX(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(-18%, 0, 0) scaleX(1.16);
   }
 }
 

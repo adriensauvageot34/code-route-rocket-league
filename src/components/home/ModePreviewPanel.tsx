@@ -2,13 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import { PrimaryHomeAction } from "@/components/home/PrimaryHomeAction";
-import type { HomeModePreview } from "@/types/home";
+import type { HomeAction, HomeModePreview } from "@/types/home";
 
 type ModePreviewPanelProps = {
+  isLaunching: boolean;
+  onLaunch: (action: HomeAction) => void;
   preview: HomeModePreview;
 };
 
-export function ModePreviewPanel({ preview }: ModePreviewPanelProps) {
+export function ModePreviewPanel({ isLaunching, onLaunch, preview }: ModePreviewPanelProps) {
   const [showFeedback, setShowFeedback] = useState(false);
   const timerRef = useRef<number | null>(null);
 
@@ -39,7 +41,12 @@ export function ModePreviewPanel({ preview }: ModePreviewPanelProps) {
       </ul>
 
       <div className="mode-preview-action">
-        <PrimaryHomeAction action={preview.action} onLockedAction={handleLockedAction} />
+        <PrimaryHomeAction
+          action={preview.action}
+          isLaunching={isLaunching}
+          onLaunch={onLaunch}
+          onLockedAction={handleLockedAction}
+        />
         <p className={`mode-lock-feedback${showFeedback ? " is-visible" : ""}`} aria-live="polite">
           {showFeedback ? preview.action.feedback : ""}
         </p>

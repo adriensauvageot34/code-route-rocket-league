@@ -104,9 +104,16 @@ assert(modePreview.includes("aria-live"), "Locked feedback must be announced acc
 assert(!modePreview.includes("ModeIllustration"), "The card detail must not contain the illustration.");
 assert(homeDashboard.includes('className="home-control-column"'), "Hero copy and mode cards must share the left column.");
 assert(homeDashboard.includes('className="home-visual-stage"'), "The illustration must have a dedicated right column.");
-assert(homeDashboard.includes("<ModeIllustration key={selectedMode} mode={selectedMode} />"), "Mode changes must remount only the right illustration.");
+assert(homeDashboard.includes("key={selectedMode}") && homeDashboard.includes("ref={illustrationRef}"), "Mode changes must remount only the right illustration.");
+assert(homeDashboard.includes("SESSION_LAUNCH_DURATION_MS = 2000"), "Session launch must wait exactly two seconds.");
+assert(homeDashboard.includes("resetParallax(200)"), "Session launch must recenter parallax before navigation.");
+assert(homeDashboard.includes("router.push(destination)"), "Session launch must navigate only after its animation.");
+assert(homeDashboard.includes("launchTimerRef.current !== null"), "Session launch must reject duplicate clicks.");
+assert(homeDashboard.includes("clearTimeout(launchTimerRef.current)"), "Session launch timer must be cleaned up on unmount.");
+assert(modeSelector.includes("disabled={isLaunching}"), "Mode changes must be locked during launch.");
 assert(modeIllustration.includes('mode === "training" ? <TrainingScene /> : <CompetitiveScene />'), "Only the selected scene must render.");
 assert(modeIllustration.includes("resetParallax"), "The illustration must expose the future recenter method.");
+assert(modeIllustration.includes('launching ? " is-launching" : ""'), "The illustration must expose its launch phase to CSS.");
 assert(sceneGroup.includes("scene-parallax") && sceneGroup.includes("scene-idle") && sceneGroup.includes("scene-launch"), "Scene transforms must use independent nested wrappers.");
 assert(sceneGroup.includes("style={{ mixBlendMode: blendMode, zIndex: layer }}"), "Black-screen assets must blend at group level against the complete scene.");
 assert(!sceneGroup.includes("asset.blendMode"), "Black-screen blending must not be trapped on an image inside a transformed group.");
@@ -134,6 +141,7 @@ assert(parallaxController.includes("AUTO_DRIFT_X"), "Parallax must include autom
 assert(!parallaxController.includes("useState"), "Parallax must not use React state on animation frames.");
 assert(!parallaxController.toLowerCase().includes("gyroscope"), "Home parallax must not request gyroscope access.");
 assert(primaryAction.includes('aria-disabled="true"'), "Locked action must explain disabled state.");
+assert(primaryAction.includes("event.preventDefault()") && primaryAction.includes("onLaunch(action)"), "Training CTA must start the launch sequence before navigation.");
 assert(modules.includes("PlayerProfileCard"), "Placement/profile module must exist.");
 assert(modules.includes("WeeklyPriorityCard"), "Weekly priority module must exist.");
 assert(modules.includes("LockedFeatureCard"), "Targeted sessions must be locked, not active.");
@@ -185,6 +193,9 @@ assert(css.includes("grid-template-columns: minmax(360px, 0.78fr) minmax(0, 1.42
 assert(css.includes(".competitive-exhaust-energy"), "Competitive exhaust alignment CSS must exist.");
 assert(css.includes("@keyframes scene-idle-fennec"), "The selected Fennec must move autonomously without pointer input.");
 assert(css.includes("@keyframes scene-mode-enter"), "Selecting a mode must trigger a dedicated scene entry.");
+assert(css.includes("@keyframes scene-launch-training-fennec"), "Training launch animation must exist.");
+assert(css.includes("@keyframes scene-launch-competitive-fennec"), "Competitive launch animation must be prepared.");
+assert(css.includes("2000ms") && css.includes(".scene-launch"), "Launch transforms must run in the dedicated wrapper for two seconds.");
 assert(css.includes(".scene-parallax[data-depth=\"foreground\"]"), "Foreground parallax CSS must exist.");
 assert(css.includes(".scene-group.is-future"), "Future impact and transition slots must remain hidden.");
 assert(css.includes("@media (max-width: 1180px)"), "Laptop breakpoint must exist.");
