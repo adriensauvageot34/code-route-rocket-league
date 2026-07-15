@@ -9,6 +9,10 @@ const expectedFiles = [
   "src/components/home/ModeSelector.tsx",
   "src/components/home/ModePreviewPanel.tsx",
   "src/components/home/PrimaryHomeAction.tsx",
+  "src/components/home/illustrations/ModeIllustration.tsx",
+  "src/components/home/illustrations/TrainingScene.tsx",
+  "src/components/home/illustrations/CompetitiveScene.tsx",
+  "src/components/home/illustrations/SceneGroup.tsx",
   "src/components/home/HomeDashboardModules.tsx",
   "src/components/home/PlayerProfileCard.tsx",
   "src/components/home/WeeklyPriorityCard.tsx",
@@ -21,6 +25,8 @@ const expectedFiles = [
   "src/components/home/LockedFeatureCard.tsx",
   "src/lib/home/homeDashboardViewModel.ts",
   "src/lib/home/getHomeDashboardViewModel.ts",
+  "src/lib/home/homeSceneParallax.ts",
+  "src/hooks/useParallaxController.ts",
   "src/types/home.ts"
 ];
 
@@ -44,6 +50,12 @@ const types = files["src/types/home.ts"];
 const viewModel = files["src/lib/home/homeDashboardViewModel.ts"];
 const modeSelector = files["src/components/home/ModeSelector.tsx"];
 const modePreview = files["src/components/home/ModePreviewPanel.tsx"];
+const modeIllustration = files["src/components/home/illustrations/ModeIllustration.tsx"];
+const trainingScene = files["src/components/home/illustrations/TrainingScene.tsx"];
+const competitiveScene = files["src/components/home/illustrations/CompetitiveScene.tsx"];
+const sceneGroup = files["src/components/home/illustrations/SceneGroup.tsx"];
+const sceneDepths = files["src/lib/home/homeSceneParallax.ts"];
+const parallaxController = files["src/hooks/useParallaxController.ts"];
 const primaryAction = files["src/components/home/PrimaryHomeAction.tsx"];
 const modules = files["src/components/home/HomeDashboardModules.tsx"];
 const weaknessCard = files["src/components/home/WeaknessSummaryCard.tsx"];
@@ -87,6 +99,28 @@ assert(modeSelector.includes('role="radiogroup"'), "Mode selector must be a keyb
 assert(modeSelector.includes('role="radio"'), "Mode choices must expose radio semantics.");
 assert(modeSelector.includes("ArrowRight"), "Mode selector must handle arrow-key navigation.");
 assert(modePreview.includes("aria-live"), "Locked feedback must be announced accessibly.");
+assert(modePreview.includes("ModeIllustration"), "The selected mode preview must render its illustration.");
+assert(modeIllustration.includes('mode === "training" ? <TrainingScene /> : <CompetitiveScene />'), "Only the selected scene must render.");
+assert(modeIllustration.includes("resetParallax"), "The illustration must expose the future recenter method.");
+assert(sceneGroup.includes("scene-parallax") && sceneGroup.includes("scene-idle") && sceneGroup.includes("scene-launch"), "Scene transforms must use independent nested wrappers.");
+assert(trainingScene.includes('name="analysis-distant-cars"'), "Training distant analysis group must exist.");
+assert(trainingScene.includes('name="ball"') && trainingScene.includes('name="fennec"'), "Training ball and Fennec groups must exist.");
+assert(trainingScene.includes('future layer={4} name="transition"'), "Training transition placeholder must exist.");
+assert(competitiveScene.includes('name="cage"') && competitiveScene.includes('name="ground-reflection"'), "Competitive cage and ground groups must exist.");
+assert(competitiveScene.includes('name="motion-trail"') && competitiveScene.includes('name="fennec"'), "Competitive trail and Fennec groups must exist.");
+assert(competitiveScene.includes('future layer={5} name="impact"'), "Competitive impact placeholder must exist.");
+assert(competitiveScene.includes('future layer={6} name="transition"'), "Competitive transition placeholder must exist.");
+for (const depth of ["3", "5", "7", "11", "14"]) {
+  assert(sceneDepths.includes(`translation: ${depth}`), `Missing parallax translation depth: ${depth}px`);
+}
+assert(sceneDepths.includes("rotation: 0.2"), "Maximum parallax rotation must remain 0.2deg.");
+assert(parallaxController.includes("requestAnimationFrame"), "Parallax must use requestAnimationFrame.");
+assert(parallaxController.includes("cancelAnimationFrame"), "Parallax must cancel its frame on teardown.");
+assert(parallaxController.includes('removeEventListener("pointermove"'), "Parallax must remove its pointer listener on teardown.");
+assert(parallaxController.includes('matchMedia("(hover: hover) and (pointer: fine)"'), "Pointer input must be limited to fine pointers.");
+assert(parallaxController.includes("AUTO_DRIFT_X"), "Parallax must include automatic idle drift.");
+assert(!parallaxController.includes("useState"), "Parallax must not use React state on animation frames.");
+assert(!parallaxController.toLowerCase().includes("gyroscope"), "Home parallax must not request gyroscope access.");
 assert(primaryAction.includes('aria-disabled="true"'), "Locked action must explain disabled state.");
 assert(modules.includes("PlayerProfileCard"), "Placement/profile module must exist.");
 assert(modules.includes("WeeklyPriorityCard"), "Weekly priority module must exist.");
@@ -134,6 +168,9 @@ for (const line of css.split("\n")) {
 }
 
 assert(css.includes("overflow-x: hidden"), "Home CSS must prevent horizontal overflow.");
+assert(css.includes("aspect-ratio: 1672 / 941"), "Home scenes must keep the 1672x941 logical canvas ratio.");
+assert(css.includes(".scene-parallax[data-depth=\"foreground\"]"), "Foreground parallax CSS must exist.");
+assert(css.includes(".scene-group.is-future"), "Future impact and transition slots must remain hidden.");
 assert(css.includes("@media (max-width: 1180px)"), "Laptop breakpoint must exist.");
 assert(css.includes("@media (max-width: 760px)"), "Mobile portrait breakpoint must exist.");
 assert(css.includes("@media (prefers-reduced-motion: reduce)"), "Reduced motion media query must exist.");
