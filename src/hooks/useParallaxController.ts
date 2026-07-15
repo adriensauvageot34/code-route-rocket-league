@@ -155,8 +155,10 @@ export function useParallaxController({ active }: UseParallaxControllerOptions) 
       else startAnimation();
     }
 
-    container.addEventListener("pointermove", handlePointerMove, { passive: true });
-    container.addEventListener("pointerleave", handlePointerLeave, { passive: true });
+    if (finePointerQuery.matches) {
+      container.addEventListener("pointermove", handlePointerMove, { passive: true });
+      container.addEventListener("pointerleave", handlePointerLeave, { passive: true });
+    }
     reducedMotionQuery.addEventListener("change", handleMotionPreferenceChange);
     startAnimation();
 
