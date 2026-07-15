@@ -1,26 +1,38 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { HomeDashboardModules } from "@/components/home/HomeDashboardModules";
 import { HomeHeader } from "@/components/home/HomeHeader";
+import { HomeLaunchOverlay } from "@/components/home/HomeLaunchOverlay";
 import { ModeSelector } from "@/components/home/ModeSelector";
 import {
   ModeIllustration,
   type ModeIllustrationHandle
 } from "@/components/home/illustrations/ModeIllustration";
+import {
+  HOME_LAUNCH_DURATION_MS,
+  type HomeLaunchGeometry,
+} from "@/lib/home/homeLaunch";
 import type { HomeAction, HomeDashboardViewModel, HomeModeId } from "@/types/home";
 
 type HomeDashboardProps = {
   viewModel: HomeDashboardViewModel;
 };
 
-const SESSION_LAUNCH_DURATION_MS = 2000;
+type HomeDashboardStyle = CSSProperties & {
+  "--home-launch-duration": string;
+};
+
+const homeDashboardStyle: HomeDashboardStyle = {
+  "--home-launch-duration": `${HOME_LAUNCH_DURATION_MS}ms`,
+};
 
 export function HomeDashboard({ viewModel }: HomeDashboardProps) {
   const router = useRouter();
   const [selectedMode, setSelectedMode] = useState<HomeModeId>(viewModel.selectedMode);
   const [launchingMode, setLaunchingMode] = useState<HomeModeId | null>(null);
+  const [launchGeometry, setLaunchGeometry] = useState<HomeLaunchGeometry | null>(null);
   const illustrationRef = useRef<ModeIllustrationHandle>(null);
   const launchTimerRef = useRef<number | null>(null);
   const headerStatus = useMemo(
@@ -36,9 +48,19 @@ export function HomeDashboard({ viewModel }: HomeDashboardProps) {
     if (!action.href || launchingMode || launchTimerRef.current !== null) return;
 
     const destination = action.href;
+    setLaunchGeometry(illustrationRef.current?.getLaunchGeometry() ?? null);
     setLaunchingMode(selectedMode);
     void illustrationRef.current?.resetParallax(200);
-    launchTimerRef.current = window.setTimeout(() => router.push(destination), SESSION_LAUNCH_DURATION_MS);
+    launchTimerRef.current = window.setTimeout(() => {
+      launchTimerRef.current = null;
+
+      try {
+        router.push(destination);
+      } finally {
+        setLaunchingMode(null);
+        setLaunchGeometry(null);
+      }
+    }, HOME_LAUNCH_DURATION_MS);
   }
 
   useEffect(() => {
@@ -48,7 +70,12 @@ export function HomeDashboard({ viewModel }: HomeDashboardProps) {
   }, []);
 
   return (
-    <main className="home-dashboard" aria-labelledby="home-title">
+    <main
+      aria-busy={launchingMode !== null}
+      aria-labelledby="home-title"
+      className="home-dashboard"
+      style={homeDashboardStyle}
+    >
       <HomeHeader playerStage={headerStatus.playerStage} permitStatus={headerStatus.permitStatus} />
 
       <section className="home-main-stage" aria-label="Accueil entrainement">
@@ -83,6 +110,7 @@ export function HomeDashboard({ viewModel }: HomeDashboardProps) {
       </section>
 
       <HomeDashboardModules modules={viewModel.modules} playerStage={viewModel.playerStage} />
+      <HomeLaunchOverlay geometry={launchGeometry} mode={launchingMode} />
     </main>
   );
 }

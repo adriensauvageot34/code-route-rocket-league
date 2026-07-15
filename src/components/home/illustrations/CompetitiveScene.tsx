@@ -39,8 +39,8 @@ export function CompetitiveScene() {
         <SceneLayer asset={assets.motionTrail} className="competitive-motion-trail" />
       </SceneGroup>
 
-      <SceneGroup depth="foreground" future layer={8} name="impact">
-        <SceneLayer asset={assets.groundImpact} />
+      <SceneGroup blendMode="screen" depth="foreground" future layer={8} name="impact">
+        <SceneLayer asset={assets.groundImpact} className="competitive-ground-impact" />
       </SceneGroup>
 
       <SceneGroup depth="foreground" future layer={9} name="transition" />
