@@ -99,7 +99,7 @@ function createModePreviews(featureAvailability: HomeFeatureAvailability): Recor
       mode: "competitive",
       title: "Challenge-toi en condition de match.",
       description: "Le mode competitif reste un apercu verrouille tant que le permis de match n'est pas disponible.",
-      bullets: ["Apercu selectionnable", "Obtiens ton permis de match", "Aucun classement fictif"],
+      bullets: ["Apercu selectionnable", "Permis de match requis", "Progression sans classement"],
       action: {
         label: "Mode verrouille",
         disabled: true,
