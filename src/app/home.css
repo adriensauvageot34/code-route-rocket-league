@@ -264,6 +264,99 @@
   animation: home-panel-fade 180ms ease both;
 }
 
+.mode-illustration {
+  --parallax-background-x: 0px;
+  --parallax-background-y: 0px;
+  --parallax-background-rotation: 0deg;
+  --parallax-distant-x: 0px;
+  --parallax-distant-y: 0px;
+  --parallax-distant-rotation: 0deg;
+  --parallax-focal-x: 0px;
+  --parallax-focal-y: 0px;
+  --parallax-focal-rotation: 0deg;
+  --parallax-fennec-x: 0px;
+  --parallax-fennec-y: 0px;
+  --parallax-fennec-rotation: 0deg;
+  --parallax-foreground-x: 0px;
+  --parallax-foreground-y: 0px;
+  --parallax-foreground-rotation: 0deg;
+  position: relative;
+  width: min(100%, 760px);
+  flex: 0 0 auto;
+  align-self: center;
+  aspect-ratio: 1672 / 941;
+  overflow: hidden;
+  border: 1px solid rgba(239, 197, 120, 0.3);
+  border-radius: 6px;
+  background: #05050c;
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.36);
+  contain: layout paint style;
+  isolation: isolate;
+  touch-action: pan-y;
+}
+
+.scene-canvas,
+.home-scene,
+.scene-group,
+.scene-transform {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.scene-group {
+  pointer-events: none;
+}
+
+.scene-group.is-future {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.scene-parallax {
+  transform-origin: center;
+  will-change: transform;
+}
+
+.scene-parallax[data-depth="background"] {
+  transform: translate3d(var(--parallax-background-x), var(--parallax-background-y), 0)
+    rotate(var(--parallax-background-rotation)) scale(1.02);
+}
+
+.scene-parallax[data-depth="distant"] {
+  transform: translate3d(var(--parallax-distant-x), var(--parallax-distant-y), 0)
+    rotate(var(--parallax-distant-rotation)) scale(1.03);
+}
+
+.scene-parallax[data-depth="focal"] {
+  transform: translate3d(var(--parallax-focal-x), var(--parallax-focal-y), 0)
+    rotate(var(--parallax-focal-rotation)) scale(1.04);
+}
+
+.scene-parallax[data-depth="fennec"] {
+  transform: translate3d(var(--parallax-fennec-x), var(--parallax-fennec-y), 0)
+    rotate(var(--parallax-fennec-rotation)) scale(1.05);
+}
+
+.scene-parallax[data-depth="foreground"] {
+  transform: translate3d(var(--parallax-foreground-x), var(--parallax-foreground-y), 0)
+    rotate(var(--parallax-foreground-rotation)) scale(1.06);
+}
+
+.scene-idle,
+.scene-launch {
+  transform: translate3d(0, 0, 0);
+}
+
+.scene-layer {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
+}
+
 .mode-preview-copy h2,
 .dashboard-card h2 {
   margin: 8px 0 10px;
@@ -595,7 +688,10 @@
   .mode-preview-panel,
   .mode-selector-card,
   .home-primary-action,
-  .mode-lock-feedback {
+  .mode-lock-feedback,
+  .scene-parallax,
+  .scene-idle,
+  .scene-launch {
     animation: none;
     transition: none;
   }
