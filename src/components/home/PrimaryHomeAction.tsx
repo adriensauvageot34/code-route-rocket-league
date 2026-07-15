@@ -1,26 +1,25 @@
 import Link from "next/link";
+import { AccessibleTooltip } from "@/components/home/AccessibleTooltip";
 import type { HomeAction } from "@/types/home";
 
 type PrimaryHomeActionProps = {
   action: HomeAction;
   isLaunching?: boolean;
   onLaunch?: (action: HomeAction) => void;
-  onLockedAction?: () => void;
 };
 
 export function PrimaryHomeAction({
   action,
   isLaunching = false,
   onLaunch,
-  onLockedAction
 }: PrimaryHomeActionProps) {
   if (action.href && !action.disabled) {
     return (
       <Link
-        className={`home-primary-action${isLaunching ? " is-launching" : ""}`}
-        href={action.href}
         aria-disabled={isLaunching}
         aria-label={isLaunching ? "Lancement..." : (action.ariaLabel ?? action.label)}
+        className={`home-primary-action${isLaunching ? " is-launching" : ""}`}
+        href={action.href}
         onClick={(event) => {
           if (!onLaunch) return;
           event.preventDefault();
@@ -33,16 +32,22 @@ export function PrimaryHomeAction({
     );
   }
 
+  if (action.feedback) {
+    return (
+      <AccessibleTooltip
+        buttonClassName="home-primary-action is-locked"
+        className="mode-lock-tooltip"
+        content={action.feedback}
+        label={action.ariaLabel ?? action.label}
+      >
+        <span>{action.label}</span>
+      </AccessibleTooltip>
+    );
+  }
+
   return (
-    <button
-      className="home-primary-action is-locked"
-      type="button"
-      aria-disabled="true"
-      disabled={isLaunching}
-      aria-label={action.ariaLabel ?? action.label}
-      onClick={isLaunching ? undefined : onLockedAction}
-    >
-      <span>{action.label}</span>
-    </button>
+    <span className="home-primary-action is-locked" aria-disabled="true">
+      {action.label}
+    </span>
   );
 }
