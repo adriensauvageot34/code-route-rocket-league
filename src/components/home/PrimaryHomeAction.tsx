@@ -20,7 +20,7 @@ export function PrimaryHomeAction({
         className={`home-primary-action${isLaunching ? " is-launching" : ""}`}
         href={action.href}
         aria-disabled={isLaunching}
-        aria-label={action.ariaLabel ?? action.label}
+        aria-label={isLaunching ? "Lancement..." : (action.ariaLabel ?? action.label)}
         onClick={(event) => {
           if (!onLaunch) return;
           event.preventDefault();

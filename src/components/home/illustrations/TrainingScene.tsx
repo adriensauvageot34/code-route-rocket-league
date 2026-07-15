@@ -33,7 +33,7 @@ export function TrainingScene() {
       </SceneGroup>
 
       <SceneGroup blendMode="screen" depth="foreground" future layer={6} name="transition">
-        <SceneLayer asset={assets.transitionWaveGold} />
+        <SceneLayer asset={assets.transitionWaveGold} className="training-transition-wave-local" />
       </SceneGroup>
     </div>
   );

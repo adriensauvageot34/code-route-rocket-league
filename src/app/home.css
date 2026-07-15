@@ -594,39 +594,89 @@
   animation-play-state: paused;
 }
 
+.mode-illustration.is-launching .scene-group.is-future {
+  visibility: visible;
+  opacity: 1;
+}
+
+.mode-illustration.is-training.is-launching .scene-group[data-scene-group="decor"] .scene-launch,
+.mode-illustration.is-training.is-launching .scene-group[data-scene-group="analysis-zones"] .scene-launch,
+.mode-illustration.is-training.is-launching .scene-group[data-scene-group="analysis-distant-cars"] .scene-launch,
+.mode-illustration.is-training.is-launching .scene-group[data-scene-group="fennec"] .scene-launch {
+  animation: training-launch-calm var(--home-launch-duration) ease-in-out both;
+}
+
+.mode-illustration.is-training.is-launching .scene-group[data-scene-group="ball"] .scene-launch {
+  animation: training-launch-ball-focus var(--home-launch-duration) ease-in-out both;
+}
+
+.mode-illustration.is-training.is-launching
+  .scene-group[data-scene-group="fennec-lights-glow"]
+  .scene-launch {
+  animation: training-launch-headlights var(--home-launch-duration) ease-in-out both;
+}
+
 .mode-illustration.is-training.is-launching .training-ball-energy {
-  opacity: 0.78;
+  animation: training-launch-ball-energy var(--home-launch-duration) ease-in-out both;
 }
 
-.mode-illustration.is-competitive.is-launching .competitive-motion-trail {
-  opacity: 0.78;
+.training-transition-wave-local {
+  transform-origin: 50.598% 45.909%;
 }
 
-.mode-illustration.is-launching .scene-group[data-scene-group="decor"] .scene-launch,
-.mode-illustration.is-launching .scene-group[data-scene-group="analysis-zones"] .scene-launch,
-.mode-illustration.is-launching .scene-group[data-scene-group="analysis-distant-cars"] .scene-launch,
-.mode-illustration.is-launching .scene-group[data-scene-group="cage"] .scene-launch,
-.mode-illustration.is-launching .scene-group[data-scene-group^="cage-projectors"] .scene-launch,
-.mode-illustration.is-launching .scene-group[data-scene-group="ground-reflection"] .scene-launch {
-  animation: scene-launch-camera 2000ms cubic-bezier(0.2, 0.75, 0.2, 1) both;
+.mode-illustration.is-training.is-launching .training-transition-wave-local {
+  animation: training-launch-local-wave var(--home-launch-duration) cubic-bezier(0.2, 0.7, 0.15, 1) both;
 }
 
-.mode-illustration.is-launching .scene-group[data-scene-group="ball"] .scene-launch {
-  animation: scene-launch-ball 2000ms ease-in-out both;
+.mode-illustration.is-competitive.is-launching .scene-group[data-scene-group="decor"] .scene-launch {
+  animation: competitive-launch-background var(--home-launch-duration) cubic-bezier(0.25, 0.7, 0.2, 1) both;
 }
 
-.mode-illustration.is-training.is-launching .scene-group[data-scene-group="fennec"] .scene-launch,
-.mode-illustration.is-training.is-launching .scene-group[data-scene-group="fennec-lights-glow"] .scene-launch {
-  animation: scene-launch-training-fennec 2000ms cubic-bezier(0.35, 0, 0.15, 1) both;
+.mode-illustration.is-competitive.is-launching .scene-group[data-scene-group="cage"] .scene-launch,
+.mode-illustration.is-competitive.is-launching
+  .scene-group[data-scene-group^="cage-projectors"]
+  .scene-launch {
+  transform-origin: 45.455% 35.813%;
+  animation: competitive-launch-cage var(--home-launch-duration) cubic-bezier(0.18, 0.72, 0.15, 1) both;
 }
 
 .mode-illustration.is-competitive.is-launching .scene-group[data-scene-group="fennec"] .scene-launch,
-.mode-illustration.is-competitive.is-launching .scene-group[data-scene-group="fennec-exhaust-energy"] .scene-launch {
-  animation: scene-launch-competitive-fennec 2000ms cubic-bezier(0.35, 0, 0.15, 1) both;
+.mode-illustration.is-competitive.is-launching
+  .scene-group[data-scene-group="fennec-exhaust-energy"]
+  .scene-launcÎü-¢Gß≤⁄Óù∆≠y—me {
+  animation: home-training-launch-wave var(--home-launch-duration) cubic-bezier(0.16, 0.72, 0.12, 1) both;
 }
 
-.mode-illustration.is-competitive.is-launching .scene-group[data-scene-group="motion-trail"] .scene-launch {
-  animation: scene-launch-competitive-trail 2000ms cubic-bezier(0.25, 0.7, 0.15, 1) both;
+.home-launch-overlay.is-competitive .home-launch-asset-frame {
+  animation: home-competitive-launch-arena var(--home-launch-duration) cubic-bezier(0.18, 0.72, 0.15, 1) both;
+}
+
+.home-launch-cover {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+.home-launch-overlay.is-training .home-launch-cover {
+  background: radial-gradient(
+    circle at var(--home-launch-anchor-x) var(--home-launch-anchor-y),
+    rgba(255, 253, 231, 0.99) 0,
+    rgba(255, 218, 121, 0.96) 24%,
+    rgba(220, 145, 49, 0.92) 58%,
+    rgba(255, 246, 213, 0.98) 100%
+  );
+  animation: home-training-launch-cover var(--home-launch-duration) ease-in both;
+}
+
+.home-launch-overlay.is-competitive .home-launch-cover {
+  background: radial-gradient(
+    circle at var(--home-launch-anchor-x) var(--home-launch-anchor-y),
+    rgba(255, 224, 128, 0.96) 0,
+    rgba(178, 104, 48, 0.94) 26%,
+    rgba(80, 37, 91, 0.96) 58%,
+    rgba(14, 6, 19, 0.99) 100%
+  );
+  animation: home-competitive-launch-cover var(--home-launch-duration) ease-in both;
 }
 
 .mode-lock-feedback {
@@ -883,67 +933,387 @@
   }
 }
 
-@keyframes scene-launch-camera {
-  from {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-
-  to {
-    transform: translate3d(-1%, 0.5%, 0) scale(1.07);
-  }
-}
-
-@keyframes scene-launch-ball {
+@keyframes training-launch-calm {
   0% {
-    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+    filter: brightness(1);
   }
 
-  65% {
-    transform: translate3d(-1%, -1%, 0) scale(1.08);
+  37.5% {
+    opacity: 0.84;
+    filter: brightness(0.82);
   }
 
   100% {
-    transform: translate3d(-3%, -1%, 0) scale(1.03);
+    opacity: 0.7;
+    filter: brightness(0.72);
   }
 }
 
-@keyframes scene-launch-training-fennec {
-  0% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-
-  12% {
-    transform: translate3d(1.2%, 0.5%, 0) scale(0.995);
-  }
-
-  100% {
-    transform: translate3d(-18%, -2%, 0) scale(1.04);
-  }
-}
-
-@keyframes scene-launch-competitive-fennec {
+@keyframes training-launch-ball-focus {
   0% {
     transform: translate3d(0, 0, 0) scale(1);
   }
 
   10% {
-    transform: translate3d(1%, 0.4%, 0) scale(0.995);
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  25% {
+    transform: translate3d(0, 0, 0) scale(1.02);
+  }
+
+  37.5% {
+    transform: translate3d(0, 0, 0) scale(1.055);
   }
 
   100% {
-    transform: translate3d(-24%, -1%, 0) scale(1.03);
+    transform: translate3d(0, 0, 0) scale(1.02);
   }
 }
 
-@keyframes scene-launch-competitive-trail {
-  from {
-    opacity: 0.78;
-    transform: translate3d(0, 0, 0) scaleX(0.96);
+@keyframes training-launch-headlights {
+  0%,
+  10% {
+    opacity: 1;
+    filter: brightness(1);
   }
 
-  to {
+  12.5% {
     opacity: 1;
-    transform: translate3d(-18%, 0, 0) scaleX(1.16);
+    filter: brightness(1.32) saturate(1.16);
+  }
+
+  37.5%,
+  100% {
+    opacity: 0.92;
+    filter: brightness(1.14) saturate(1.1);
+  }
+}
+
+@keyframes training-launch-ball-energy {
+  0% {
+    opacity: 0;
+    filter: brightness(0.8) saturate(0.92);
+    transform: scale(0.92);
+  }
+
+  10% {
+    opacity: 0;
+    filter: brightness(0.8) saturate(0.92);
+    transform: scale(0.92);
+  }
+
+  22% {
+    opacity: 0.5;
+    filter: brightness(1.05) saturate(1.04);
+    transform: scale(1);
+  }
+
+  37.5% {
+    opacity: 1;
+    filter: brightness(1.3) saturate(1.16);
+    transform: scale(1.08);
+  }
+
+  100% {
+    opacity: 1;
+    filter: brightness(1.42) saturate(1.2);
+    transform: scale(1.12);
+  }
+}
+
+@keyframes training-launch-local-wave {
+  0%,
+  32.5% {
+    opacity: 0;
+    filter: brightness(0.82) saturate(0.94);
+    transform: scale(0.58);
+  }
+
+  42% {
+    opacity: 0.72;
+    filter: brightness(1.1) saturate(1.08);
+    transform: scale(1.12);
+  }
+
+  87.5%,
+  100% {
+    opacity: 1;
+    filter: brightness(1.4) saturate(1.16);
+    transform: scale(4.8);
+  }
+}
+
+@keyframes competitive-launch-background {
+  0%,
+  12.5% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  75% {
+    transform: translate3d(-3.5%, 1%, 0) scale(1.06);
+  }
+
+  100% {
+    transform: translate3d(-5%, 2%, 0) scale(1.12);
+  }
+}
+
+@keyframes competitive-launch-cage {
+  0%,
+  12.5% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  75% {
+    transform: translate3d(8%, 7%, 0) scale(1.27);
+  }
+
+  100% {
+    transform: translate3d(10%, 10%, 0) scale(1.44);
+  }
+}
+
+@keyframes competitive-launch-fennec {
+  0%,
+  12.5% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  75% {
+    transform: translate3d(22%, -5%, 0) scale(1.06);
+  }
+
+  100% {
+    transform: translate3d(28%, -8%, 0) scale(1.08);
+  }
+}
+
+@keyframes competitive-launch-neon {
+  0% {
+    opacity: 0.7;
+    filter: brightness(0.94) saturate(1.06);
+  }
+
+  15%,
+  75% {
+    opacity: 1;
+    filter: brightness(1.34) saturate(1.2);
+  }
+
+  100% {
+    opacity: 1;
+    filter: brightness(1.65) saturate(1.28);
+  }
+}
+
+@keyframes competitive-launch-projectors {
+  0% {
+    opacity: 0.34;
+    filter: brightness(0.88) saturate(1.08);
+  }
+
+  15%,
+  75% {
+    opacity: 0.76;
+    filter: brightness(1.3) saturate(1.2);
+  }
+
+  100% {
+    opacity: 0.94;
+    filter: brightness(1.55) saturate(1.26);
+  }
+}
+
+@keyframes competitive-launch-haze {
+  0% {
+    opacity: 0.16;
+    filter: blur(0.8px) brightness(0.9) saturate(1.05);
+  }
+
+  15%,
+  75% {
+    opacity: 0.38;
+    filter: blur(0.6px) brightness(1.2) saturate(1.14);
+  }
+
+  100% {
+    opacity: 0.52;
+    filter: blur(0.5px) brightness(1.42) saturate(1.2);
+  }
+}
+
+@keyframes competitive-launch-exhaust {
+  0% {
+    opacity: 0.58;
+    transform: translate3d(3.8%, 6%, 0) scale(1);
+  }
+
+  8% {
+    opacity: 1;
+    transform: translate3d(3.8%, 6%, 0) scaleX(1.08) scaleY(1.06);
+  }
+
+  15% {
+    opacity: 0.64;
+    transform: translate3d(3.8%, 6%, 0) scale(1.01);
+  }
+
+  75% {
+    opacity: 0.84;
+    transform: translate3d(3.8%, 6%, 0) scaleX(1.05) scaleY(1.03);
+  }
+
+  100% {
+    opacity: 0.46;
+    transform: translate3d(3.8%, 6%, 0) scale(1.02);
+  }
+}
+
+@keyframes competitive-launch-impact {
+  0% {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+
+  3% {
+    opacity: 0.82;
+    transform: scale(0.95);
+  }
+
+  8% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+
+  15%,
+  100% {
+    opacity: 0;
+    transform: scale(1.16);
+  }
+}
+
+@keyframes competitive-launch-trail {
+  0%,
+  12.5% {
+    opacity: 0;
+    transform: scaleX(0.68) scaleY(0.92);
+  }
+
+  28% {
+    opacity: 0.58;
+    transform: scaleX(0.92) scaleY(0.96);
+  }
+
+  62% {
+    opacity: 0.9;
+    transform: scaleX(1.13) scaleY(1);
+  }
+
+  75% {
+    opacity: 0.72;
+    transform: scaleX(1.2) scaleY(1.02);
+  }
+
+  100% {
+    opacity: 0.32;
+    transform: scaleX(1.28) scaleY(1.03);
+  }
+}
+
+@keyframes competitive-launch-reflection {
+  0% {
+    opacity: 0.2;
+    filter: brightness(0.9) saturate(1.04);
+  }
+
+  15% {
+    opacity: 0.46;
+    filter: brightness(1.18) saturate(1.14);
+  }
+
+  75% {
+    opacity: 0.34;
+    filter: brightness(1.06) saturate(1.1);
+  }
+
+  100% {
+    opacity: 0.24;
+    filter: brightness(1.2) saturate(1.12);
+  }
+}
+
+@keyframes home-training-launch-wave {
+  0%,
+  32.5% {
+    opacity: 0;
+    filter: brightness(0.82) saturate(0.94);
+    transform: scale(0.58);
+  }
+
+  42% {
+    opacity: 0.68;
+    filter: brightness(1.12) saturate(1.08);
+    transform: scale(1.08);
+  }
+
+  87.5%,
+  100% {
+    opacity: 1;
+    filter: brightness(1.55) saturate(1.18);
+    transform: scale(var(--home-launch-scale));
+  }
+}
+
+@keyframes home-training-launch-cover {
+  0%,
+  82.5% {
+    opacity: 0;
+  }
+
+  92.5% {
+    opacity: 0.82;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes home-competitive-launch-arena {
+  0%,
+  67.5% {
+    opacity: 0;
+    filter: brightness(1) saturate(1);
+    transform: scale(1);
+  }
+
+  77.5% {
+    opacity: 0.64;
+    filter: brightness(1.4) saturate(1.18);
+    transform: scale(1.24);
+  }
+
+  100% {
+    opacity: 1;
+    filter: brightness(1.82) saturate(1.3);
+    transform: scale(var(--home-launch-scale));
+  }
+}
+
+@keyframes home-competitive-launch-cover {
+  0%,
+  67.5% {
+    opacity: 0;
+  }
+
+  84% {
+    opacity: 0.68;
+  }
+
+  100% {
+    opacity: 1;
   }
 }
 
@@ -1112,6 +1482,21 @@
   }
 }
 
+@keyframes home-launch-reduced-fade {
+  0%,
+  20% {
+    opacity: 0;
+  }
+
+  70% {
+    opacity: 0.42;
+  }
+
+  100% {
+    opacity: 0.96;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mode-preview-panel,
   .mode-selector-card,
@@ -1127,9 +1512,28 @@
   .competitive-projectors-glow,
   .competitive-projectors-haze,
   .competitive-ground-reflection,
-  .competitive-exhaust-energy {
+  .competitive-exhaust-energy,
+  .training-ball-energy,
+  .training-transition-wave-local,
+  .competitive-ground-impact,
+  .competitive-motion-trail,
+  .home-launch-asset-frame,
+  .home-launch-cover {
     animation: none;
     transition: none;
+  }
+
+  .mode-illustration.is-launching .scene-group.is-future {
+    visibility: hidden;
+    opacity: 0;
+  }
+
+  .home-launch-asset-frame {
+    display: none;
+  }
+
+  .home-launch-cover {
+    animation: home-launch-reduced-fade var(--home-launch-duration) ease-in both;
   }
 
   .training-analysis-zone {

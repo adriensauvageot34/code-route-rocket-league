@@ -1,9 +1,13 @@
 "use client";
 
-import { forwardRef, useImperativeHandle } from "react";
+import { forwardRef, useCallback, useImperativeHandle } from "react";
 import { CompetitiveScene } from "@/components/home/illustrations/CompetitiveScene";
 import { TrainingScene } from "@/components/home/illustrations/TrainingScene";
 import { useParallaxController } from "@/hooks/useParallaxController";
+import {
+  projectHomeLaunchGeometry,
+  type HomeLaunchGeometry,
+} from "@/lib/home/homeLaunch";
 import type { HomeModeId } from "@/types/home";
 
 type ModeIllustrationProps = {
@@ -13,14 +17,28 @@ type ModeIllustrationProps = {
 };
 
 export type ModeIllustrationHandle = {
+  getLaunchGeometry: () => HomeLaunchGeometry | null;
   resetParallax: (durationMs?: number) => Promise<void>;
 };
 
 export const ModeIllustration = forwardRef<ModeIllustrationHandle, ModeIllustrationProps>(
   function ModeIllustration({ active = true, launching = false, mode }, ref) {
     const { containerRef, resetToCenter } = useParallaxController({ active });
+    const getLaunchGeometry = useCallback(() => {
+      const container = containerRef.current;
+      if (!container) return null;
 
-    useImperativeHandle(ref, () => ({ resetParallax: resetToCenter }), [resetToCenter]);
+      return projectHomeLaunchGeometry(mode, container.getBoundingClientRect(), {
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    }, [containerRef, mode]);
+
+    useImperativeHandle(
+      ref,
+      () => ({ getLaunchGeometry, resetParallax: resetToCenter }),
+      [getLaunchGeometry, resetToCenter],
+    );
 
     return (
       <div
