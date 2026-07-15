@@ -50,7 +50,11 @@ export const ModeIllustration = forwardRef<ModeIllustrationHandle, ModeIllustrat
         ref={containerRef}
       >
         <div className="scene-canvas">
-          {mode === "training" ? <TrainingScene /> : <CompetitiveScene />}
+          {mode === "training" ? (
+            <TrainingScene active={active} launching={launching} />
+          ) : (
+            <CompetitiveScene />
+          )}
         </div>
       </div>
     );
