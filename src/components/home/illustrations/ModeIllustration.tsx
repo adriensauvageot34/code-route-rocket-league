@@ -8,6 +8,7 @@ import type { HomeModeId } from "@/types/home";
 
 type ModeIllustrationProps = {
   active?: boolean;
+  launching?: boolean;
   mode: HomeModeId;
 };
 
@@ -16,7 +17,7 @@ export type ModeIllustrationHandle = {
 };
 
 export const ModeIllustration = forwardRef<ModeIllustrationHandle, ModeIllustrationProps>(
-  function ModeIllustration({ active = true, mode }, ref) {
+  function ModeIllustration({ active = true, launching = false, mode }, ref) {
     const { containerRef, resetToCenter } = useParallaxController({ active });
 
     useImperativeHandle(ref, () => ({ resetParallax: resetToCenter }), [resetToCenter]);
@@ -24,9 +25,10 @@ export const ModeIllustration = forwardRef<ModeIllustrationHandle, ModeIllustrat
     return (
       <div
         aria-hidden="true"
-        className={`mode-illustration is-${mode}`}
+        className={`mode-illustration is-${mode}${launching ? " is-launching" : ""}`}
         data-active={active ? "true" : "false"}
         data-mode={mode}
+        data-launching={launching ? "true" : "false"}
         ref={containerRef}
       >
         <div className="scene-canvas">

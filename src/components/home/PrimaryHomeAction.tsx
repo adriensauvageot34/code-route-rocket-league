@@ -3,14 +3,31 @@ import type { HomeAction } from "@/types/home";
 
 type PrimaryHomeActionProps = {
   action: HomeAction;
+  isLaunching?: boolean;
+  onLaunch?: (action: HomeAction) => void;
   onLockedAction?: () => void;
 };
 
-export function PrimaryHomeAction({ action, onLockedAction }: PrimaryHomeActionProps) {
+export function PrimaryHomeAction({
+  action,
+  isLaunching = false,
+  onLaunch,
+  onLockedAction
+}: PrimaryHomeActionProps) {
   if (action.href && !action.disabled) {
     return (
-      <Link className="home-primary-action" href={action.href} aria-label={action.ariaLabel ?? action.label}>
-        <span>{action.label}</span>
+      <Link
+        className={`home-primary-action${isLaunching ? " is-launching" : ""}`}
+        href={action.href}
+        aria-disabled={isLaunching}
+        aria-label={action.ariaLabel ?? action.label}
+        onClick={(event) => {
+          if (!onLaunch) return;
+          event.preventDefault();
+          if (!isLaunching) onLaunch(action);
+        }}
+      >
+        <span>{isLaunching ? "Lancement..." : action.label}</span>
         <span aria-hidden="true">&gt;</span>
       </Link>
     );
@@ -21,8 +38,9 @@ export function PrimaryHomeAction({ action, onLockedAction }: PrimaryHomeActionP
       className="home-primary-action is-locked"
       type="button"
       aria-disabled="true"
+      disabled={isLaunching}
       aria-label={action.ariaLabel ?? action.label}
-      onClick={onLockedAction}
+      onClick={isLaunching ? undefined : onLockedAction}
     >
       <span>{action.label}</span>
     </button>
