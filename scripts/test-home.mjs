@@ -182,6 +182,11 @@ assert(css.includes("height: 100svh") && css.includes("overflow-y: hidden"), "De
 assert(css.includes("@media (min-width: 1024px) and (min-height: 720px)"), "No-scroll desktop rule must start at the requested format.");
 assert(css.includes("@media (max-width: 820px)"), "Portrait tablet and mobile layouts must stack.");
 assert(css.includes(".home-statistics-panel") && css.includes(".statistics-lower-grid"), "Statistics panel layout must exist.");
+assert(/\.home-statistics-panel\s*\{[^}]*height:\s*auto;/s.test(css), "Empty statistics content must shrink to its natural height.");
+assert(!/\.home-statistics-panel\s*\{[^}]*border:\s*1px/s.test(css), "Statistics groups must not sit inside one visible outer card.");
+for (const separatedGroup of ["statistics-weekly-focus", "statistics-insight", "statistics-targeted", "statistics-sessions"]) {
+  assert(css.includes(`.${separatedGroup}`), `Missing separated statistics group: ${separatedGroup}`);
+}
 assert(css.includes("aspect-ratio: 1672 / 941"), "Scene ratio must remain 1672x941.");
 assert(css.includes('.mode-illustration[data-motion-active="false"]'), "Hidden and offscreen scene motion must pause.");
 assert(css.includes("@media (prefers-reduced-motion: reduce)"), "Reduced motion support must remain.");
