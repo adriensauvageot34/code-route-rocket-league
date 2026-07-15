@@ -14,7 +14,7 @@ export function SkillProgressCard({ skills }: SkillProgressCardProps) {
           {skills.map((skill) => (
             <div className="skill-item" key={skill.skill}>
               <strong>{skill.skill}</strong>
-              <span>{formatSkillLabel(skill.label)}</span>
+              <span>{skill.label}</span>
               {skill.note ? <small>{skill.note}</small> : null}
             </div>
           ))}
@@ -24,9 +24,4 @@ export function SkillProgressCard({ skills }: SkillProgressCardProps) {
       )}
     </article>
   );
-}
-
-function formatSkillLabel(label: string): string {
-  if (label === "Acquis - a renforcer") return "Acquis - a renforcer";
-  return label;
 }
