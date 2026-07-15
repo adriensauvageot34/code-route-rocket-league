@@ -46,6 +46,7 @@ function assert(condition, message) {
 const files = Object.fromEntries(expectedFiles.map((path) => [path, read(path)]));
 const page = files["src/app/page.tsx"];
 const appFrame = files["src/components/AppFrame.tsx"];
+const homeDashboard = files["src/components/home/HomeDashboard.tsx"];
 const types = files["src/types/home.ts"];
 const viewModel = files["src/lib/home/homeDashboardViewModel.ts"];
 const modeSelector = files["src/components/home/ModeSelector.tsx"];
@@ -98,18 +99,28 @@ assert(weaknessCard.includes("secondaryWeaknesses.slice(0, 2)"), "Weakness card 
 assert(modeSelector.includes('role="radiogroup"'), "Mode selector must be a keyboard-readable radiogroup.");
 assert(modeSelector.includes('role="radio"'), "Mode choices must expose radio semantics.");
 assert(modeSelector.includes("ArrowRight"), "Mode selector must handle arrow-key navigation.");
+assert(modeSelector.includes("ModePreviewPanel") && modeSelector.includes("previews[mode.id]"), "The selected card must contain its detailed preview.");
 assert(modePreview.includes("aria-live"), "Locked feedback must be announced accessibly.");
-assert(modePreview.includes("ModeIllustration"), "The selected mode preview must render its illustration.");
+assert(!modePreview.includes("ModeIllustration"), "The card detail must not contain the illustration.");
+assert(homeDashboard.includes('className="home-control-column"'), "Hero copy and mode cards must share the left column.");
+assert(homeDashboard.includes('className="home-visual-stage"'), "The illustration must have a dedicated right column.");
+assert(homeDashboard.includes("<ModeIllustration key={selectedMode} mode={selectedMode} />"), "Mode changes must remount only the right illustration.");
 assert(modeIllustration.includes('mode === "training" ? <TrainingScene /> : <CompetitiveScene />'), "Only the selected scene must render.");
 assert(modeIllustration.includes("resetParallax"), "The illustration must expose the future recenter method.");
 assert(sceneGroup.includes("scene-parallax") && sceneGroup.includes("scene-idle") && sceneGroup.includes("scene-launch"), "Scene transforms must use independent nested wrappers.");
+assert(sceneGroup.includes("style={{ mixBlendMode: blendMode, zIndex: layer }}"), "Black-screen assets must blend at group level against the complete scene.");
+assert(!sceneGroup.includes("asset.blendMode"), "Black-screen blending must not be trapped on an image inside a transformed group.");
 assert(trainingScene.includes('name="analysis-distant-cars"'), "Training distant analysis group must exist.");
 assert(trainingScene.includes('name="ball"') && trainingScene.includes('name="fennec"'), "Training ball and Fennec groups must exist.");
-assert(trainingScene.includes('future layer={4} name="transition"'), "Training transition placeholder must exist.");
+assert(trainingScene.includes('blendMode="screen"') && trainingScene.includes('name="fennec-lights-glow"'), "Training headlight glow must use a separate screen group.");
+assert(trainingScene.includes('future layer={5} name="transition"'), "Training transition placeholder must exist.");
 assert(competitiveScene.includes('name="cage"') && competitiveScene.includes('name="ground-reflection"'), "Competitive cage and ground groups must exist.");
 assert(competitiveScene.includes('name="motion-trail"') && competitiveScene.includes('name="fennec"'), "Competitive trail and Fennec groups must exist.");
-assert(competitiveScene.includes('future layer={5} name="impact"'), "Competitive impact placeholder must exist.");
-assert(competitiveScene.includes('future layer={6} name="transition"'), "Competitive transition placeholder must exist.");
+assert(competitiveScene.includes('name="cage-projectors-glow"') && competitiveScene.includes('name="cage-projectors-haze"'), "Competitive projector black-screens must use separate groups.");
+assert(competitiveScene.indexOf('name="motion-trail"') > competitiveScene.indexOf('name="fennec"'), "Competitive trail must render above the Fennec.");
+assert(competitiveScene.includes('className="competitive-exhaust-energy"'), "Competitive exhaust alignment correction must be scoped to its asset.");
+assert(competitiveScene.includes('future layer={8} name="impact"'), "Competitive impact placeholder must exist.");
+assert(competitiveScene.includes('future layer={9} name="transition"'), "Competitive transition placeholder must exist.");
 for (const depth of ["3", "5", "7", "11", "14"]) {
   assert(sceneDepths.includes(`translation: ${depth}`), `Missing parallax translation depth: ${depth}px`);
 }
@@ -170,6 +181,10 @@ for (const line of css.split("\n")) {
 
 assert(css.includes("overflow-x: hidden"), "Home CSS must prevent horizontal overflow.");
 assert(css.includes("aspect-ratio: 1672 / 941"), "Home scenes must keep the 1672x941 logical canvas ratio.");
+assert(css.includes("grid-template-columns: minmax(360px, 0.78fr) minmax(0, 1.42fr)"), "Desktop home must reserve the larger right column for the illustration.");
+assert(css.includes(".competitive-exhaust-energy"), "Competitive exhaust alignment CSS must exist.");
+assert(css.includes("@keyframes scene-idle-fennec"), "The selected Fennec must move autonomously without pointer input.");
+assert(css.includes("@keyframes scene-mode-enter"), "Selecting a mode must trigger a dedicated scene entry.");
 assert(css.includes(".scene-parallax[data-depth=\"foreground\"]"), "Foreground parallax CSS must exist.");
 assert(css.includes(".scene-group.is-future"), "Future impact and transition slots must remain hidden.");
 assert(css.includes("@media (max-width: 1180px)"), "Laptop breakpoint must exist.");

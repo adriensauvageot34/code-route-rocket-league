@@ -13,28 +13,37 @@ export function CompetitiveScene() {
       <SceneGroup depth="focal" layer={1} name="cage">
         <SceneLayer asset={assets.cageBase} />
         <SceneLayer asset={assets.cageNeonGold} />
+      </SceneGroup>
+
+      <SceneGroup blendMode="screen" depth="focal" layer={2} name="cage-projectors-glow">
         <SceneLayer asset={assets.cageProjectorsGlow} />
+      </SceneGroup>
+
+      <SceneGroup blendMode="screen" depth="focal" layer={3} name="cage-projectors-haze">
         <SceneLayer asset={assets.cageProjectorsHaze} />
       </SceneGroup>
 
-      <SceneGroup depth="distant" layer={2} name="ground-reflection">
+      <SceneGroup blendMode="screen" depth="distant" layer={4} name="ground-reflection">
         <SceneLayer asset={assets.groundReflection} />
       </SceneGroup>
 
-      <SceneGroup depth="foreground" layer={3} name="motion-trail">
+      <SceneGroup depth="fennec" layer={5} name="fennec">
+        <SceneLayer asset={assets.fennecBase} />
+      </SceneGroup>
+
+      <SceneGroup depth="fennec" layer={6} name="fennec-exhaust-energy">
+        <SceneLayer asset={assets.exhaustEnergy} className="competitive-exhaust-energy" />
+      </SceneGroup>
+
+      <SceneGroup depth="foreground" layer={7} name="motion-trail">
         <SceneLayer asset={assets.motionTrail} />
       </SceneGroup>
 
-      <SceneGroup depth="fennec" layer={4} name="fennec">
-        <SceneLayer asset={assets.fennecBase} />
-        <SceneLayer asset={assets.exhaustEnergy} />
-      </SceneGroup>
-
-      <SceneGroup depth="foreground" future layer={5} name="impact">
+      <SceneGroup depth="foreground" future layer={8} name="impact">
         <SceneLayer asset={assets.groundImpact} />
       </SceneGroup>
 
-      <SceneGroup depth="foreground" future layer={6} name="transition" />
+      <SceneGroup depth="foreground" future layer={9} name="transition" />
     </div>
   );
 }

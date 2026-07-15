@@ -1,13 +1,15 @@
 import type { KeyboardEvent } from "react";
-import type { HomeModeAvailability, HomeModeId } from "@/types/home";
+import { ModePreviewPanel } from "@/components/home/ModePreviewPanel";
+import type { HomeModeAvailability, HomeModeId, HomeModePreview } from "@/types/home";
 
 type ModeSelectorProps = {
   modes: HomeModeAvailability[];
+  previews: Record<HomeModeId, HomeModePreview>;
   selectedMode: HomeModeId;
   onSelectMode: (mode: HomeModeId) => void;
 };
 
-export function ModeSelector({ modes, onSelectMode, selectedMode }: ModeSelectorProps) {
+export function ModeSelector({ modes, onSelectMode, previews, selectedMode }: ModeSelectorProps) {
   function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
     if (!["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"].includes(event.key)) return;
 
@@ -23,21 +25,28 @@ export function ModeSelector({ modes, onSelectMode, selectedMode }: ModeSelector
         const isSelected = mode.id === selectedMode;
 
         return (
-          <button
+          <article
             className={`mode-selector-card${isSelected ? " is-selected" : ""}${mode.state === "locked" ? " is-locked" : ""}`}
             key={mode.id}
-            type="button"
-            role="radio"
-            aria-checked={isSelected}
-            aria-label={`${mode.title}. ${mode.description}${mode.lockReason ? `. ${mode.lockReason}` : ""}`}
-            tabIndex={isSelected ? 0 : -1}
-            onClick={() => onSelectMode(mode.id)}
-            onKeyDown={(event) => handleKeyDown(event, index)}
           >
-            <span className="mode-selector-title">{mode.title}</span>
-            <span className="mode-selector-description">{mode.description}</span>
-            {mode.lockReason ? <span className="mode-lock-note">{mode.lockReason}</span> : null}
-          </button>
+            <button
+              className="mode-selector-choice"
+              type="button"
+              role="radio"
+              aria-checked={isSelected}
+              aria-expanded={isSelected}
+              aria-label={`${mode.title}. ${mode.description}${mode.lockReason ? `. ${mode.lockReason}` : ""}`}
+              tabIndex={isSelected ? 0 : -1}
+              onClick={() => onSelectMode(mode.id)}
+              onKeyDown={(event) => handleKeyDown(event, index)}
+            >
+              <span className="mode-selector-title">{mode.title}</span>
+              <span className="mode-selector-description">{mode.description}</span>
+              {mode.lockReason ? <span className="mode-lock-note">{mode.lockReason}</span> : null}
+            </button>
+
+            {isSelected ? <ModePreviewPanel key={mode.id} preview={previews[mode.id]} /> : null}
+          </article>
         );
       })}
     </div>
