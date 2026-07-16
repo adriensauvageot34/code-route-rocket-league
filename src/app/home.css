@@ -432,7 +432,10 @@
       0
     )
     rotate(var(--scene-parallax-rotation, 0deg))
-    scale(var(--scene-parallax-scale, 1));
+    scale(
+      var(--scene-parallax-scale-x, 1),
+      var(--scene-parallax-scale-y, 1)
+    );
 }
 
 .mode-illustration[data-motion-active="true"] .scene-parallax {
@@ -490,16 +493,15 @@
   opacity: 1;
   filter:
     brightness(1.12)
-    contrast(1.12)
-    saturate(1.12)
-    drop-shadow(0 0 7px rgba(128, 74, 210, 0.18));
-  transform: translate3d(0, -1%, 0) scale(1.32, 1.15);
+    contrast(1.1)
+    saturate(1.16);
+  transform: translate3d(0, -8%, 0) scaleY(1);
 }
 
 .training-city-near {
   opacity: 1;
-  filter: brightness(0.94) contrast(1.14) saturate(1.06);
-  transform: translate3d(0, -2%, 0) scale(1.36, 1.20);
+  filter: brightness(0.99) contrast(1.12) saturate(1.06);
+  transform: translate3d(0, -4%, 0) scaleY(1.02);
 }
 
 .training-atmospheric-haze {
