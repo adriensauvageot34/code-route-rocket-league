@@ -477,7 +477,7 @@
 }
 
 .training-city-layer {
-  transform-origin: center;
+  transform-origin: center bottom;
 }
 
 .training-city-far {
@@ -489,23 +489,19 @@
 .training-city-middle {
   opacity: 0.87;
   filter: brightness(0.89) saturate(0.94);
-  transform: translate3d(0, 5%, 0) scaleY(0.96);
+  transform: translate3d(0, 6%, 0) scaleY(0.94);
 }
 
 .training-city-near {
-  opacity: 0.98;
-  filter: brightness(0.88) contrast(1.08) saturate(1.02);
-  transform: translate3d(0, 3%, 0) scaleY(0.98);
-}
-
-.training-atmospheric-haze,
-.training-horizon-haze {
-  position: absolute;
-  pointer-events: none;
+  opacity: 1;
+  filter: brightness(0.92) contrast(1.12) saturate(1.04);
+  transform: translate3d(0, 8%, 0) scale(1.08, 0.9);
 }
 
 .training-atmospheric-haze {
-  inset: 20% -5% 54%;
+  position: absolute;
+  pointer-events: none;
+  inset: 18% -5% 57%;
   background:
     radial-gradient(ellipse at 52% 62%, rgba(126, 103, 190, 0.16), transparent 58%),
     linear-gradient(
@@ -516,24 +512,10 @@
       transparent
     );
   filter: blur(16px);
-  opacity: 0.68;
+  opacity: 0.56;
   transform: scaleX(1.08);
   -webkit-mask-image: linear-gradient(180deg, transparent, black 28%, black 76%, transparent);
   mask-image: linear-gradient(180deg, transparent, black 28%, black 76%, transparent);
-}
-
-.training-horizon-haze {
-  inset: 36% -4% 45%;
-  background: linear-gradient(
-    180deg,
-    transparent,
-    rgba(91, 91, 151, 0.09) 46%,
-    rgba(57, 61, 112, 0.11) 64%,
-    transparent
-  );
-  filter: blur(12px);
-  opacity: 0.54;
-  transform: scaleX(1.06);
 }
 
 .training-radar-overlay {
@@ -898,7 +880,6 @@
     [data-scene-group="training-far-skyline"],
     [data-scene-group="training-atmospheric-haze"],
     [data-scene-group="training-mid-buildings"],
-    [data-scene-group="training-horizon-haze"],
     [data-scene-group="training-near-buildings"],
     [data-scene-group="training-ground"],
     [data-scene-group="training-radar-surface"],

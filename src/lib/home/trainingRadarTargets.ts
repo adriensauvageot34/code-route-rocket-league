@@ -1,7 +1,7 @@
 import { homeIllustrationAssets, type HomeIllustrationAsset } from "@/lib/home/homeIllustrationAssets";
 
 export const TRAINING_RADAR_TIMING = {
-  passDurationMs: 4600,
+  passDurationMs: 1750,
   entryDurationMs: 250,
   travelDurationMs: 1500,
   targetRiseDurationMs: 150,
@@ -92,7 +92,7 @@ export const trainingCarRadarTargets = [
     },
     grounding: {
       sourceAnchor: { x: 0.3801, groundY: 0.3135 },
-      target: { x: 0.375, groundY: 0.395, scale: 0.82 },
+      target: { x: 0.375, groundY: 0.43, scale: 0.82 },
       shadow: { width: 0.045, height: 0.02 },
     },
     scanHitProgress: 0.45,
@@ -114,7 +114,7 @@ export const trainingCarRadarTargets = [
     },
     grounding: {
       sourceAnchor: { x: 0.7168, groundY: 0.2891 },
-      target: { x: 0.72, groundY: 0.372, scale: 0.76 },
+      target: { x: 0.72, groundY: 0.415, scale: 0.76 },
       shadow: { width: 0.035, height: 0.016 },
     },
     scanHitProgress: 0.743,
@@ -136,7 +136,7 @@ export const trainingCarRadarTargets = [
     },
     grounding: {
       sourceAnchor: { x: 0.7886, groundY: 0.407 },
-      target: { x: 0.8, groundY: 0.427, scale: 0.86 },
+      target: { x: 0.8, groundY: 0.46, scale: 0.86 },
       shadow: { width: 0.085, height: 0.026 },
     },
     scanHitProgress: 0.811,
