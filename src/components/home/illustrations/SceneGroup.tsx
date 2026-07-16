@@ -20,7 +20,8 @@ type SceneLayerProps = {
 
 type SceneGroupStyle = CSSProperties & {
   "--scene-parallax-rotation": string;
-  "--scene-parallax-scale": number;
+  "--scene-parallax-scale-x": string;
+  "--scene-parallax-scale-y": number;
   "--scene-parallax-x": string;
   "--scene-parallax-y": string;
 };
@@ -33,7 +34,9 @@ export function SceneGroup({ blendMode = "normal", children, depth, future = fal
     "--scene-parallax-x": `var(--parallax-${depth}-x, 0px)`,
     "--scene-parallax-y": `var(--parallax-${depth}-y, 0px)`,
     "--scene-parallax-rotation": `var(--parallax-${depth}-rotation, 0deg)`,
-    "--scene-parallax-scale": depthConfiguration.scale,
+    "--scene-parallax-scale-x": `var(--parallax-${depth}-scale-x, ${depthConfiguration.scale})`,
+    "--scene-parallax-scale-y":
+      "scaleY" in depthConfiguration ? depthConfiguration.scaleY : depthConfiguration.scale,
   };
 
   return (

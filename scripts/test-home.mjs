@@ -156,7 +156,12 @@ assert(primaryAction.includes("event.preventDefault()") && primaryAction.include
 assert(modeIllustration.includes("<TrainingScene active={active} launching={launching} />") && modeIllustration.includes("<CompetitiveScene />"), "One selected scene must render with Training lifecycle state.");
 assert(modeIllustration.includes("getLaunchGeometry") && modeIllustration.includes("resetParallax"), "Scene launch handle must stay intact.");
 assert(sceneGroup.includes("scene-parallax") && sceneGroup.includes("scene-idle") && sceneGroup.includes("scene-launch"), "Scene transform wrappers must stay independent.");
-assert(sceneGroup.includes("homeSceneDepths[depth]") && sceneGroup.includes('"--scene-parallax-scale"'), "Scene transforms must use centralized depth configuration.");
+assert(
+  sceneGroup.includes("homeSceneDepths[depth]") &&
+    sceneGroup.includes('"--scene-parallax-scale-x"') &&
+    sceneGroup.includes('"--scene-parallax-scale-y"'),
+  "Scene transforms must separate horizontal safety scale from vertical scene scale."
+);
 for (const asset of ["parallaxSky", "parallaxFarSkyline", "parallaxMidBuildings", "parallaxNearBuildings", "parallaxGroundBarrier"]) {
   assert(trainingScene.includes(`assets.${asset}`), `Training parallax layer missing: ${asset}`);
 }
@@ -206,11 +211,93 @@ for (const amplitude of [3, 7, 22, 27, 23, 25, 28, 34]) {
 }
 assert(sceneDepths.includes("translationY: 1") && sceneDepths.includes("translationY: 2"), "Training vertical parallax must stay capped between one and two pixels.");
 assert(parallaxController.includes("requestAnimationFrame") && parallaxController.includes("cancelAnimationFrame"), "Parallax must create and cancel its frame.");
+assert(
+  parallaxController.includes("new ResizeObserver") &&
+    parallaxController.includes("entry.contentRect.width") &&
+    parallaxController.includes("resizeObserver.disconnect()"),
+  "Training safety scale must be calculated at mount and recalculated by ResizeObserver."
+);
+const parallaxFrameBody =
+  parallaxController.match(/function animate\(timestamp: number\)([\s\S]*?)function stopAnimation/)?.[1] ?? "";
+assert(
+  !parallaxFrameBody.includes("clientWidth") &&
+    !parallaxFrameBody.includes("contentRect") &&
+    !parallaxFrameBody.includes("getBoundingClientRect"),
+  "Parallax animation frames must not measure layout."
+);
+assert(
+  sceneDepths.includes("calculateTrainingParallaxSafety") &&
+    sceneDepths.includes("(2 * (translationX + safetyMargin)) / renderedContainerWidth"),
+  "Training horizontal overscan must use the documented safety formula."
+);
+assert(
+  sceneDepths.includes("TRAINING_PARALLAX_SAFETY_MARGIN_PX = 10") &&
+    sceneDepths.includes("TRAINING_PARALLAX_MAX_SCALE_X = 1.1"),
+  "Training overscan must keep a ten-pixel margin and cap horizontal zoom."
+);
+for (const safetyDepth of ["trainingSkyline", "trainingMid", "trainingNear", "trainingGround"]) {
+  assert(
+    sceneDepths.includes(`  "${safetyDepth}"`),
+    `Dynamic Training safety depth missing: ${safetyDepth}`
+  );
+}
+
+const requestedTrainingTranslations = {
+  trainingSkyline: 7,
+  trainingMid: 22,
+  trainingNear: 34,
+  trainingGround: 27,
+};
+const trainingSafetyMargin = 10;
+const trainingMaximumScale = 1.1;
+
+function calculateExpectedTrainingSafety(width, requestedTranslationX) {
+  const maximumOverscanPerSide = ((trainingMaximumScale - 1) * width) / 2;
+  const safetyMargin = Math.min(trainingSafetyMargin, maximumOverscanPerSide);
+  const translationX = Math.min(
+    requestedTranslationX,
+    Math.max(0, maximumOverscanPerSide - safetyMargin)
+  );
+  const scaleX = 1 + (2 * (translationX + safetyMargin)) / width;
+  return { safetyMargin, scaleX, translationX };
+}
+
+for (const width of [1672, 1166, 1180, 820, 320]) {
+  for (const [name, requestedTranslationX] of Object.entries(requestedTrainingTranslations)) {
+    const safety = calculateExpectedTrainingSafety(width, requestedTranslationX);
+    const overscanPerSide = ((safety.scaleX - 1) * width) / 2;
+
+    assert(safety.scaleX <= trainingMaximumScale + 1e-9, `${name} zoom exceeds cap at ${width}px.`);
+    for (const cameraX of [-1, 0, 1]) {
+      const requiredCoverage = Math.abs(cameraX * safety.translationX) + safety.safetyMargin;
+      assert(
+        overscanPerSide + 1e-9 >= requiredCoverage,
+        `${name} exposes an edge at x=${cameraX} and ${width}px.`
+      );
+    }
+  }
+}
+assert(
+  calculateExpectedTrainingSafety(820, 34).translationX < 34 &&
+    calculateExpectedTrainingSafety(320, 34).translationX <
+      calculateExpectedTrainingSafety(820, 34).translationX,
+  "Small screens must reduce horizontal travel instead of increasing zoom past the cap."
+);
 assert(trainingRadarSequence.includes("targetPhases") && !trainingRadarSequence.includes("activeTargetId"), "Radar targets must keep independent overlapping phases.");
 assert(trainingRadarSequence.includes("schedule(beginPass, TRAINING_RADAR_TIMING.passDurationMs)"), "Radar must reverse immediately when each traverse ends.");
-assert(css.includes("translate3d(0, 1%, 0) scale(1.22, 1.08)") && css.includes("translate3d(0, -2%, 0) scale(1.36, 1.16)"), "The first two skyline planes must be enlarged and raised toward the terrain.");
+assert(
+  css.includes("translate3d(0, -8%, 0) scaleY(1)") &&
+    css.includes("translate3d(0, -4%, 0) scaleY(1.02)"),
+  "Middle and near skyline planes must use vertical placement without horizontal CSS zoom."
+);
+const middleCityCss = css.match(/\.training-city-middle\s*\{[^}]*\}/s)?.[0] ?? "";
+const nearCityCss = css.match(/\.training-city-near\s*\{[^}]*\}/s)?.[0] ?? "";
+assert(
+  !/\bscale\(/.test(middleCityCss) && !/\bscale\(/.test(nearCityCss),
+  "Middle and near skyline images must not reintroduce a second horizontal scale."
+);
 assert(sceneDepths.includes("trainingMid: { translationX: 22") && sceneDepths.includes("trainingNear: { translationX: 34"), "The first two skyline planes must have strong and distinct foreground parallax.");
-assert(css.includes("inset: 8% -6% 55%") && css.includes("ellipse at 52% 82%"), "The skyline haze must extend upward while concentrating near the terrain horizon.");
+assert(css.includes("inset: 11% -6% 61%") && css.includes("ellipse at 52% 82%"), "The skyline haze must retain the latest calibrated horizon placement.");
 assert(parallaxController.includes("AUTO_DRIFT_PERIOD_MS = 20000") && parallaxController.includes("-Math.sin(autoAngle)"), "Automatic camera must follow one continuous 20-second center-left-center-right cycle.");
 assert(parallaxController.includes('removeEventListener("pointermove"'), "Parallax pointer listener must clean up.");
 assert(parallaxController.includes('document.removeEventListener("visibilitychange"'), "Parallax visibility listener must clean up.");

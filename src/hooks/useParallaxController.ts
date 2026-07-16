@@ -1,7 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import { homeSceneDepths } from "@/lib/home/homeSceneParallax";
+import {
+  calculateTrainingParallaxSafety,
+  homeSceneDepths,
+  trainingParallaxSafetyDepths
+} from "@/lib/home/homeSceneParallax";
 
 type Point = {
   x: number;
@@ -27,11 +31,33 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-function writeParallaxVariables(element: HTMLElement, point: Point) {
+function writeParallaxVariables(
+  element: HTMLElement,
+  point: Point,
+  effectiveTranslationX: Readonly<Record<string, number>>
+) {
   for (const [name, depth] of Object.entries(homeSceneDepths)) {
-    element.style.setProperty(`--parallax-${name}-x`, `${(point.x * depth.translationX).toFixed(3)}px`);
+    const translationX = effectiveTranslationX[name] ?? depth.translationX;
+    element.style.setProperty(`--parallax-${name}-x`, `${(point.x * translationX).toFixed(3)}px`);
     element.style.setProperty(`--parallax-${name}-y`, `${(point.y * depth.translationY).toFixed(3)}px`);
     element.style.setProperty(`--parallax-${name}-rotation`, `${(point.x * depth.rotation).toFixed(3)}deg`);
+  }
+}
+
+function updateTrainingParallaxSafety(
+  element: HTMLElement,
+  renderedContainerWidth: number,
+  effectiveTranslationX: Record<string, number>
+) {
+  if (!Number.isFinite(renderedContainerWidth) || renderedContainerWidth <= 0) return;
+
+  for (const name of trainingParallaxSafetyDepths) {
+    const safety = calculateTrainingParallaxSafety(
+      renderedContainerWidth,
+      homeSceneDepths[name].translationX
+    );
+    effectiveTranslationX[name] = safety.translationX;
+    element.style.setProperty(`--parallax-${name}-scale-x`, safety.scaleX.toFixed(6));
   }
 }
 
@@ -42,6 +68,7 @@ export function useParallaxController({ active }: UseParallaxControllerOptions) 
   const animationFrameRef = useRef<number | null>(null);
   const animationRunningRef = useRef(false);
   const centerLockedRef = useRef(false);
+  const effectiveTranslationXRef = useRef<Record<string, number>>({});
 
   const resetToCenter = useCallback((durationMs = 200) => {
     const container = containerRef.current;
@@ -50,7 +77,9 @@ export function useParallaxController({ active }: UseParallaxControllerOptions) 
 
     if (!container || !animationRunningRef.current || safeDuration === 0) {
       currentRef.current = { x: 0, y: 0 };
-      if (container) writeParallaxVariables(container, currentRef.current);
+      if (container) {
+        writeParallaxVariables(container, currentRef.current, effectiveTranslationXRef.current);
+      }
       return Promise.resolve();
     }
 
@@ -67,11 +96,33 @@ export function useParallaxController({ active }: UseParallaxControllerOptions) 
   }, []);
 
   useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const updateSafety = (renderedContainerWidth: number) => {
+      updateTrainingParallaxSafety(
+        container,
+        renderedContainerWidth,
+        effectiveTranslationXRef.current
+      );
+      writeParallaxVariables(container, currentRef.current, effectiveTranslationXRef.current);
+    };
+
+    updateSafety(container.clientWidth);
+
+    const resizeObserver = new ResizeObserver(([entry]) => {
+      if (entry) updateSafety(entry.contentRect.width);
+    });
+    resizeObserver.observe(container);
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  useEffect(() => {
     const currentContainer = containerRef.current;
     if (!currentContainer) return;
     const container: HTMLDivElement = currentContainer;
 
-    writeParallaxVariables(container, { x: 0, y: 0 });
+    writeParallaxVariables(container, { x: 0, y: 0 }, effectiveTranslationXRef.current);
     if (!active) return;
 
     const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -132,7 +183,7 @@ export function useParallaxController({ active }: UseParallaxControllerOptions) 
         currentRef.current.y += (targetY - currentRef.current.y) * interpolation;
       }
 
-      writeParallaxVariables(container, currentRef.current);
+      writeParallaxVariables(container, currentRef.current, effectiveTranslationXRef.current);
       animationFrameRef.current = window.requestAnimationFrame(animate);
     }
 
@@ -146,7 +197,7 @@ export function useParallaxController({ active }: UseParallaxControllerOptions) 
       resetRef.current = null;
       centerReset?.resolve();
       currentRef.current = { x: 0, y: 0 };
-      writeParallaxVariables(container, currentRef.current);
+      writeParallaxVariables(container, currentRef.current, effectiveTranslationXRef.current);
     }
 
     function startAnimation() {
