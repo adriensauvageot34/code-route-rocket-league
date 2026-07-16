@@ -51,7 +51,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         />
       </SceneGroup>
 
-      <SceneGroup blendMode="screen" depth="trainingSkyline" layer={2} name="training-atmospheric-haze">
+      <SceneGroup blendMode="screen" depth="trainingMid" layer={2} name="training-atmospheric-haze">
         <div aria-hidden="true" className="training-atmospheric-haze" />
       </SceneGroup>
 

@@ -167,7 +167,7 @@ for (const target of ["left-car", "back-right-car", "front-right-car"]) {
   assert(trainingRadarTargets.includes(`id: "${target}"`), `Grounded Training car missing: ${target}`);
 }
 assert(trainingScene.includes('name="training-radar-surface"') && trainingScene.includes('name="training-radar-sweep"') && !trainingScene.includes('name="training-radar-targets"'), "Training radar surfaces must stay behind the grounded actors.");
-assert(trainingScene.includes('depth="trainingSkyline" layer={2} name="training-atmospheric-haze"') && !trainingScene.includes("training-horizon-haze") && !css.includes(".training-horizon-haze"), "Training haze must stay attached to the far skyline only.");
+assert(trainingScene.includes('depth="trainingMid" layer={2} name="training-atmospheric-haze"') && trainingScene.indexOf('name="training-atmospheric-haze"') < trainingScene.indexOf('name="training-mid-buildings"') && !trainingScene.includes("training-horizon-haze"), "Training haze must move with and remain behind the second skyline plane.");
 assert(trainingScene.includes('name="ball"') && trainingScene.includes('name="fennec"'), "Training ball and Fennec groups must remain.");
 assert(trainingScene.includes('className="training-transition-wave-local"'), "Prepared Training transition layer must remain.");
 assert(trainingGroundedActor.includes("training-grounded-actor-base") && trainingGroundedActor.includes("training-contact-shadow"), "Grounded actors must share one transformed base and contact shadow.");
@@ -189,7 +189,7 @@ for (const timing of ["passDurationMs: 1750", "travelDurationMs: 1500", "glowDur
 for (const placement of ['left: "34.76%"', 'left: "69.28%"', 'left: "73.84%"']) {
   assert(trainingRadarTargets.includes(placement), `Missing calibrated wireframe placement: ${placement}`);
 }
-for (const grounding of ["groundY: 0.43", "groundY: 0.415", "groundY: 0.46", "groundY: 0.5615"]) {
+for (const grounding of ["groundY: 0.465", "groundY: 0.45", "groundY: 0.49", "groundY: 0.5615"]) {
   assert(trainingRadarTargets.includes(grounding), `Missing grounded actor contact: ${grounding}`);
 }
 assert(competitiveScene.includes('name="cage"') && competitiveScene.includes('name="ground-reflection"'), "Competitive cage composition must remain.");
@@ -201,14 +201,15 @@ assert(sceneDepths.includes("rotation: 0.2"), "Parallax rotation must remain cap
 for (const trainingDepth of ["trainingSky", "trainingSkyline", "trainingMid", "trainingNear", "trainingGround", "trainingCarFar", "trainingCarMid", "trainingCarNear", "trainingBall", "trainingFennec"]) {
   assert(sceneDepths.includes(`${trainingDepth}:`), `Missing Training parallax depth: ${trainingDepth}`);
 }
-for (const amplitude of [3, 7, 13, 24, 27, 22, 23, 25, 28, 34]) {
+for (const amplitude of [3, 7, 18, 27, 22, 23, 25, 28, 34]) {
   assert(sceneDepths.includes(`translationX: ${amplitude}`), `Missing Training horizontal amplitude: ${amplitude}px`);
 }
 assert(sceneDepths.includes("translationY: 1") && sceneDepths.includes("translationY: 2"), "Training vertical parallax must stay capped between one and two pixels.");
 assert(parallaxController.includes("requestAnimationFrame") && parallaxController.includes("cancelAnimationFrame"), "Parallax must create and cancel its frame.");
 assert(trainingRadarSequence.includes("targetPhases") && !trainingRadarSequence.includes("activeTargetId"), "Radar targets must keep independent overlapping phases.");
 assert(trainingRadarSequence.includes("schedule(beginPass, TRAINING_RADAR_TIMING.passDurationMs)"), "Radar must reverse immediately when each traverse ends.");
-assert(css.includes("scale(1.08, 0.9)") && sceneDepths.includes("translationX: 24"), "The near skyline must stay low, close and parallax distinctly.");
+assert(css.includes("scale(1.1, 0.94)") && css.includes("scale(1.16, 0.92)") && sceneDepths.includes("translationX: 18") && sceneDepths.includes("translationX: 28"), "The first two skyline planes must stay low, close and parallax distinctly.");
+assert(css.includes("inset: 8% -6% 55%") && css.includes("ellipse at 52% 82%"), "The skyline haze must extend upward while concentrating near the terrain horizon.");
 assert(parallaxController.includes("AUTO_DRIFT_PERIOD_MS = 20000") && parallaxController.includes("-Math.sin(autoAngle)"), "Automatic camera must follow one continuous 20-second center-left-center-right cycle.");
 assert(parallaxController.includes('removeEventListener("pointermove"'), "Parallax pointer listener must clean up.");
 assert(parallaxController.includes('document.removeEventListener("visibilitychange"'), "Parallax visibility listener must clean up.");
