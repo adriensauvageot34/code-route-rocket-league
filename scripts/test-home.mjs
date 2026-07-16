@@ -194,16 +194,17 @@ for (const [preset, expectedCount] of Object.entries({ far: 14, mid: 12, near: 8
 assert(trainingParticlePresets.includes("far: 1107") && trainingParticlePresets.includes("mid: 2284") && trainingParticlePresets.includes("near: 3916"), "Training particles must use fixed per-depth seeds.");
 assert(!trainingParticlePresets.includes("Math.random"), "Training particles must not use nondeterministic randomness.");
 assert(trainingParticlePresets.includes("index * 0.025"), "Training particle durations must stay decorrelated.");
+assert(trainingParticlePresets.includes("(index + random() * 0.35) / expectedCount"), "Training particle phases must be spread deterministically across each cycle.");
 for (const visibilityTuning of [
-  "size: [0.65, 1.05]",
-  "opacity: [0.07, 0.13]",
-  "size: [0.8, 1.3]",
-  "opacity: [0.09, 0.17]",
-  "size: [1, 1.6]",
-  "opacity: [0.11, 0.2]",
-  "glow: [2, 4.5]",
+  "size: [0.8, 1.2]",
+  "opacity: [0.16, 0.26]",
+  "size: [0.95, 1.45]",
+  "opacity: [0.22, 0.36]",
+  "size: [1.1, 1.7]",
+  "opacity: [0.26, 0.44]",
+  "glow: [4.5, 7.5]",
 ]) {
-  assert(trainingParticlePresets.includes(visibilityTuning), `Training particles lost their subtle tuning: ${visibilityTuning}.`);
+  assert(trainingParticlePresets.includes(visibilityTuning), `Training particles lost their visible tactical tuning: ${visibilityTuning}.`);
 }
 
 const tacticalParticleCounts = { "micro-dot": 14, "data-pixel": 6, "mesh-fragment": 6, "tactical-spark": 5, glint: 3 };
@@ -222,7 +223,7 @@ assert(trainingParticlePresets.includes("TRAINING_PARTICLE_HORIZONTAL_BANDS") &&
 assert(trainingParticlePresets.includes("normalizedX ** 2 + normalizedY ** 2 < 1"), "Actor exclusions must use precise elliptical masks instead of broad rectangles.");
 assert(trainingParticleField.includes('aria-hidden="true"') && trainingParticleField.includes('data-particle-kind={particle.kind}'), "Particles must remain decorative and expose their deterministic visual kind.");
 assert(trainingParticleField.includes("--particle-length") && trainingParticleField.includes("--particle-thickness") && trainingParticleField.includes("--particle-cross-size"), "Training particles must expose sharp streak and glint geometry instead of round sizes.");
-assert(trainingParticleField.includes('"tactical-spark": { cross: 1.3, length: 5.2') && trainingParticleField.includes("Math.max(1"), "Tactical streaks must stay between one pixel thick and 8.32px long at maximum size.");
+assert(trainingParticleField.includes('"tactical-spark": { cross: 1.3, length: 5.2') && trainingParticleField.includes("Math.max(1"), "Tactical streaks must stay between one pixel thick and 8.84px long at maximum size.");
 assert(!/(<img|<video|<canvas|\.png|\.gif|requestAnimationFrame|useState)/.test(trainingParticleField + trainingParticlePresets), "Particle rendering must stay HTML/CSS-only without a React frame loop.");
 
 for (const orderedName of [
@@ -413,10 +414,11 @@ for (const removedWormMarker of ["training-metal-shard-jitter", "training-neon-s
   assert(!css.includes(removedWormMarker) && !trainingParticlePresets.includes(removedWormMarker), `Legacy worm-like particle effect must be removed: ${removedWormMarker}.`);
 }
 assert(css.includes("clip-path: polygon") && css.includes("border-radius: 0") && css.includes('data-particle-kind="micro-dot"'), "Training particles must combine sharp tactical silhouettes with only tiny micro-dots.");
+assert(css.includes("brightness(1.12)") && css.includes("saturate(1.18)") && css.includes("mix-blend-mode: screen"), "Tactical particles must remain visible against the dark textured field without becoming white streaks.");
 assert(css.includes('.mode-illustration[data-active="false"] .training-particle-core') && css.includes('.mode-illustration[data-motion-active="false"] .training-particle-core'), "Inactive and offscreen particle animation must pause.");
 assert(css.includes('.training-scene[data-launching="true"] .training-particle-field') && css.includes("transition: opacity 240ms ease-out"), "Particles must fade and pause during launch.");
 assert(css.includes('.training-particle-field[data-particle-preset="far"]') && css.includes(".training-particle:nth-child(n + 5)"), "Reduced motion must keep at most four static far particles.");
-assert(css.includes("opacity: 0.08") && css.includes("drop-shadow(0 0 2px currentColor)"), "Reduced motion particles must stay static and very subtle.");
+assert(css.includes("opacity: 0.14") && css.includes("drop-shadow(0 0 3px currentColor)"), "Reduced motion particles must stay static but remain perceptible.");
 assert(css.includes("@keyframes training-radar-traverse") && !css.includes("@keyframes training-analysis-scan"), "Training must use the clipped field radar instead of legacy circles.");
 assert(css.includes("@keyframes training-launch-ball-energy") && css.includes("@keyframes home-training-launch-wave"), "Training launch keyframes must remain untouched.");
 assert(css.includes("@keyframes competitive-launch-fennec"), "Competitive prepared launch keyframes must remain.");
