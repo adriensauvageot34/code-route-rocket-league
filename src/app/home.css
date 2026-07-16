@@ -488,8 +488,12 @@
 
 .training-city-middle {
   opacity: 1;
-  filter: brightness(0.91) contrast(1.05) saturate(0.97);
-  transform: translate3d(0, -2%, 0) scale(1.25, 1.10);
+  filter:
+    brightness(1.12)
+    contrast(1.12)
+    saturate(1.12)
+    drop-shadow(0 0 7px rgba(128, 74, 210, 0.18));
+  transform: translate3d(0, -1%, 0) scale(1.32, 1.15);
 }
 
 .training-city-near {
