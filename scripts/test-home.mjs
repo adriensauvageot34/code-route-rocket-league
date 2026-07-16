@@ -15,6 +15,7 @@ const expectedFiles = [
   "src/components/home/PrimaryHomeAction.tsx",
   "src/components/home/illustrations/ModeIllustration.tsx",
   "src/components/home/illustrations/TrainingScene.tsx",
+  "src/components/home/illustrations/TrainingGroundedActor.tsx",
   "src/components/home/illustrations/TrainingRadarOverlay.tsx",
   "src/components/home/illustrations/TrainingRadarSequence.tsx",
   "src/components/home/illustrations/CompetitiveScene.tsx",
@@ -65,6 +66,7 @@ const modePreview = files["src/components/home/ModePreviewPanel.tsx"];
 const primaryAction = files["src/components/home/PrimaryHomeAction.tsx"];
 const modeIllustration = files["src/components/home/illustrations/ModeIllustration.tsx"];
 const trainingScene = files["src/components/home/illustrations/TrainingScene.tsx"];
+const trainingGroundedActor = files["src/components/home/illustrations/TrainingGroundedActor.tsx"];
 const trainingRadarOverlay = files["src/components/home/illustrations/TrainingRadarOverlay.tsx"];
 const trainingRadarSequence = files["src/components/home/illustrations/TrainingRadarSequence.tsx"];
 const competitiveScene = files["src/components/home/illustrations/CompetitiveScene.tsx"];
@@ -160,13 +162,17 @@ for (const asset of ["parallaxSky", "parallaxFarSkyline", "parallaxMidBuildings"
 }
 assert(!trainingScene.includes("TrainingAnalysisOverlay") && !trainingScene.includes("assets.background"), "Legacy Training background and analysis circles must not render.");
 assert(!trainingScene.includes("distantCarsOcclusion"), "Legacy distant-car occlusion sheet must not render.");
-for (const asset of ["distantCarLeft", "distantCarBackRight", "distantCarFrontRight"]) {
-  assert(trainingScene.includes(`assets.${asset}`), `Separated Training car missing: ${asset}`);
+assert(trainingScene.includes('name={`training-${target.id}`}') && trainingScene.includes("<TrainingGroundedCar"), "Training cars must render as individual grounded scene groups.");
+for (const target of ["left-car", "back-right-car", "front-right-car"]) {
+  assert(trainingRadarTargets.includes(`id: "${target}"`), `Grounded Training car missing: ${target}`);
 }
-assert(trainingScene.includes('name="training-radar-surface"') && trainingScene.includes('name="training-radar-sweep"') && trainingScene.includes('name="training-radar-targets"'), "Training radar layers must remain separated.");
-assert(trainingScene.includes('name="training-atmospheric-haze"') && css.includes(".training-atmospheric-haze"), "Training atmospheric haze must separate the skyline depths.");
+assert(trainingScene.includes('name="training-radar-surface"') && trainingScene.includes('name="training-radar-sweep"') && !trainingScene.includes('name="training-radar-targets"'), "Training radar surfaces must stay behind the grounded actors.");
+assert(trainingScene.includes('name="training-atmospheric-haze"') && trainingScene.includes('name="training-horizon-haze"') && css.includes(".training-atmospheric-haze") && css.includes(".training-horizon-haze"), "Training hazes must separate both skyline depths.");
 assert(trainingScene.includes('name="ball"') && trainingScene.includes('name="fennec"'), "Training ball and Fennec groups must remain.");
 assert(trainingScene.includes('className="training-transition-wave-local"'), "Prepared Training transition layer must remain.");
+assert(trainingGroundedActor.includes("training-grounded-actor-base") && trainingGroundedActor.includes("training-contact-shadow"), "Grounded actors must share one transformed base and contact shadow.");
+assert(trainingGroundedActor.includes("training-radar-car-wireframe") && trainingGroundedActor.includes("training-radar-car-glow"), "Car base, wireframe and glow must share the grounded actor container.");
+assert(trainingGroundedActor.includes("training-ball-contact-shadow") && trainingGroundedActor.includes("training-radar-ball-energy"), "Ball energy and contact treatment must share the grounded ball container.");
 assert(trainingRadarOverlay.includes('viewBox="0 0 1672 941"') && trainingRadarOverlay.includes("TRAINING_RADAR_FIELD_PATH"), "Training radar must share and clip to the logical field canvas.");
 assert(trainingRadarOverlay.includes("data-radar-direction") && trainingScene.includes("direction={passDirection}"), "Training radar direction must drive both reveal layers.");
 assert(!trainingRadarOverlay.includes("training-radar-line-core") && !trainingRadarOverlay.includes("training-radar-line-glow"), "Training scan must remain implicit without a hard HUD line.");
@@ -177,24 +183,30 @@ assert(trainingRadarSequence.includes('targetIndex % 2 === 0 ? "ltr" : "rtl"') &
 for (const target of ["left-car", "back-right-car", "front-right-car", "ball"]) {
   assert(trainingRadarTargets.includes(`id: "${target}"`), `Missing training radar target: ${target}`);
 }
-for (const timing of ["passDurationMs: 4600", "glowDurationMs: 320", "visibleDurationMs: 3000", "fadeDurationMs: 550"]) {
+for (const timing of ["passDurationMs: 4600", "travelDurationMs: 1500", "glowDurationMs: 320", "visibleDurationMs: 3000", "fadeDurationMs: 550"]) {
   assert(trainingRadarTargets.includes(timing), `Missing centralized radar timing: ${timing}`);
 }
 for (const placement of ['left: "34.76%"', 'left: "69.28%"', 'left: "73.84%"']) {
   assert(trainingRadarTargets.includes(placement), `Missing calibrated wireframe placement: ${placement}`);
 }
+for (const grounding of ["groundY: 0.395", "groundY: 0.372", "groundY: 0.427", "groundY: 0.5615"]) {
+  assert(trainingRadarTargets.includes(grounding), `Missing grounded actor contact: ${grounding}`);
+}
 assert(competitiveScene.includes('name="cage"') && competitiveScene.includes('name="ground-reflection"'), "Competitive cage composition must remain.");
 assert(competitiveScene.includes('name="motion-trail"') && competitiveScene.includes('name="fennec"'), "Competitive car composition must remain.");
 for (const depth of ["3", "5", "7", "11", "14"]) {
-  assert(sceneDepths.includes(`translation: ${depth}`), `Missing parallax depth: ${depth}px`);
+  assert(sceneDepths.includes(`translationX: ${depth}`), `Missing legacy parallax depth: ${depth}px`);
 }
 assert(sceneDepths.includes("rotation: 0.2"), "Parallax rotation must remain capped at 0.2deg.");
-for (const trainingDepth of ["trainingSky", "trainingSkyline", "trainingMid", "trainingNear", "trainingGround", "trainingActors", "trainingFennec"]) {
+for (const trainingDepth of ["trainingSky", "trainingSkyline", "trainingMid", "trainingNear", "trainingGround", "trainingCarFar", "trainingCarMid", "trainingCarNear", "trainingBall", "trainingFennec"]) {
   assert(sceneDepths.includes(`${trainingDepth}:`), `Missing Training parallax depth: ${trainingDepth}`);
 }
-assert(sceneDepths.includes("translation: 17") && sceneDepths.includes("translation: 20") && sceneDepths.includes("translation: 24"), "Training near layers must keep their requested camera amplitudes.");
+for (const amplitude of [3, 7, 13, 20, 27, 22, 23, 25, 28, 34]) {
+  assert(sceneDepths.includes(`translationX: ${amplitude}`), `Missing Training horizontal amplitude: ${amplitude}px`);
+}
+assert(sceneDepths.includes("translationY: 1") && sceneDepths.includes("translationY: 2"), "Training vertical parallax must stay capped between one and two pixels.");
 assert(parallaxController.includes("requestAnimationFrame") && parallaxController.includes("cancelAnimationFrame"), "Parallax must create and cancel its frame.");
-assert(parallaxController.includes("AUTO_DRIFT_PERIOD_MS = 16000") && parallaxController.includes("-Math.sin(autoAngle)"), "Automatic camera must follow one 16-second center-left-center-right cycle.");
+assert(parallaxController.includes("AUTO_DRIFT_PERIOD_MS = 20000") && parallaxController.includes("-Math.sin(autoAngle)"), "Automatic camera must follow one continuous 20-second center-left-center-right cycle.");
 assert(parallaxController.includes('removeEventListener("pointermove"'), "Parallax pointer listener must clean up.");
 assert(parallaxController.includes('document.removeEventListener("visibilitychange"'), "Parallax visibility listener must clean up.");
 assert(parallaxController.includes("intersectionObserver?.disconnect()"), "Parallax observer must disconnect.");

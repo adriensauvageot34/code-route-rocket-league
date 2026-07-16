@@ -476,28 +476,67 @@
   user-select: none;
 }
 
-.training-atmospheric-haze {
+.training-city-layer {
+  transform-origin: center;
+}
+
+.training-city-far {
+  opacity: 0.74;
+  filter: brightness(0.78) saturate(0.84) blur(0.55px);
+  transform: translate3d(0, 7%, 0) scaleY(0.94);
+}
+
+.training-city-middle {
+  opacity: 0.87;
+  filter: brightness(0.89) saturate(0.94);
+  transform: translate3d(0, 5%, 0) scaleY(0.96);
+}
+
+.training-city-near {
+  opacity: 0.98;
+  filter: brightness(0.88) contrast(1.08) saturate(1.02);
+  transform: translate3d(0, 3%, 0) scaleY(0.98);
+}
+
+.training-atmospheric-haze,
+.training-horizon-haze {
   position: absolute;
-  inset: 18% -5% 12%;
-  background:
-    radial-gradient(ellipse at 52% 48%, rgba(126, 92, 190, 0.13), transparent 56%),
-    linear-gradient(
-      180deg,
-      transparent 10%,
-      rgba(91, 91, 151, 0.06) 35%,
-      rgba(46, 55, 96, 0.12) 56%,
-      transparent 88%
-    );
-  filter: blur(18px);
-  opacity: 0.42;
-  transform: scale(1.08);
-  -webkit-mask-image: linear-gradient(180deg, transparent, black 24%, black 72%, transparent);
-  mask-image: linear-gradient(180deg, transparent, black 24%, black 72%, transparent);
   pointer-events: none;
 }
 
-.training-radar-overlay,
-.training-radar-targets {
+.training-atmospheric-haze {
+  inset: 20% -5% 54%;
+  background:
+    radial-gradient(ellipse at 52% 62%, rgba(126, 103, 190, 0.16), transparent 58%),
+    linear-gradient(
+      180deg,
+      transparent,
+      rgba(86, 91, 153, 0.12) 48%,
+      rgba(48, 58, 104, 0.16) 72%,
+      transparent
+    );
+  filter: blur(16px);
+  opacity: 0.68;
+  transform: scaleX(1.08);
+  -webkit-mask-image: linear-gradient(180deg, transparent, black 28%, black 76%, transparent);
+  mask-image: linear-gradient(180deg, transparent, black 28%, black 76%, transparent);
+}
+
+.training-horizon-haze {
+  inset: 36% -4% 45%;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(91, 91, 151, 0.09) 46%,
+    rgba(57, 61, 112, 0.11) 64%,
+    transparent
+  );
+  filter: blur(12px);
+  opacity: 0.54;
+  transform: scaleX(1.06);
+}
+
+.training-radar-overlay {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -526,23 +565,109 @@
 }
 
 .training-tactical-terrain {
-  opacity: 0.58;
+  opacity: 0.43;
   mix-blend-mode: screen;
-  filter: brightness(1.05) saturate(0.9);
+  filter: brightness(0.98) saturate(0.82);
 }
 
 .training-radar-trail {
   filter: blur(2px) drop-shadow(0 0 7px rgba(111, 109, 184, 0.16));
 }
 
+.training-grounded-actor {
+  position: absolute;
+  inset: 0;
+  transform: translate3d(
+      var(--training-actor-translate-x),
+      var(--training-actor-translate-y),
+      0
+    )
+    scale(var(--training-actor-scale));
+  transform-origin:
+    var(--training-actor-source-x)
+    var(--training-actor-source-ground-y);
+  pointer-events: none;
+}
+
+.training-grounded-actor-base,
+.training-radar-ball-energy,
+.training-ball-launch-energy {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
+}
+
+.training-grounded-actor-base {
+  z-index: 1;
+}
+
+.training-contact-shadow {
+  position: absolute;
+  z-index: 0;
+  left: var(--training-actor-source-x);
+  top: var(--training-actor-source-ground-y);
+  width: var(--training-contact-shadow-width);
+  height: var(--training-contact-shadow-height);
+  border-radius: 50%;
+  filter: blur(3px);
+  transform: translate(-50%, -50%) scaleX(1.4) scaleY(0.35);
+  transform-origin: center;
+}
+
+.training-car-contact-shadow {
+  background: radial-gradient(
+    ellipse,
+    rgba(0, 0, 0, 0.42) 0%,
+    rgba(0, 0, 0, 0.2) 40%,
+    rgba(87, 65, 134, 0.07) 58%,
+    transparent 74%
+  );
+}
+
+.training-ball-contact-shadow {
+  background: radial-gradient(
+    ellipse,
+    rgba(0, 0, 0, 0.44) 0%,
+    rgba(175, 118, 52, 0.15) 34%,
+    rgba(92, 68, 132, 0.08) 52%,
+    transparent 74%
+  );
+  filter: blur(3px) drop-shadow(0 0 4px rgba(221, 166, 82, 0.12));
+}
+
+.training-fennec-contact-shadow {
+  position: absolute;
+  z-index: 0;
+  left: 61.5%;
+  top: 69.5%;
+  width: 31%;
+  height: 15%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse,
+    rgba(0, 0, 0, 0.34),
+    rgba(0, 0, 0, 0.16) 48%,
+    transparent 73%
+  );
+  filter: blur(4px);
+  transform: scaleY(0.32);
+  transform-origin: center;
+}
+
+.scene-group[data-scene-group="fennec"] .scene-layer {
+  z-index: 1;
+}
+
 .training-radar-car-target {
   position: absolute;
+  z-index: 2;
   pointer-events: none;
 }
 
 .training-radar-car-wireframe,
-.training-radar-car-glow,
-.training-radar-ball-energy {
+.training-radar-car-glow {
   width: 100% !important;
   height: 100% !important;
   object-fit: contain;
@@ -585,6 +710,7 @@
 }
 
 .training-radar-ball-energy {
+  z-index: 2;
   opacity: 0;
   mix-blend-mode: screen;
   transition:
@@ -610,6 +736,7 @@
 }
 
 .training-ball-launch-energy {
+  z-index: 3;
   opacity: 0;
 }
 
@@ -771,12 +898,15 @@
     [data-scene-group="training-far-skyline"],
     [data-scene-group="training-atmospheric-haze"],
     [data-scene-group="training-mid-buildings"],
+    [data-scene-group="training-horizon-haze"],
     [data-scene-group="training-near-buildings"],
     [data-scene-group="training-ground"],
     [data-scene-group="training-radar-surface"],
-    [data-scene-group="training-distant-cars"],
+    [data-scene-group="training-left-car"],
+    [data-scene-group="training-back-right-car"],
+    [data-scene-group="training-front-right-car"],
+    [data-scene-group="ball"],
     [data-scene-group="training-radar-sweep"],
-    [data-scene-group="training-radar-targets"],
     [data-scene-group="fennec"]
   )
   .scene-launch {
@@ -932,7 +1062,9 @@
 }
 
 .mode-illustration[data-motion-active="false"] .training-radar-overlay,
-.mode-illustration[data-motion-active="false"] .training-radar-targets {
+.mode-illustration[data-motion-active="false"] .training-radar-car-wireframe,
+.mode-illustration[data-motion-active="false"] .training-radar-car-glow,
+.mode-illustration[data-motion-active="false"] .training-radar-ball-energy {
   opacity: 0;
 }
 
@@ -1954,7 +2086,9 @@
   }
 
   .training-radar-overlay,
-  .training-radar-targets {
+  .training-radar-car-wireframe,
+  .training-radar-car-glow,
+  .training-radar-ball-energy {
     opacity: 0;
   }
 

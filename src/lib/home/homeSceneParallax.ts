@@ -1,16 +1,19 @@
 export const homeSceneDepths = {
-  background: { translation: 3, rotation: 0.04, scale: 1.02 },
-  distant: { translation: 5, rotation: 0.07, scale: 1.03 },
-  focal: { translation: 7, rotation: 0.1, scale: 1.04 },
-  fennec: { translation: 11, rotation: 0.16, scale: 1.05 },
-  foreground: { translation: 14, rotation: 0.2, scale: 1.06 },
-  trainingSky: { translation: 3, rotation: 0, scale: 1.02 },
-  trainingSkyline: { translation: 5, rotation: 0, scale: 1.03 },
-  trainingMid: { translation: 8, rotation: 0, scale: 1.04 },
-  trainingNear: { translation: 12, rotation: 0, scale: 1.05 },
-  trainingGround: { translation: 17, rotation: 0, scale: 1.07 },
-  trainingActors: { translation: 20, rotation: 0, scale: 1.07 },
-  trainingFennec: { translation: 24, rotation: 0, scale: 1.08 }
+  background: { translationX: 3, translationY: 3, rotation: 0.04, scale: 1.02 },
+  distant: { translationX: 5, translationY: 5, rotation: 0.07, scale: 1.03 },
+  focal: { translationX: 7, translationY: 7, rotation: 0.1, scale: 1.04 },
+  fennec: { translationX: 11, translationY: 11, rotation: 0.16, scale: 1.05 },
+  foreground: { translationX: 14, translationY: 14, rotation: 0.2, scale: 1.06 },
+  trainingSky: { translationX: 3, translationY: 1, rotation: 0, scale: 1.02 },
+  trainingSkyline: { translationX: 7, translationY: 1, rotation: 0, scale: 1.03 },
+  trainingMid: { translationX: 13, translationY: 1.4, rotation: 0, scale: 1.04 },
+  trainingNear: { translationX: 20, translationY: 1.8, rotation: 0, scale: 1.05 },
+  trainingGround: { translationX: 27, translationY: 2, rotation: 0, scale: 1.07 },
+  trainingCarFar: { translationX: 22, translationY: 2, rotation: 0, scale: 1.07 },
+  trainingCarMid: { translationX: 23, translationY: 2, rotation: 0, scale: 1.07 },
+  trainingCarNear: { translationX: 25, translationY: 2, rotation: 0, scale: 1.07 },
+  trainingBall: { translationX: 28, translationY: 2, rotation: 0, scale: 1.07 },
+  trainingFennec: { translationX: 34, translationY: 2, rotation: 0, scale: 1.08 }
 } as const;
 
 export type HomeSceneDepth = keyof typeof homeSceneDepths;
