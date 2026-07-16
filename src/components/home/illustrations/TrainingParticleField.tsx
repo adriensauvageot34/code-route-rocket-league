@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import {
   trainingParticlePresets,
+  type TrainingParticleKind,
   type TrainingParticlePresetName,
 } from "@/lib/home/trainingParticlePresets";
 
@@ -10,6 +11,7 @@ type TrainingParticleFieldProps = {
 
 type TrainingParticleStyle = CSSProperties & {
   "--particle-blur": string;
+  "--particle-cross-size": string;
   "--particle-delay": string;
   "--particle-drift-x-1": string;
   "--particle-drift-x-2": string;
@@ -20,6 +22,7 @@ type TrainingParticleStyle = CSSProperties & {
   "--particle-drift-y-3": string;
   "--particle-duration": string;
   "--particle-glow": string;
+  "--particle-length": string;
   "--particle-opacity": string;
   "--particle-opacity-intro": string;
   "--particle-opacity-soft": string;
@@ -29,12 +32,20 @@ type TrainingParticleStyle = CSSProperties & {
   "--particle-rotation-end": string;
   "--particle-rotation-intro": string;
   "--particle-rotation-soft": string;
-  "--particle-size": string;
-  "--particle-spark-height": string;
-  "--particle-spark-width": string;
+  "--particle-thickness": string;
   "--particle-x": string;
   "--particle-y": string;
 };
+
+const particleGeometry = {
+  "metal-shard": { cross: 2, length: 3.4, thickness: 0.55 },
+  "micro-spark": { cross: 3, length: 3, thickness: 0.28 },
+  "neon-streak": { cross: 2, length: 6.8, thickness: 0.22 },
+  "hard-glint": { cross: 4.2, length: 2.4, thickness: 0.36 },
+} as const satisfies Record<
+  TrainingParticleKind,
+  { cross: number; length: number; thickness: number }
+>;
 
 export function TrainingParticleField({
   preset,
@@ -47,10 +58,13 @@ export function TrainingParticleField({
     >
       <div className="training-particle-band">
         {trainingParticlePresets[preset].map((particle, index) => {
+          const geometry = particleGeometry[particle.kind];
           const style: TrainingParticleStyle = {
             "--particle-x": `${particle.x}%`,
             "--particle-y": `${particle.y}%`,
-            "--particle-size": `${particle.size}px`,
+            "--particle-length": `${(particle.size * geometry.length).toFixed(2)}px`,
+            "--particle-thickness": `${Math.max(0.8, particle.size * geometry.thickness).toFixed(2)}px`,
+            "--particle-cross-size": `${(particle.size * geometry.cross).toFixed(2)}px`,
             "--particle-opacity": String(particle.opacity),
             "--particle-duration": `${particle.duration}s`,
             "--particle-delay": `${particle.delay}s`,
@@ -71,8 +85,6 @@ export function TrainingParticleField({
             "--particle-opacity-soft": String((particle.opacity * 0.72).toFixed(3)),
             "--particle-opacity-spark": String((particle.opacity * 0.82).toFixed(3)),
             "--particle-opacity-spark-low": String((particle.opacity * 0.3).toFixed(3)),
-            "--particle-spark-width": `${(particle.size * 3.2).toFixed(2)}px`,
-            "--particle-spark-height": `${Math.max(1, particle.size * 0.42).toFixed(2)}px`,
           };
 
           return (

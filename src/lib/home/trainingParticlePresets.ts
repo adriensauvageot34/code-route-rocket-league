@@ -1,7 +1,8 @@
 export type TrainingParticleKind =
-  | "violet-dust"
-  | "gold-dot"
-  | "tactical-spark";
+  | "metal-shard"
+  | "micro-spark"
+  | "neon-streak"
+  | "hard-glint";
 
 export type TrainingParticlePresetName = "far" | "mid" | "near";
 
@@ -32,7 +33,7 @@ type TrainingParticlePresetConfiguration = {
   duration: readonly [number, number];
   glow: readonly [number, number];
   horizontalBands: readonly (readonly [number, number])[];
-  kinds: readonly TrainingParticleKind[];
+  kindPattern: readonly TrainingParticleKind[];
   minSpacing: readonly [number, number];
   opacity: readonly [number, number];
   seed: number;
@@ -49,16 +50,53 @@ type ExclusionZone = {
 };
 
 export const TRAINING_PARTICLE_COUNTS = {
-  far: 12,
-  mid: 10,
-  near: 6,
+  far: 28,
+  mid: 24,
+  near: 20,
 } as const;
 
 export const TRAINING_PARTICLE_TYPE_COUNTS = {
-  "violet-dust": 19,
-  "gold-dot": 6,
-  "tactical-spark": 3,
+  "metal-shard": 27,
+  "micro-spark": 18,
+  "neon-streak": 18,
+  "hard-glint": 9,
 } as const;
+
+export const TRAINING_PARTICLE_KIND_PATTERNS = {
+  far: [
+    "metal-shard",
+    "micro-spark",
+    "neon-streak",
+    "metal-shard",
+    "hard-glint",
+    "micro-spark",
+    "metal-shard",
+    "neon-streak",
+  ],
+  mid: [
+    "metal-shard",
+    "micro-spark",
+    "neon-streak",
+    "hard-glint",
+    "micro-spark",
+    "metal-shard",
+    "neon-streak",
+    "metal-shard",
+  ],
+  near: [
+    "neon-streak",
+    "metal-shard",
+    "micro-spark",
+    "hard-glint",
+    "metal-shard",
+    "neon-streak",
+    "micro-spark",
+    "metal-shard",
+  ],
+} as const satisfies Record<
+  TrainingParticlePresetName,
+  readonly TrainingParticleKind[]
+>;
 
 export const TRAINING_PARTICLE_SEEDS = {
   far: 1107,
@@ -86,7 +124,7 @@ export const TRAINING_PARTICLE_HORIZONTAL_BANDS = {
   near: [
     [6, 30],
     [34, 54],
-    [82, 92],
+    [68, 94],
   ],
 } as const;
 
@@ -94,75 +132,44 @@ const presetConfigurations = {
   far: {
     seed: TRAINING_PARTICLE_SEEDS.far,
     horizontalBands: TRAINING_PARTICLE_HORIZONTAL_BANDS.far,
-    kinds: [
-      "violet-dust",
-      "gold-dot",
-      "violet-dust",
-      "violet-dust",
-      "gold-dot",
-      "violet-dust",
-      "tactical-spark",
-      "violet-dust",
-      "gold-dot",
-      "violet-dust",
-      "violet-dust",
-      "violet-dust",
-    ],
+    kindPattern: TRAINING_PARTICLE_KIND_PATTERNS.far,
     y: TRAINING_PARTICLE_VERTICAL_ZONES.far,
-    size: [2.8, 4.4],
-    opacity: [0.3, 0.5],
-    duration: [15.2, 22.4],
-    driftX: 5.5,
-    driftY: 8.5,
-    blur: [0.12, 0.35],
-    glow: [6, 10],
-    minSpacing: [5.5, 2.3],
+    size: [1.6, 2.8],
+    opacity: [0.55, 0.8],
+    duration: [9, 15],
+    driftX: 7,
+    driftY: 9,
+    blur: [0, 0.18],
+    glow: [7, 12],
+    minSpacing: [3.4, 1.35],
   },
   mid: {
     seed: TRAINING_PARTICLE_SEEDS.mid,
     horizontalBands: TRAINING_PARTICLE_HORIZONTAL_BANDS.mid,
-    kinds: [
-      "violet-dust",
-      "gold-dot",
-      "violet-dust",
-      "violet-dust",
-      "tactical-spark",
-      "violet-dust",
-      "gold-dot",
-      "violet-dust",
-      "violet-dust",
-      "violet-dust",
-    ],
+    kindPattern: TRAINING_PARTICLE_KIND_PATTERNS.mid,
     y: TRAINING_PARTICLE_VERTICAL_ZONES.mid,
-    size: [3.6, 5.8],
-    opacity: [0.36, 0.58],
-    duration: [12.4, 18.8],
-    driftX: 9.5,
-    driftY: 14.5,
-    blur: [0, 0.18],
-    glow: [8, 13],
-    minSpacing: [6.5, 3.4],
+    size: [2, 3.4],
+    opacity: [0.62, 0.88],
+    duration: [7, 12],
+    driftX: 12,
+    driftY: 16,
+    blur: [0, 0.12],
+    glow: [9, 15],
+    minSpacing: [4.2, 2.2],
   },
   near: {
     seed: TRAINING_PARTICLE_SEEDS.near,
     horizontalBands: TRAINING_PARTICLE_HORIZONTAL_BANDS.near,
-    kinds: [
-      "violet-dust",
-      "gold-dot",
-      "violet-dust",
-      "tactical-spark",
-      "violet-dust",
-      "violet-dust",
-    ],
+    kindPattern: TRAINING_PARTICLE_KIND_PATTERNS.near,
     y: TRAINING_PARTICLE_VERTICAL_ZONES.near,
-    size: [4.4, 7.2],
-    opacity: [0.38, 0.64],
-    duration: [10.1, 15.9],
-    driftX: 15.5,
-    driftY: 21,
-    blur: [0, 0.1],
-    glow: [9, 15],
-    minSpacing: [8, 5],
+    size: [2.4, 4.2],
+    opacity: [0.68, 0.96],
+    duration: [5.5, 9.5],
+    driftX: 18,
+    driftY: 23,
+    blur: [0, 0.08],
+    glow: [12, 19],
+    minSpacing: [3.8, 2.6],
   },
 } as const satisfies Record<
   TrainingParticlePresetName,
@@ -177,8 +184,8 @@ const exclusionZones: readonly ExclusionZone[] = [
   {
     x: 78,
     y: 78,
-    radiusX: 19,
-    radiusY: 14,
+    radiusX: 17,
+    radiusY: 12,
     presets: ["near"],
   },
 ];
@@ -229,19 +236,19 @@ function isTooClose(
   );
 }
 
-function isGoldTooClose(
+function isHardGlintTooClose(
   particles: readonly TrainingParticle[],
   kind: TrainingParticleKind,
   x: number,
   y: number,
 ) {
-  if (kind !== "gold-dot") return false;
+  if (kind !== "hard-glint") return false;
 
   return particles.some(
     (particle) =>
-      particle.kind === "gold-dot" &&
-      Math.abs(particle.x - x) < 15 &&
-      Math.abs(particle.y - y) < 6,
+      particle.kind === "hard-glint" &&
+      Math.abs(particle.x - x) < 12 &&
+      Math.abs(particle.y - y) < 5,
   );
 }
 
@@ -251,11 +258,12 @@ function buildTrainingParticlePreset(
 ) {
   const random = createSeededRandom(configuration.seed);
   const particles: TrainingParticle[] = [];
+  const expectedCount = TRAINING_PARTICLE_COUNTS[preset];
   let attempts = 0;
 
   while (
-    particles.length < configuration.kinds.length &&
-    attempts < configuration.kinds.length * 80
+    particles.length < expectedCount &&
+    attempts < expectedCount * 100
   ) {
     attempts += 1;
     const index = particles.length;
@@ -265,20 +273,29 @@ function buildTrainingParticlePreset(
       ];
     const x = round(interpolate(horizontalBand, random()));
     const y = round(interpolate(configuration.y, random()));
-    const kind = configuration.kinds[index];
+    const kind =
+      configuration.kindPattern[index % configuration.kindPattern.length];
 
     if (
       isInsideExclusionZone(preset, x, y) ||
       isTooClose(particles, x, y, configuration.minSpacing) ||
-      isGoldTooClose(particles, kind, x, y)
+      isHardGlintTooClose(particles, kind, x, y)
     ) {
       continue;
     }
 
     const direction = random() < 0.5 ? -1 : 1;
-    const sparkSpeed = kind === "tactical-spark" ? 0.88 : 1;
+    const speedMultiplier =
+      kind === "micro-spark"
+        ? 0.55
+        : kind === "neon-streak"
+          ? 0.68
+          : kind === "hard-glint"
+            ? 0.46
+            : 1;
     const duration =
-      interpolate(configuration.duration, random()) * sparkSpeed + index * 0.07;
+      interpolate(configuration.duration, random()) * speedMultiplier +
+      index * 0.035;
 
     particles.push({
       id: `${preset}-${String(index + 1).padStart(2, "0")}`,
@@ -308,15 +325,17 @@ function buildTrainingParticlePreset(
         -configuration.driftY * interpolate([0.82, 1], random()),
       ),
       rotation:
-        kind === "tactical-spark"
-          ? round(interpolate([-56, 56], random()))
-          : round(interpolate([-8, 8], random())),
+        kind === "metal-shard"
+          ? round(interpolate([-72, 72], random()))
+          : kind === "neon-streak"
+            ? round(interpolate([-34, 34], random()))
+            : round(interpolate([-48, 48], random())),
       blur: round(interpolate(configuration.blur, random())),
       glow: round(interpolate(configuration.glow, random())),
     });
   }
 
-  if (particles.length !== configuration.kinds.length) {
+  if (particles.length !== expectedCount) {
     throw new Error(`Unable to build Training particle preset: ${preset}`);
   }
 
