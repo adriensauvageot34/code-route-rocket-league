@@ -180,7 +180,7 @@ assert(trainingScene.includes('depth="trainingMid" layer={2} name="training-atmo
 assert(trainingScene.includes('name="ball"') && trainingScene.includes('name="fennec"'), "Training ball and Fennec groups must remain.");
 assert(trainingScene.includes('className="training-transition-wave-local"'), "Prepared Training transition layer must remain.");
 
-for (const [preset, expectedCount] of Object.entries({ far: 28, mid: 24, near: 20 })) {
+for (const [preset, expectedCount] of Object.entries({ far: 14, mid: 12, near: 8 })) {
   assert(
     trainingParticlePresets.includes(`${preset}: ${expectedCount},`),
     `Training particle count must stay deterministic for ${preset}: ${expectedCount}.`
@@ -193,29 +193,36 @@ for (const [preset, expectedCount] of Object.entries({ far: 28, mid: 24, near: 2
 }
 assert(trainingParticlePresets.includes("far: 1107") && trainingParticlePresets.includes("mid: 2284") && trainingParticlePresets.includes("near: 3916"), "Training particles must use fixed per-depth seeds.");
 assert(!trainingParticlePresets.includes("Math.random"), "Training particles must not use nondeterministic randomness.");
-assert(trainingParticlePresets.includes("index * 0.035"), "Training particle durations must stay decorrelated.");
+assert(trainingParticlePresets.includes("index * 0.025"), "Training particle durations must stay decorrelated.");
 for (const visibilityTuning of [
-  "size: [1.6, 2.8]",
-  "opacity: [0.55, 0.8]",
-  "size: [2, 3.4]",
-  "opacity: [0.62, 0.88]",
-  "size: [2.4, 4.2]",
-  "opacity: [0.68, 0.96]",
-  "glow: [12, 19]",
+  "size: [0.65, 1.05]",
+  "opacity: [0.07, 0.13]",
+  "size: [0.8, 1.3]",
+  "opacity: [0.09, 0.17]",
+  "size: [1, 1.6]",
+  "opacity: [0.11, 0.2]",
+  "glow: [2, 4.5]",
 ]) {
-  assert(trainingParticlePresets.includes(visibilityTuning), `Training particles lost their visible tuning: ${visibilityTuning}.`);
+  assert(trainingParticlePresets.includes(visibilityTuning), `Training particles lost their subtle tuning: ${visibilityTuning}.`);
 }
 
-for (const [kind, expectedCount] of Object.entries({ "metal-shard": 27, "micro-spark": 18, "neon-streak": 18, "hard-glint": 9 })) {
-  assert(trainingParticlePresets.includes(`"${kind}": ${expectedCount}`), `Training aggressive particle count missing for ${kind}: ${expectedCount}.`);
+const tacticalParticleCounts = { "micro-dot": 14, "data-pixel": 6, "mesh-fragment": 6, "tactical-spark": 5, glint: 3 };
+for (const [kind, expectedCount] of Object.entries(tacticalParticleCounts)) {
+  const countMarker = kind === "glint" ? `glint: ${expectedCount}` : `"${kind}": ${expectedCount}`;
+  assert(trainingParticlePresets.includes(countMarker), `Training tactical particle count missing for ${kind}: ${expectedCount}.`);
 }
-assert(trainingParticlePresets.includes("TRAINING_PARTICLE_KIND_PATTERNS"), "Training aggressive particles must use deterministic per-depth kind patterns.");
-assert(Object.values({ "metal-shard": 27, "micro-spark": 18, "neon-streak": 18, "hard-glint": 9 }).reduce((total, count) => total + count, 0) === 72, "Training must render exactly 72 deterministic aggressive particles.");
+assert(trainingParticlePresets.includes("TRAINING_PARTICLE_KIND_PATTERNS"), "Training tactical particles must use deterministic per-depth kind patterns.");
+assert(trainingParticlePresets.includes("far: 14") && trainingParticlePresets.includes("mid: 12") && trainingParticlePresets.includes("near: 8"), "Training particle depths must total 34 elements.");
+assert(Object.values(tacticalParticleCounts).reduce((total, count) => total + count, 0) === 34, "Training must render exactly 34 deterministic tactical particles.");
+for (const shortDrift of ["driftX: 3", "driftX: 5", "driftX: 8", "driftY: 2", "driftY: 3.5", "driftY: 5.5"]) {
+  assert(trainingParticlePresets.includes(shortDrift), `Training particle drift must stay short: ${shortDrift}.`);
+}
 assert(trainingParticlePresets.includes("exclusionZones") && trainingParticlePresets.includes("isTooClose"), "Particle generation must keep actor exclusions and anti-cluster spacing.");
 assert(trainingParticlePresets.includes("TRAINING_PARTICLE_HORIZONTAL_BANDS") && trainingParticlePresets.includes("index % configuration.horizontalBands.length"), "Each particle depth must cycle through left, middle and right horizontal bands.");
 assert(trainingParticlePresets.includes("normalizedX ** 2 + normalizedY ** 2 < 1"), "Actor exclusions must use precise elliptical masks instead of broad rectangles.");
 assert(trainingParticleField.includes('aria-hidden="true"') && trainingParticleField.includes('data-particle-kind={particle.kind}'), "Particles must remain decorative and expose their deterministic visual kind.");
 assert(trainingParticleField.includes("--particle-length") && trainingParticleField.includes("--particle-thickness") && trainingParticleField.includes("--particle-cross-size"), "Training particles must expose sharp streak and glint geometry instead of round sizes.");
+assert(trainingParticleField.includes('"tactical-spark": { cross: 1.3, length: 5.2') && trainingParticleField.includes("Math.max(1"), "Tactical streaks must stay between one pixel thick and 8.32px long at maximum size.");
 assert(!/(<img|<video|<canvas|\.png|\.gif|requestAnimationFrame|useState)/.test(trainingParticleField + trainingParticlePresets), "Particle rendering must stay HTML/CSS-only without a React frame loop.");
 
 for (const orderedName of [
@@ -393,16 +400,23 @@ assert(css.includes("clip-path: polygon(3% 40.5%, 97% 40.5%, 100% 100%, 0 100%)"
 for (const preset of ["far", "mid", "near"]) {
   assert(css.includes(`data-particle-preset="${preset}"`), `Missing CSS depth band for ${preset} particles.`);
 }
-for (const keyframe of ["training-metal-shard-jitter", "training-micro-spark-flash", "training-neon-streak-flash", "training-hard-glint-flash"]) {
-  assert(css.includes(`@keyframes ${keyframe}`), `Missing aggressive particle animation: ${keyframe}.`);
+for (const keyframe of ["training-micro-dot-pulse", "training-tactical-spark-flash", "training-mesh-fragment-flash", "training-data-pixel-blip", "training-glint-flash"]) {
+  assert(css.includes(`@keyframes ${keyframe}`), `Missing tactical particle animation: ${keyframe}.`);
 }
-for (const kind of ["metal-shard", "micro-spark", "neon-streak", "hard-glint"]) {
-  assert(css.includes(`data-particle-kind="${kind}"`), `Missing aggressive particle shape: ${kind}.`);
+for (const kind of ["micro-dot", "tactical-spark", "glint", "mesh-fragment", "data-pixel"]) {
+  assert(css.includes(`data-particle-kind="${kind}"`), `Missing tactical particle shape: ${kind}.`);
 }
-assert(css.includes("clip-path: polygon") && css.includes("border-radius: 0") && !css.includes('data-particle-kind="gold-dot"'), "Training particles must use sharp metallic silhouettes without the old round dots.");
+for (const idleMarker of ["35%", "42%", "52%", "100%"] ) {
+  assert(css.includes(idleMarker), `Tactical flashes must keep the requested idle/peak/fade timing: ${idleMarker}.`);
+}
+for (const removedWormMarker of ["training-metal-shard-jitter", "training-neon-streak-flash", "hard-glint", "neon-streak"]) {
+  assert(!css.includes(removedWormMarker) && !trainingParticlePresets.includes(removedWormMarker), `Legacy worm-like particle effect must be removed: ${removedWormMarker}.`);
+}
+assert(css.includes("clip-path: polygon") && css.includes("border-radius: 0") && css.includes('data-particle-kind="micro-dot"'), "Training particles must combine sharp tactical silhouettes with only tiny micro-dots.");
 assert(css.includes('.mode-illustration[data-active="false"] .training-particle-core') && css.includes('.mode-illustration[data-motion-active="false"] .training-particle-core'), "Inactive and offscreen particle animation must pause.");
 assert(css.includes('.training-scene[data-launching="true"] .training-particle-field') && css.includes("transition: opacity 240ms ease-out"), "Particles must fade and pause during launch.");
 assert(css.includes('.training-particle-field[data-particle-preset="far"]') && css.includes(".training-particle:nth-child(n + 5)"), "Reduced motion must keep at most four static far particles.");
+assert(css.includes("opacity: 0.08") && css.includes("drop-shadow(0 0 2px currentColor)"), "Reduced motion particles must stay static and very subtle.");
 assert(css.includes("@keyframes training-radar-traverse") && !css.includes("@keyframes training-analysis-scan"), "Training must use the clipped field radar instead of legacy circles.");
 assert(css.includes("@keyframes training-launch-ball-energy") && css.includes("@keyframes home-training-launch-wave"), "Training launch keyframes must remain untouched.");
 assert(css.includes("@keyframes competitive-launch-fennec"), "Competitive prepared launch keyframes must remain.");

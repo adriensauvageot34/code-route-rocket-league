@@ -1,8 +1,9 @@
 export type TrainingParticleKind =
-  | "metal-shard"
-  | "micro-spark"
-  | "neon-streak"
-  | "hard-glint";
+  | "micro-dot"
+  | "tactical-spark"
+  | "glint"
+  | "mesh-fragment"
+  | "data-pixel";
 
 export type TrainingParticlePresetName = "far" | "mid" | "near";
 
@@ -50,48 +51,59 @@ type ExclusionZone = {
 };
 
 export const TRAINING_PARTICLE_COUNTS = {
-  far: 28,
-  mid: 24,
-  near: 20,
+  far: 14,
+  mid: 12,
+  near: 8,
 } as const;
 
 export const TRAINING_PARTICLE_TYPE_COUNTS = {
-  "metal-shard": 27,
-  "micro-spark": 18,
-  "neon-streak": 18,
-  "hard-glint": 9,
+  "micro-dot": 14,
+  "data-pixel": 6,
+  "mesh-fragment": 6,
+  "tactical-spark": 5,
+  glint: 3,
 } as const;
 
 export const TRAINING_PARTICLE_KIND_PATTERNS = {
   far: [
-    "metal-shard",
-    "micro-spark",
-    "neon-streak",
-    "metal-shard",
-    "hard-glint",
-    "micro-spark",
-    "metal-shard",
-    "neon-streak",
+    "micro-dot",
+    "data-pixel",
+    "micro-dot",
+    "mesh-fragment",
+    "micro-dot",
+    "tactical-spark",
+    "micro-dot",
+    "glint",
+    "micro-dot",
+    "data-pixel",
+    "micro-dot",
+    "mesh-fragment",
+    "micro-dot",
+    "tactical-spark",
   ],
   mid: [
-    "metal-shard",
-    "micro-spark",
-    "neon-streak",
-    "hard-glint",
-    "micro-spark",
-    "metal-shard",
-    "neon-streak",
-    "metal-shard",
+    "micro-dot",
+    "mesh-fragment",
+    "data-pixel",
+    "micro-dot",
+    "tactical-spark",
+    "micro-dot",
+    "glint",
+    "micro-dot",
+    "mesh-fragment",
+    "data-pixel",
+    "micro-dot",
+    "tactical-spark",
   ],
   near: [
-    "neon-streak",
-    "metal-shard",
-    "micro-spark",
-    "hard-glint",
-    "metal-shard",
-    "neon-streak",
-    "micro-spark",
-    "metal-shard",
+    "micro-dot",
+    "data-pixel",
+    "mesh-fragment",
+    "tactical-spark",
+    "micro-dot",
+    "data-pixel",
+    "mesh-fragment",
+    "glint",
   ],
 } as const satisfies Record<
   TrainingParticlePresetName,
@@ -134,42 +146,42 @@ const presetConfigurations = {
     horizontalBands: TRAINING_PARTICLE_HORIZONTAL_BANDS.far,
     kindPattern: TRAINING_PARTICLE_KIND_PATTERNS.far,
     y: TRAINING_PARTICLE_VERTICAL_ZONES.far,
-    size: [1.6, 2.8],
-    opacity: [0.55, 0.8],
-    duration: [9, 15],
-    driftX: 7,
-    driftY: 9,
-    blur: [0, 0.18],
-    glow: [7, 12],
-    minSpacing: [3.4, 1.35],
+    size: [0.65, 1.05],
+    opacity: [0.07, 0.13],
+    duration: [6.8, 10.4],
+    driftX: 3,
+    driftY: 2,
+    blur: [0, 0.03],
+    glow: [1.2, 2.4],
+    minSpacing: [5.5, 2.2],
   },
   mid: {
     seed: TRAINING_PARTICLE_SEEDS.mid,
     horizontalBands: TRAINING_PARTICLE_HORIZONTAL_BANDS.mid,
     kindPattern: TRAINING_PARTICLE_KIND_PATTERNS.mid,
     y: TRAINING_PARTICLE_VERTICAL_ZONES.mid,
-    size: [2, 3.4],
-    opacity: [0.62, 0.88],
-    duration: [7, 12],
-    driftX: 12,
-    driftY: 16,
-    blur: [0, 0.12],
-    glow: [9, 15],
-    minSpacing: [4.2, 2.2],
+    size: [0.8, 1.3],
+    opacity: [0.09, 0.17],
+    duration: [6.1, 9.5],
+    driftX: 5,
+    driftY: 3.5,
+    blur: [0, 0.02],
+    glow: [1.6, 3.2],
+    minSpacing: [6.5, 3],
   },
   near: {
     seed: TRAINING_PARTICLE_SEEDS.near,
     horizontalBands: TRAINING_PARTICLE_HORIZONTAL_BANDS.near,
     kindPattern: TRAINING_PARTICLE_KIND_PATTERNS.near,
     y: TRAINING_PARTICLE_VERTICAL_ZONES.near,
-    size: [2.4, 4.2],
-    opacity: [0.68, 0.96],
-    duration: [5.5, 9.5],
-    driftX: 18,
-    driftY: 23,
-    blur: [0, 0.08],
-    glow: [12, 19],
-    minSpacing: [3.8, 2.6],
+    size: [1, 1.6],
+    opacity: [0.11, 0.2],
+    duration: [5.6, 8.8],
+    driftX: 8,
+    driftY: 5.5,
+    blur: [0, 0.02],
+    glow: [2, 4.5],
+    minSpacing: [7, 4],
   },
 } as const satisfies Record<
   TrainingParticlePresetName,
@@ -236,17 +248,17 @@ function isTooClose(
   );
 }
 
-function isHardGlintTooClose(
+function isGlintTooClose(
   particles: readonly TrainingParticle[],
   kind: TrainingParticleKind,
   x: number,
   y: number,
 ) {
-  if (kind !== "hard-glint") return false;
+  if (kind !== "glint") return false;
 
   return particles.some(
     (particle) =>
-      particle.kind === "hard-glint" &&
+      particle.kind === "glint" &&
       Math.abs(particle.x - x) < 12 &&
       Math.abs(particle.y - y) < 5,
   );
@@ -279,23 +291,14 @@ function buildTrainingParticlePreset(
     if (
       isInsideExclusionZone(preset, x, y) ||
       isTooClose(particles, x, y, configuration.minSpacing) ||
-      isHardGlintTooClose(particles, kind, x, y)
+      isGlintTooClose(particles, kind, x, y)
     ) {
       continue;
     }
 
     const direction = random() < 0.5 ? -1 : 1;
-    const speedMultiplier =
-      kind === "micro-spark"
-        ? 0.55
-        : kind === "neon-streak"
-          ? 0.68
-          : kind === "hard-glint"
-            ? 0.46
-            : 1;
     const duration =
-      interpolate(configuration.duration, random()) * speedMultiplier +
-      index * 0.035;
+      interpolate(configuration.duration, random()) + index * 0.025;
 
     particles.push({
       id: `${preset}-${String(index + 1).padStart(2, "0")}`,
@@ -307,29 +310,31 @@ function buildTrainingParticlePreset(
       duration: round(duration),
       delay: round(-interpolate([0.9, duration * 0.94], random())),
       driftX1: round(
-        direction * configuration.driftX * interpolate([0.24, 0.52], random()),
+        direction * configuration.driftX * interpolate([0.12, 0.3], random()),
       ),
       driftY1: round(
-        -configuration.driftY * interpolate([0.22, 0.42], random()),
+        -configuration.driftY * interpolate([0.08, 0.2], random()),
       ),
       driftX2: round(
-        -direction * configuration.driftX * interpolate([0.12, 0.44], random()),
+        direction * configuration.driftX * interpolate([0.3, 0.58], random()),
       ),
       driftY2: round(
-        -configuration.driftY * interpolate([0.5, 0.72], random()),
+        -configuration.driftY * interpolate([0.18, 0.4], random()),
       ),
       driftX3: round(
-        direction * configuration.driftX * interpolate([0.34, 0.96], random()),
+        direction * configuration.driftX * interpolate([0.55, 0.92], random()),
       ),
       driftY3: round(
-        -configuration.driftY * interpolate([0.82, 1], random()),
+        -configuration.driftY * interpolate([0.35, 0.8], random()),
       ),
       rotation:
-        kind === "metal-shard"
-          ? round(interpolate([-72, 72], random()))
-          : kind === "neon-streak"
-            ? round(interpolate([-34, 34], random()))
-            : round(interpolate([-48, 48], random())),
+        kind === "mesh-fragment"
+          ? round(interpolate([-35, 35], random()))
+          : kind === "tactical-spark"
+            ? round(interpolate([-24, 24], random()))
+            : kind === "data-pixel"
+              ? round(interpolate([-20, 20], random()))
+              : round(interpolate([-8, 8], random())),
       blur: round(interpolate(configuration.blur, random())),
       glow: round(interpolate(configuration.glow, random())),
     });
