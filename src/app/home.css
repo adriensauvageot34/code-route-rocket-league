@@ -487,35 +487,35 @@
 }
 
 .training-city-middle {
-  opacity: 0.87;
-  filter: brightness(0.89) saturate(0.94);
-  transform: translate3d(0, 6%, 0) scaleY(0.94);
+  opacity: 0.91;
+  filter: brightness(0.91) contrast(1.05) saturate(0.97);
+  transform: translate3d(0, 8%, 0) scale(1.1, 0.94);
 }
 
 .training-city-near {
   opacity: 1;
-  filter: brightness(0.92) contrast(1.12) saturate(1.04);
-  transform: translate3d(0, 8%, 0) scale(1.08, 0.9);
+  filter: brightness(0.94) contrast(1.14) saturate(1.06);
+  transform: translate3d(0, 10%, 0) scale(1.16, 0.92);
 }
 
 .training-atmospheric-haze {
   position: absolute;
   pointer-events: none;
-  inset: 18% -5% 57%;
+  inset: 8% -6% 55%;
   background:
-    radial-gradient(ellipse at 52% 62%, rgba(126, 103, 190, 0.16), transparent 58%),
+    radial-gradient(ellipse at 52% 82%, rgba(126, 103, 190, 0.18), transparent 62%),
     linear-gradient(
       180deg,
       transparent,
-      rgba(86, 91, 153, 0.12) 48%,
-      rgba(48, 58, 104, 0.16) 72%,
+      rgba(86, 91, 153, 0.1) 52%,
+      rgba(48, 58, 104, 0.18) 82%,
       transparent
     );
-  filter: blur(16px);
-  opacity: 0.56;
+  filter: blur(18px);
+  opacity: 0.64;
   transform: scaleX(1.08);
-  -webkit-mask-image: linear-gradient(180deg, transparent, black 28%, black 76%, transparent);
-  mask-image: linear-gradient(180deg, transparent, black 28%, black 76%, transparent);
+  -webkit-mask-image: linear-gradient(180deg, transparent, black 20%, black 86%, transparent);
+  mask-image: linear-gradient(180deg, transparent, black 20%, black 86%, transparent);
 }
 
 .training-radar-overlay {
