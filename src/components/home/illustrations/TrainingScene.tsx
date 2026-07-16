@@ -100,7 +100,12 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       </SceneGroup>
 
       <SceneGroup blendMode="screen" depth="trainingParticlesFar" layer={7} name="training-particles-far">
-        <TrainingParticleField preset="far" />
+        <TrainingParticleField
+          active={running}
+          direction={passDirection}
+          passKey={passKey}
+          preset="far"
+        />
       </SceneGroup>
 
       <SceneGroup depth={trainingFarCarTarget.depth} layer={8} name={`training-${trainingFarCarTarget.id}`}>
@@ -111,7 +116,12 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       </SceneGroup>
 
       <SceneGroup blendMode="screen" depth="trainingParticlesMid" layer={9} name="training-particles-mid">
-        <TrainingParticleField preset="mid" />
+        <TrainingParticleField
+          active={running}
+          direction={passDirection}
+          passKey={passKey}
+          preset="mid"
+        />
       </SceneGroup>
 
       <SceneGroup depth={trainingMidCarTarget.depth} layer={10} name={`training-${trainingMidCarTarget.id}`}>
@@ -145,7 +155,12 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       </SceneGroup>
 
       <SceneGroup blendMode="screen" depth="trainingParticlesNear" layer={14} name="training-particles-near">
-        <TrainingParticleField preset="near" />
+        <TrainingParticleField
+          active={running}
+          direction={passDirection}
+          passKey={passKey}
+          preset="near"
+        />
       </SceneGroup>
 
       <SceneGroup depth="trainingFennec" layer={15} name="fennec">
