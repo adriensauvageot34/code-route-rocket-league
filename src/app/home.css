@@ -488,7 +488,11 @@
 
 .training-city-middle {
   opacity: 1;
-  filter: brightness(2) saturate(1.8);
+  filter:
+    brightness(1.12)
+    contrast(1.12)
+    saturate(1.12)
+    drop-shadow(0 0 7px rgba(128, 74, 210, 0.18));
   transform: translate3d(0, -1%, 0) scale(1.32, 1.15);
 }
 
