@@ -587,8 +587,10 @@
   opacity: 0;
   filter:
     blur(var(--particle-blur))
-    saturate(1.05)
+    brightness(1.12)
+    saturate(1.18)
     drop-shadow(0 0 var(--particle-glow) currentColor);
+  mix-blend-mode: screen;
   transform-origin: center;
   animation: training-micro-dot-pulse var(--particle-duration)
     cubic-bezier(0.2, 0.7, 0.2, 1)
@@ -602,7 +604,7 @@
 .training-particle[data-particle-kind="micro-dot"] .training-particle-core {
   width: var(--particle-thickness);
   border-radius: 50%;
-  background: rgb(126 82 187 / 0.72);
+  background: rgb(142 94 214 / 0.92);
 }
 
 .training-particle[data-particle-kind="tactical-spark"] {
@@ -613,9 +615,9 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgb(111 70 164 / 0.54) 22%,
+    rgb(124 76 184 / 0.72) 22%,
     currentColor 58%,
-    rgb(218 164 86 / 0.72) 76%,
+    rgb(226 171 91 / 0.9) 76%,
     transparent
   );
   clip-path: polygon(0 38%, 100% 0, 86% 54%, 100% 100%, 0 62%);
@@ -649,7 +651,7 @@
 }
 
 .training-particle[data-particle-kind="data-pixel"] .training-particle-core {
-  background: rgb(101 62 154 / 0.68);
+  background: rgb(122 75 181 / 0.88);
   animation-name: training-data-pixel-blip;
 }
 
@@ -2189,7 +2191,7 @@
   }
 
   40% {
-    opacity: calc(var(--particle-opacity) * 0.36);
+    opacity: calc(var(--particle-opacity) * 0.45);
     transform: translate3d(
         var(--particle-drift-x-1),
         var(--particle-drift-y-1),
@@ -2209,7 +2211,7 @@
   }
 
   47% {
-    opacity: calc(var(--particle-opacity) * 0.28);
+    opacity: calc(var(--particle-opacity) * 0.52);
     transform: translate3d(
         var(--particle-drift-x-3),
         var(--particle-drift-y-3),
@@ -2229,7 +2231,7 @@
   }
 
   40% {
-    opacity: calc(var(--particle-opacity) * 0.32);
+    opacity: calc(var(--particle-opacity) * 0.42);
     transform: translate3d(
         var(--particle-drift-x-1),
         var(--particle-drift-y-1),
@@ -2249,7 +2251,7 @@
   }
 
   46% {
-    opacity: calc(var(--particle-opacity) * 0.24);
+    opacity: calc(var(--particle-opacity) * 0.5);
     transform: translate3d(
         var(--particle-drift-x-3),
         var(--particle-drift-y-3),
@@ -2269,7 +2271,7 @@
   }
 
   41% {
-    opacity: calc(var(--particle-opacity) * 0.3);
+    opacity: calc(var(--particle-opacity) * 0.4);
     transform: translate3d(
         var(--particle-drift-x-1),
         var(--particle-drift-y-1),
@@ -2289,7 +2291,7 @@
   }
 
   48% {
-    opacity: calc(var(--particle-opacity) * 0.2);
+    opacity: calc(var(--particle-opacity) * 0.45);
     transform: translate3d(
         var(--particle-drift-x-3),
         var(--particle-drift-y-3),
@@ -2309,7 +2311,7 @@
   }
 
   41% {
-    opacity: calc(var(--particle-opacity) * 0.26);
+    opacity: calc(var(--particle-opacity) * 0.36);
     transform: translate3d(
         var(--particle-drift-x-1),
         var(--particle-drift-y-1),
@@ -2329,7 +2331,7 @@
   }
 
   47% {
-    opacity: calc(var(--particle-opacity) * 0.18);
+    opacity: calc(var(--particle-opacity) * 0.42);
     transform: translate3d(
         var(--particle-drift-x-3),
         var(--particle-drift-y-3),
@@ -2349,7 +2351,7 @@
   }
 
   41% {
-    opacity: calc(var(--particle-opacity) * 0.3);
+    opacity: calc(var(--particle-opacity) * 0.45);
     transform: translate3d(
         var(--particle-drift-x-1),
         var(--particle-drift-y-1),
@@ -2369,7 +2371,7 @@
   }
 
   45% {
-    opacity: calc(var(--particle-opacity) * 0.22);
+    opacity: calc(var(--particle-opacity) * 0.5);
     transform: translate3d(
         var(--particle-drift-x-3),
         var(--particle-drift-y-3),
@@ -2436,8 +2438,8 @@
     .training-particle:nth-child(-n + 4)
     .training-particle-core {
     animation: none;
-    opacity: 0.08;
-    filter: drop-shadow(0 0 2px currentColor);
+    opacity: 0.14;
+    filter: drop-shadow(0 0 3px currentColor);
     transform: none;
     will-change: auto;
   }
