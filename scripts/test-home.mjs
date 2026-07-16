@@ -201,14 +201,15 @@ assert(sceneDepths.includes("rotation: 0.2"), "Parallax rotation must remain cap
 for (const trainingDepth of ["trainingSky", "trainingSkyline", "trainingMid", "trainingNear", "trainingGround", "trainingCarFar", "trainingCarMid", "trainingCarNear", "trainingBall", "trainingFennec"]) {
   assert(sceneDepths.includes(`${trainingDepth}:`), `Missing Training parallax depth: ${trainingDepth}`);
 }
-for (const amplitude of [3, 7, 18, 27, 22, 23, 25, 28, 34]) {
+for (const amplitude of [3, 7, 22, 27, 23, 25, 28, 34]) {
   assert(sceneDepths.includes(`translationX: ${amplitude}`), `Missing Training horizontal amplitude: ${amplitude}px`);
 }
 assert(sceneDepths.includes("translationY: 1") && sceneDepths.includes("translationY: 2"), "Training vertical parallax must stay capped between one and two pixels.");
 assert(parallaxController.includes("requestAnimationFrame") && parallaxController.includes("cancelAnimationFrame"), "Parallax must create and cancel its frame.");
 assert(trainingRadarSequence.includes("targetPhases") && !trainingRadarSequence.includes("activeTargetId"), "Radar targets must keep independent overlapping phases.");
 assert(trainingRadarSequence.includes("schedule(beginPass, TRAINING_RADAR_TIMING.passDurationMs)"), "Radar must reverse immediately when each traverse ends.");
-assert(css.includes("scale(1.1, 0.94)") && css.includes("scale(1.16, 0.92)") && sceneDepths.includes("translationX: 18") && sceneDepths.includes("translationX: 28"), "The first two skyline planes must stay low, close and parallax distinctly.");
+assert(css.includes("translate3d(0, 1%, 0) scale(1.22, 1.08)") && css.includes("translate3d(0, -2%, 0) scale(1.36, 1.16)"), "The first two skyline planes must be enlarged and raised toward the terrain.");
+assert(sceneDepths.includes("trainingMid: { translationX: 22") && sceneDepths.includes("trainingNear: { translationX: 34"), "The first two skyline planes must have strong and distinct foreground parallax.");
 assert(css.includes("inset: 8% -6% 55%") && css.includes("ellipse at 52% 82%"), "The skyline haze must extend upward while concentrating near the terrain horizon.");
 assert(parallaxController.includes("AUTO_DRIFT_PERIOD_MS = 20000") && parallaxController.includes("-Math.sin(autoAngle)"), "Automatic camera must follow one continuous 20-second center-left-center-right cycle.");
 assert(parallaxController.includes('removeEventListener("pointermove"'), "Parallax pointer listener must clean up.");
