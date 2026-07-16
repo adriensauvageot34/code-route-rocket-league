@@ -194,6 +194,17 @@ for (const [preset, expectedCount] of Object.entries({ far: 12, mid: 10, near: 6
 assert(trainingParticlePresets.includes("far: 1107") && trainingParticlePresets.includes("mid: 2284") && trainingParticlePresets.includes("near: 3916"), "Training particles must use fixed per-depth seeds.");
 assert(!trainingParticlePresets.includes("Math.random"), "Training particles must not use nondeterministic randomness.");
 assert(trainingParticlePresets.includes("index * 0.07"), "Training particle durations must stay decorrelated.");
+for (const visibilityTuning of [
+  "size: [2, 3.4]",
+  "opacity: [0.18, 0.34]",
+  "size: [2.8, 4.8]",
+  "opacity: [0.26, 0.48]",
+  "size: [4, 7]",
+  "opacity: [0.34, 0.62]",
+  "glow: [8, 13]",
+]) {
+  assert(trainingParticlePresets.includes(visibilityTuning), `Training particles lost their visible tuning: ${visibilityTuning}.`);
+}
 
 const particleKinds = { "violet-dust": 0, "gold-dot": 0, "tactical-spark": 0 };
 for (const preset of ["far", "mid", "near"]) {
@@ -386,6 +397,7 @@ for (const preset of ["far", "mid", "near"]) {
   assert(css.includes(`data-particle-preset="${preset}"`), `Missing CSS depth band for ${preset} particles.`);
 }
 assert(css.includes("@keyframes training-particle-drift") && css.includes("@keyframes training-tactical-spark-drift"), "Particles must use organic CSS-only motion.");
+assert(css.includes("box-shadow: 0 0 var(--particle-glow) currentColor") && css.includes("  92% {") && css.includes("  82% {"), "Particles must remain clearly visible through most of their CSS cycle.");
 assert(css.includes('.mode-illustration[data-active="false"] .training-particle-core') && css.includes('.mode-illustration[data-motion-active="false"] .training-particle-core'), "Inactive and offscreen particle animation must pause.");
 assert(css.includes('.training-scene[data-launching="true"] .training-particle-field') && css.includes("transition: opacity 240ms ease-out"), "Particles must fade and pause during launch.");
 assert(css.includes('.training-particle-field[data-particle-preset="far"]') && css.includes(".training-particle:nth-child(n + 5)"), "Reduced motion must keep at most four static far particles.");
