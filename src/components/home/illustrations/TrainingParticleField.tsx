@@ -16,7 +16,6 @@ type TrainingParticleStyle = CSSProperties & {
   "--particle-drift-x-1": string;
   "--particle-drift-x-2": string;
   "--particle-drift-x-3": string;
-  "--particle-drift-x-end": string;
   "--particle-drift-y-1": string;
   "--particle-drift-y-2": string;
   "--particle-drift-y-3": string;
@@ -24,24 +23,18 @@ type TrainingParticleStyle = CSSProperties & {
   "--particle-glow": string;
   "--particle-length": string;
   "--particle-opacity": string;
-  "--particle-opacity-intro": string;
-  "--particle-opacity-soft": string;
-  "--particle-opacity-spark": string;
-  "--particle-opacity-spark-low": string;
   "--particle-rotation": string;
-  "--particle-rotation-end": string;
-  "--particle-rotation-intro": string;
-  "--particle-rotation-soft": string;
   "--particle-thickness": string;
   "--particle-x": string;
   "--particle-y": string;
 };
 
 const particleGeometry = {
-  "metal-shard": { cross: 2, length: 3.4, thickness: 0.55 },
-  "micro-spark": { cross: 3, length: 3, thickness: 0.28 },
-  "neon-streak": { cross: 2, length: 6.8, thickness: 0.22 },
-  "hard-glint": { cross: 4.2, length: 2.4, thickness: 0.36 },
+  "micro-dot": { cross: 1, length: 1, thickness: 1 },
+  "tactical-spark": { cross: 1.3, length: 5.2, thickness: 0.42 },
+  glint: { cross: 4.2, length: 2.4, thickness: 0.38 },
+  "mesh-fragment": { cross: 2.8, length: 3.5, thickness: 0.45 },
+  "data-pixel": { cross: 1.4, length: 1.8, thickness: 0.75 },
 } as const satisfies Record<
   TrainingParticleKind,
   { cross: number; length: number; thickness: number }
@@ -63,7 +56,7 @@ export function TrainingParticleField({
             "--particle-x": `${particle.x}%`,
             "--particle-y": `${particle.y}%`,
             "--particle-length": `${(particle.size * geometry.length).toFixed(2)}px`,
-            "--particle-thickness": `${Math.max(0.8, particle.size * geometry.thickness).toFixed(2)}px`,
+            "--particle-thickness": `${Math.max(1, particle.size * geometry.thickness).toFixed(2)}px`,
             "--particle-cross-size": `${(particle.size * geometry.cross).toFixed(2)}px`,
             "--particle-opacity": String(particle.opacity),
             "--particle-duration": `${particle.duration}s`,
@@ -73,18 +66,10 @@ export function TrainingParticleField({
             "--particle-drift-x-2": `${particle.driftX2}px`,
             "--particle-drift-y-2": `${particle.driftY2}px`,
             "--particle-drift-x-3": `${particle.driftX3}px`,
-            "--particle-drift-x-end": `${(particle.driftX3 * 0.78).toFixed(2)}px`,
             "--particle-drift-y-3": `${particle.driftY3}px`,
             "--particle-rotation": `${particle.rotation}deg`,
-            "--particle-rotation-intro": `${(particle.rotation * 0.28).toFixed(2)}deg`,
-            "--particle-rotation-soft": `${(particle.rotation * -0.18).toFixed(2)}deg`,
-            "--particle-rotation-end": `${(particle.rotation * 1.24).toFixed(2)}deg`,
             "--particle-blur": `${particle.blur}px`,
             "--particle-glow": `${particle.glow}px`,
-            "--particle-opacity-intro": String((particle.opacity * 0.68).toFixed(3)),
-            "--particle-opacity-soft": String((particle.opacity * 0.72).toFixed(3)),
-            "--particle-opacity-spark": String((particle.opacity * 0.82).toFixed(3)),
-            "--particle-opacity-spark-low": String((particle.opacity * 0.3).toFixed(3)),
           };
 
           return (
