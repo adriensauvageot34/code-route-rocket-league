@@ -21,6 +21,8 @@ export const TRAINING_RADAR_SWEEP = {
   endX: 1710,
 } as const;
 
+export type TrainingRadarDirection = "ltr" | "rtl";
+
 type TrainingTargetPlacement = {
   aspectRatio: `${number} / ${number}`;
   left: `${number}%`;
@@ -108,9 +110,15 @@ export const trainingRadarTargets = [
 
 export type TrainingRadarTargetId = (typeof trainingRadarTargets)[number]["id"];
 
-export function getTrainingRadarHitDelayMs(target: TrainingRadarTarget) {
+export function getTrainingRadarHitDelayMs(
+  target: TrainingRadarTarget,
+  direction: TrainingRadarDirection,
+) {
+  const hitProgress =
+    direction === "rtl" ? 1 - target.scanHitProgress : target.scanHitProgress;
+
   return Math.round(
     TRAINING_RADAR_TIMING.entryDurationMs +
-      TRAINING_RADAR_TIMING.travelDurationMs * target.scanHitProgress,
+      TRAINING_RADAR_TIMING.travelDurationMs * hitProgress,
   );
 }

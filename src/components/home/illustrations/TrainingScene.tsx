@@ -18,6 +18,7 @@ type TrainingSceneProps = {
 export function TrainingScene({ active, launching }: TrainingSceneProps) {
   const {
     activeTargetId,
+    passDirection,
     passKey,
     phase,
     running,
@@ -39,61 +40,67 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         <SceneLayer asset={assets.parallaxFarSkyline} preload />
       </SceneGroup>
 
-      <SceneGroup depth="trainingMid" layer={2} name="training-mid-buildings">
+      <SceneGroup blendMode="screen" depth="trainingMid" layer={2} name="training-atmospheric-haze">
+        <div aria-hidden="true" className="training-atmospheric-haze" />
+      </SceneGroup>
+
+      <SceneGroup depth="trainingMid" layer={3} name="training-mid-buildings">
         <SceneLayer asset={assets.parallaxMidBuildings} />
       </SceneGroup>
 
-      <SceneGroup depth="trainingNear" layer={3} name="training-near-buildings">
+      <SceneGroup depth="trainingNear" layer={4} name="training-near-buildings">
         <SceneLayer asset={assets.parallaxNearBuildings} />
       </SceneGroup>
 
-      <SceneGroup depth="trainingGround" layer={4} name="training-ground">
+      <SceneGroup depth="trainingGround" layer={5} name="training-ground">
         <SceneLayer asset={assets.parallaxGroundBarrier} preload />
       </SceneGroup>
 
-      <SceneGroup blendMode="screen" depth="trainingGround" layer={5} name="training-radar-surface">
+      <SceneGroup blendMode="screen" depth="trainingGround" layer={6} name="training-radar-surface">
         <TrainingRadarOverlay
           active={running}
+          direction={passDirection}
           key={`training-radar-surface-${passKey}`}
           variant="surface"
         />
       </SceneGroup>
 
-      <SceneGroup depth="trainingActors" layer={6} name="training-distant-cars">
+      <SceneGroup depth="trainingActors" layer={7} name="training-distant-cars">
         <SceneLayer asset={assets.distantCarLeft} />
         <SceneLayer asset={assets.distantCarBackRight} />
         <SceneLayer asset={assets.distantCarFrontRight} />
       </SceneGroup>
 
-      <SceneGroup depth="trainingActors" layer={7} name="ball">
+      <SceneGroup depth="trainingActors" layer={8} name="ball">
         <SceneLayer asset={assets.ball} />
         <SceneLayer asset={assets.ballEnergyGold} className="training-ball-launch-energy" />
       </SceneGroup>
 
-      <SceneGroup depth="trainingGround" layer={8} name="training-radar-sweep">
+      <SceneGroup depth="trainingGround" layer={9} name="training-radar-sweep">
         <TrainingRadarOverlay
           active={running}
+          direction={passDirection}
           key={`training-radar-sweep-${passKey}`}
           variant="sweep"
         />
       </SceneGroup>
 
-      <SceneGroup depth="trainingActors" layer={9} name="training-radar-targets">
+      <SceneGroup depth="trainingActors" layer={10} name="training-radar-targets">
         <TrainingRadarSequence
           activeTargetId={activeTargetId}
           phase={phase}
         />
       </SceneGroup>
 
-      <SceneGroup depth="trainingFennec" layer={10} name="fennec">
+      <SceneGroup depth="trainingFennec" layer={11} name="fennec">
         <SceneLayer asset={assets.fennecBase} />
       </SceneGroup>
 
-      <SceneGroup blendMode="screen" depth="trainingFennec" layer={11} name="fennec-lights-glow">
+      <SceneGroup blendMode="screen" depth="trainingFennec" layer={12} name="fennec-lights-glow">
         <SceneLayer asset={assets.lightsVioletGlow} className="training-lights-glow" />
       </SceneGroup>
 
-      <SceneGroup blendMode="screen" depth="foreground" future layer={12} name="transition">
+      <SceneGroup blendMode="screen" depth="foreground" future layer={13} name="transition">
         <SceneLayer asset={assets.transitionWaveGold} className="training-transition-wave-local" />
       </SceneGroup>
     </div>

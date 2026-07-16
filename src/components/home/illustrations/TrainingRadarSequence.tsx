@@ -12,6 +12,7 @@ import {
   getTrainingRadarHitDelayMs,
   TRAINING_RADAR_TIMING,
   trainingRadarTargets,
+  type TrainingRadarDirection,
   type TrainingRadarTargetId,
 } from "@/lib/home/trainingRadarTargets";
 
@@ -19,6 +20,7 @@ export type TrainingRadarPhase = "hidden" | "glow" | "hold" | "fade";
 
 type TrainingRadarSequenceState = {
   activeTargetId: TrainingRadarTargetId | null;
+  passDirection: TrainingRadarDirection;
   passKey: number;
   passTargetId: TrainingRadarTargetId | null;
   phase: TrainingRadarPhase;
@@ -43,6 +45,7 @@ type SequenceStyle = CSSProperties & {
 
 const INITIAL_SEQUENCE_STATE: TrainingRadarSequenceState = {
   activeTargetId: null,
+  passDirection: "ltr",
   passKey: 0,
   passTargetId: null,
   phase: "hidden",
@@ -126,16 +129,19 @@ export function useTrainingRadarSequence({
 
     function beginPass() {
       const target = trainingRadarTargets[targetIndex];
+      const passDirection: TrainingRadarDirection =
+        targetIndex % 2 === 0 ? "ltr" : "rtl";
       targetIndex = (targetIndex + 1) % trainingRadarTargets.length;
 
       setSequence((current) => ({
         ...current,
+        passDirection,
         passKey: current.passKey + 1,
         passTargetId: target.id,
         running: true,
       }));
 
-      const hitDelayMs = getTrainingRadarHitDelayMs(target);
+      const hitDelayMs = getTrainingRadarHitDelayMs(target, passDirection);
 
       schedule(() => {
         setSequence((current) => ({
@@ -183,6 +189,7 @@ export function useTrainingRadarSequence({
 
   return {
     activeTargetId: shouldRun ? sequence.activeTargetId : null,
+    passDirection: shouldRun ? sequence.passDirection : "ltr",
     passKey: shouldRun ? sequence.passKey : 0,
     passTargetId: shouldRun ? sequence.passTargetId : null,
     phase: shouldRun ? sequence.phase : "hidden",

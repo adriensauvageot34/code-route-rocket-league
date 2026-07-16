@@ -4,10 +4,12 @@ import {
   TRAINING_RADAR_FIELD_PATH,
   TRAINING_RADAR_SWEEP,
   TRAINING_RADAR_TIMING,
+  type TrainingRadarDirection,
 } from "@/lib/home/trainingRadarTargets";
 
 type TrainingRadarOverlayProps = {
   active: boolean;
+  direction: TrainingRadarDirection;
   variant: "surface" | "sweep";
 };
 
@@ -20,12 +22,27 @@ type TrainingRadarStyle = CSSProperties & {
 
 const terrainAsset = homeIllustrationAssets.training.tacticalTerrain;
 
-export function TrainingRadarOverlay({ active, variant }: TrainingRadarOverlayProps) {
+const REVEAL_PATHS: Record<TrainingRadarDirection, string> = {
+  ltr: "M -390 340 L 36 340 L 274 941 L -154 941 Z",
+  rtl: "M 390 340 L -36 340 L -274 941 L 154 941 Z",
+};
+
+const SWEEP_PATHS: Record<TrainingRadarDirection, string> = {
+  ltr: "M -286 340 L 2 340 L 238 941 L -50 941 Z",
+  rtl: "M 286 340 L -2 340 L -238 941 L 50 941 Z",
+};
+
+export function TrainingRadarOverlay({
+  active,
+  direction,
+  variant,
+}: TrainingRadarOverlayProps) {
+  const movesLeftToRight = direction === "ltr";
   const style: TrainingRadarStyle = {
     "--radar-entry-duration": `${TRAINING_RADAR_TIMING.entryDurationMs}ms`,
     "--radar-travel-duration": `${TRAINING_RADAR_TIMING.travelDurationMs}ms`,
-    "--radar-start-x": `${TRAINING_RADAR_SWEEP.startX}px`,
-    "--radar-end-x": `${TRAINING_RADAR_SWEEP.endX}px`,
+    "--radar-start-x": `${movesLeftToRight ? TRAINING_RADAR_SWEEP.startX : TRAINING_RADAR_SWEEP.endX}px`,
+    "--radar-end-x": `${movesLeftToRight ? TRAINING_RADAR_SWEEP.endX : TRAINING_RADAR_SWEEP.startX}px`,
   };
 
   if (variant === "surface") {
@@ -33,6 +50,7 @@ export function TrainingRadarOverlay({ active, variant }: TrainingRadarOverlayPr
       <svg
         aria-hidden="true"
         className={`training-radar-overlay training-radar-surface${active ? " is-active" : ""}`}
+        data-radar-direction={direction}
         preserveAspectRatio="xMidYMid slice"
         style={style}
         viewBox="0 0 1672 941"
@@ -41,7 +59,13 @@ export function TrainingRadarOverlay({ active, variant }: TrainingRadarOverlayPr
           <clipPath id="training-radar-field-surface-clip">
             <path d={TRAINING_RADAR_FIELD_PATH} />
           </clipPath>
-          <linearGradient id="training-radar-terrain-mask-gradient" x1="0" x2="1" y1="0" y2="0">
+          <linearGradient
+            id="training-radar-terrain-mask-gradient"
+            x1={movesLeftToRight ? "0" : "1"}
+            x2={movesLeftToRight ? "1" : "0"}
+            y1="0"
+            y2="0"
+          >
             <stop offset="0" stopColor="black" />
             <stop offset="0.12" stopColor="#242424" />
             <stop offset="0.58" stopColor="#b8b8b8" />
@@ -52,7 +76,7 @@ export function TrainingRadarOverlay({ active, variant }: TrainingRadarOverlayPr
             <rect width="1672" height="941" fill="black" />
             <g className="training-radar-motion">
               <path
-                d="M -390 340 L 36 340 L 274 941 L -154 941 Z"
+                d={REVEAL_PATHS[direction]}
                 fill="url(#training-radar-terrain-mask-gradient)"
               />
             </g>
@@ -76,6 +100,7 @@ export function TrainingRadarOverlay({ active, variant }: TrainingRadarOverlayPr
     <svg
       aria-hidden="true"
       className={`training-radar-overlay training-radar-sweep${active ? " is-active" : ""}`}
+      data-radar-direction={direction}
       preserveAspectRatio="xMidYMid slice"
       style={style}
       viewBox="0 0 1672 941"
@@ -84,21 +109,26 @@ export function TrainingRadarOverlay({ active, variant }: TrainingRadarOverlayPr
         <clipPath id="training-radar-field-sweep-clip">
           <path d={TRAINING_RADAR_FIELD_PATH} />
         </clipPath>
-        <linearGradient id="training-radar-trail-gradient" x1="0" x2="1" y1="0" y2="0">
+        <linearGradient
+          id="training-radar-trail-gradient"
+          x1={movesLeftToRight ? "0" : "1"}
+          x2={movesLeftToRight ? "1" : "0"}
+          y1="0"
+          y2="0"
+        >
           <stop offset="0" stopColor="#736fff" stopOpacity="0" />
-          <stop offset="0.66" stopColor="#706cff" stopOpacity="0.14" />
-          <stop offset="1" stopColor="#a7ddff" stopOpacity="0.42" />
+          <stop offset="0.58" stopColor="#8279dc" stopOpacity="0.06" />
+          <stop offset="0.86" stopColor="#a3a9db" stopOpacity="0.12" />
+          <stop offset="1" stopColor="#dbe7ff" stopOpacity="0.18" />
         </linearGradient>
       </defs>
       <g clipPath="url(#training-radar-field-sweep-clip)">
         <g className="training-radar-motion">
           <path
             className="training-radar-trail"
-            d="M -286 340 L 2 340 L 238 941 L -50 941 Z"
+            d={SWEEP_PATHS[direction]}
             fill="url(#training-radar-trail-gradient)"
           />
-          <path className="training-radar-line-glow" d="M 2 340 L 238 941" />
-          <path className="training-radar-line-core" d="M 2 340 L 238 941" />
         </g>
       </g>
     </svg>

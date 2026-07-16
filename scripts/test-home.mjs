@@ -164,12 +164,16 @@ for (const asset of ["distantCarLeft", "distantCarBackRight", "distantCarFrontRi
   assert(trainingScene.includes(`assets.${asset}`), `Separated Training car missing: ${asset}`);
 }
 assert(trainingScene.includes('name="training-radar-surface"') && trainingScene.includes('name="training-radar-sweep"') && trainingScene.includes('name="training-radar-targets"'), "Training radar layers must remain separated.");
+assert(trainingScene.includes('name="training-atmospheric-haze"') && css.includes(".training-atmospheric-haze"), "Training atmospheric haze must separate the skyline depths.");
 assert(trainingScene.includes('name="ball"') && trainingScene.includes('name="fennec"'), "Training ball and Fennec groups must remain.");
 assert(trainingScene.includes('className="training-transition-wave-local"'), "Prepared Training transition layer must remain.");
 assert(trainingRadarOverlay.includes('viewBox="0 0 1672 941"') && trainingRadarOverlay.includes("TRAINING_RADAR_FIELD_PATH"), "Training radar must share and clip to the logical field canvas.");
+assert(trainingRadarOverlay.includes("data-radar-direction") && trainingScene.includes("direction={passDirection}"), "Training radar direction must drive both reveal layers.");
+assert(!trainingRadarOverlay.includes("training-radar-line-core") && !trainingRadarOverlay.includes("training-radar-line-glow"), "Training scan must remain implicit without a hard HUD line.");
 assert(trainingRadarOverlay.includes('mix-blend-mode') === false && css.includes("mix-blend-mode: screen"), "Black tactical terrain must be screen blended in CSS.");
 assert(trainingRadarSequence.includes("document.visibilityState") && trainingRadarSequence.includes("IntersectionObserver") && trainingRadarSequence.includes("prefers-reduced-motion"), "Radar lifecycle must follow page, illustration, and motion visibility.");
 assert(!trainingRadarSequence.includes("requestAnimationFrame"), "Radar must not create a per-frame React loop.");
+assert(trainingRadarSequence.includes('targetIndex % 2 === 0 ? "ltr" : "rtl"') && trainingRadarSequence.includes("getTrainingRadarHitDelayMs(target, passDirection)"), "Radar passes must alternate direction and keep target hits synchronized.");
 for (const target of ["left-car", "back-right-car", "front-right-car", "ball"]) {
   assert(trainingRadarTargets.includes(`id: "${target}"`), `Missing training radar target: ${target}`);
 }
