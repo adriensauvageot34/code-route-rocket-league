@@ -1,11 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import {
   useEffect,
   useRef,
   useState,
-  type CSSProperties,
   type RefObject,
 } from "react";
 import {
@@ -30,17 +28,6 @@ type TrainingRadarSequenceState = {
 type UseTrainingRadarSequenceOptions = {
   active: boolean;
   launching: boolean;
-};
-
-type TrainingRadarSequenceProps = {
-  activeTargetId: TrainingRadarTargetId | null;
-  phase: TrainingRadarPhase;
-};
-
-type SequenceStyle = CSSProperties & {
-  "--training-target-fade-duration": string;
-  "--training-target-glow-duration": string;
-  "--training-target-rise-duration": string;
 };
 
 const INITIAL_SEQUENCE_STATE: TrainingRadarSequenceState = {
@@ -196,80 +183,4 @@ export function useTrainingRadarSequence({
     running: shouldRun && sequence.running,
     sceneRef,
   };
-}
-
-export function TrainingRadarSequence({
-  activeTargetId,
-  phase,
-}: TrainingRadarSequenceProps) {
-  const style: SequenceStyle = {
-    "--training-target-rise-duration": `${TRAINING_RADAR_TIMING.targetRiseDurationMs}ms`,
-    "--training-target-glow-duration": `${TRAINING_RADAR_TIMING.glowDurationMs}ms`,
-    "--training-target-fade-duration": `${TRAINING_RADAR_TIMING.fadeDurationMs}ms`,
-  };
-
-  return (
-    <div aria-hidden="true" className="training-radar-targets" style={style}>
-      {trainingRadarTargets.map((target) => {
-        const targetPhase = activeTargetId === target.id ? phase : "hidden";
-
-        if (target.type === "ball") {
-          return (
-            <Image
-              alt=""
-              aria-hidden="true"
-              className="training-radar-ball-energy"
-              data-radar-phase={targetPhase}
-              data-radar-target={target.id}
-              draggable={false}
-              fill
-              key={target.id}
-              sizes="(max-width: 820px) 100vw, (max-width: 1180px) 66vw, 34vw"
-              src={target.energyAsset.path}
-              unoptimized
-            />
-          );
-        }
-
-        const placementStyle: CSSProperties = {
-          aspectRatio: target.placement.aspectRatio,
-          left: target.placement.left,
-          top: target.placement.top,
-          transformOrigin: target.placement.transformOrigin,
-          width: target.placement.width,
-        };
-
-        return (
-          <div
-            className="training-radar-car-target"
-            data-radar-phase={targetPhase}
-            data-radar-target={target.id}
-            key={target.id}
-            style={placementStyle}
-          >
-            <Image
-              alt=""
-              aria-hidden="true"
-              className="training-radar-car-wireframe"
-              draggable={false}
-              fill
-              sizes="12vw"
-              src={target.wireframeAsset.path}
-              unoptimized
-            />
-            <Image
-              alt=""
-              aria-hidden="true"
-              className="training-radar-car-glow"
-              draggable={false}
-              fill
-              sizes="12vw"
-              src={target.glowAsset.path}
-              unoptimized
-            />
-          </div>
-        );
-      })}
-    </div>
-  );
 }

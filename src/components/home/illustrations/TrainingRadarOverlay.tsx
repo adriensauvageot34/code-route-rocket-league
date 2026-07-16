@@ -23,8 +23,8 @@ type TrainingRadarStyle = CSSProperties & {
 const terrainAsset = homeIllustrationAssets.training.tacticalTerrain;
 
 const REVEAL_PATHS: Record<TrainingRadarDirection, string> = {
-  ltr: "M -390 340 L 36 340 L 274 941 L -154 941 Z",
-  rtl: "M 390 340 L -36 340 L -274 941 L 154 941 Z",
+  ltr: "M -790 340 L 30 340 L 270 941 L -550 941 Z",
+  rtl: "M 790 340 L -30 340 L -270 941 L 550 941 Z",
 };
 
 const SWEEP_PATHS: Record<TrainingRadarDirection, string> = {
@@ -67,9 +67,10 @@ export function TrainingRadarOverlay({
             y2="0"
           >
             <stop offset="0" stopColor="black" />
-            <stop offset="0.12" stopColor="#242424" />
-            <stop offset="0.58" stopColor="#b8b8b8" />
-            <stop offset="0.82" stopColor="white" />
+            <stop offset="0.35" stopColor="#0c0c0c" />
+            <stop offset="0.62" stopColor="#282828" />
+            <stop offset="0.82" stopColor="#707070" />
+            <stop offset="0.94" stopColor="#d0d0d0" />
             <stop offset="1" stopColor="white" />
           </linearGradient>
           <mask id="training-radar-terrain-reveal-mask" maskUnits="userSpaceOnUse">

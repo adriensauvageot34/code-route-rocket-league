@@ -20,8 +20,8 @@ type UseParallaxControllerOptions = {
 };
 
 const POINTER_IDLE_DELAY_MS = 1200;
-const AUTO_DRIFT_PERIOD_MS = 16000;
-const AUTO_DRIFT_Y = 0.04;
+const AUTO_DRIFT_PERIOD_MS = 20000;
+const AUTO_DRIFT_Y = 0.03;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -29,8 +29,8 @@ function clamp(value: number, min: number, max: number) {
 
 function writeParallaxVariables(element: HTMLElement, point: Point) {
   for (const [name, depth] of Object.entries(homeSceneDepths)) {
-    element.style.setProperty(`--parallax-${name}-x`, `${(point.x * depth.translation).toFixed(3)}px`);
-    element.style.setProperty(`--parallax-${name}-y`, `${(point.y * depth.translation).toFixed(3)}px`);
+    element.style.setProperty(`--parallax-${name}-x`, `${(point.x * depth.translationX).toFixed(3)}px`);
+    element.style.setProperty(`--parallax-${name}-y`, `${(point.y * depth.translationY).toFixed(3)}px`);
     element.style.setProperty(`--parallax-${name}-rotation`, `${(point.x * depth.rotation).toFixed(3)}deg`);
   }
 }
