@@ -489,13 +489,13 @@
 .training-city-middle {
   opacity: 0.91;
   filter: brightness(0.91) contrast(1.05) saturate(0.97);
-  transform: translate3d(0, 8%, 0) scale(1.1, 0.94);
+  transform: translate3d(0, 1%, 0) scale(1.22, 1.08);
 }
 
 .training-city-near {
   opacity: 1;
   filter: brightness(0.94) contrast(1.14) saturate(1.06);
-  transform: translate3d(0, 10%, 0) scale(1.16, 0.92);
+  transform: translate3d(0, -2%, 0) scale(1.36, 1.16);
 }
 
 .training-atmospheric-haze {
