@@ -574,7 +574,7 @@
   top: var(--particle-y);
   width: 0;
   height: 0;
-  color: rgba(177, 124, 255, 0.92);
+  color: rgb(190, 138, 255);
 }
 
 .training-particle-core {
@@ -584,6 +584,7 @@
   height: var(--particle-size);
   border-radius: 999px;
   background: currentColor;
+  box-shadow: 0 0 var(--particle-glow) currentColor;
   opacity: 0;
   filter:
     blur(var(--particle-blur))
@@ -594,11 +595,11 @@
 }
 
 .training-particle[data-particle-kind="gold-dot"] {
-  color: rgba(245, 190, 91, 0.92);
+  color: rgb(255, 207, 100);
 }
 
 .training-particle[data-particle-kind="tactical-spark"] {
-  color: rgba(212, 173, 255, 0.9);
+  color: rgb(225, 190, 255);
 }
 
 .training-particle[data-particle-kind="tactical-spark"] .training-particle-core {
@@ -2119,7 +2120,7 @@
     transform: translate3d(0, 2px, 0) rotate(0deg) scale(0.62);
   }
 
-  18% {
+  8% {
     opacity: var(--particle-opacity-intro);
     transform: translate3d(
         var(--particle-drift-x-1),
@@ -2130,7 +2131,7 @@
       scale(0.94);
   }
 
-  40% {
+  38% {
     opacity: var(--particle-opacity);
     transform: translate3d(
         var(--particle-drift-x-2),
@@ -2141,7 +2142,7 @@
       scale(1.05);
   }
 
-  72% {
+  76% {
     opacity: var(--particle-opacity-soft);
     transform: translate3d(
         var(--particle-drift-x-3),
@@ -2150,6 +2151,17 @@
       )
       rotate(var(--particle-rotation))
       scale(0.86);
+  }
+
+  92% {
+    opacity: var(--particle-opacity-intro);
+    transform: translate3d(
+        var(--particle-drift-x-end),
+        calc(var(--particle-drift-y-3) - 3px),
+        0
+      )
+      rotate(var(--particle-rotation-end))
+      scale(1.08);
   }
 
   100% {
@@ -2166,13 +2178,13 @@
 
 @keyframes training-tactical-spark-drift {
   0%,
-  11% {
+  5% {
     opacity: 0;
     transform: translate3d(0, 2px, 0) rotate(var(--particle-rotation))
       scaleX(0.28);
   }
 
-  19% {
+  12% {
     opacity: var(--particle-opacity-spark);
     transform: translate3d(
         var(--particle-drift-x-1),
@@ -2182,17 +2194,36 @@
       rotate(var(--particle-rotation)) scaleX(1.08);
   }
 
-  25% {
-    opacity: var(--particle-opacity-spark-low);
+  32% {
+    opacity: var(--particle-opacity);
     transform: translate3d(
         var(--particle-drift-x-2),
         var(--particle-drift-y-2),
         0
       )
-      rotate(var(--particle-rotation)) scaleX(0.7);
+      rotate(var(--particle-rotation)) scaleX(1.16);
   }
 
-  31%,
+  58% {
+    opacity: var(--particle-opacity-soft);
+    transform: translate3d(
+        var(--particle-drift-x-2),
+        var(--particle-drift-y-2),
+        0
+      )
+      rotate(var(--particle-rotation)) scaleX(0.82);
+  }
+
+  82% {
+    opacity: var(--particle-opacity-spark-low);
+    transform: translate3d(
+        var(--particle-drift-x-3),
+        var(--particle-drift-y-3),
+        0
+      )
+      rotate(var(--particle-rotation)) scaleX(0.52);
+  }
+
   100% {
     opacity: 0;
     transform: translate3d(
@@ -2262,7 +2293,7 @@
     .training-particle:nth-child(-n + 4)
     .training-particle-core {
     animation: none;
-    opacity: 0.06;
+    opacity: 0.14;
     filter: blur(0.7px);
     transform: none;
     will-change: auto;
