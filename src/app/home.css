@@ -540,6 +540,87 @@
   );
 }
 
+.training-particle-field,
+.training-particle-band {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.training-particle-field {
+  clip-path: polygon(3% 40.5%, 97% 40.5%, 100% 100%, 0 100%);
+  opacity: 1;
+  transition: opacity 240ms ease-out;
+}
+
+.training-particle-field[data-particle-preset="far"] .training-particle-band {
+  clip-path: polygon(3% 41%, 97% 41%, 98% 57%, 2% 57%);
+}
+
+.training-particle-field[data-particle-preset="mid"] .training-particle-band {
+  clip-path: polygon(2.4% 52%, 97.6% 52%, 99.2% 77.5%, 0.8% 77.5%);
+}
+
+.training-particle-field[data-particle-preset="near"] .training-particle-band {
+  clip-path: polygon(1% 67.5%, 99% 67.5%, 100% 100%, 0 100%);
+}
+
+.training-particle {
+  position: absolute;
+  left: var(--particle-x);
+  top: var(--particle-y);
+  width: 0;
+  height: 0;
+  color: rgba(177, 124, 255, 0.92);
+}
+
+.training-particle-core {
+  position: absolute;
+  display: block;
+  width: var(--particle-size);
+  height: var(--particle-size);
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0;
+  filter:
+    blur(var(--particle-blur))
+    drop-shadow(0 0 var(--particle-glow) currentColor);
+  transform-origin: center;
+  animation: training-particle-drift var(--particle-duration) ease-in-out
+    var(--particle-delay) infinite both;
+}
+
+.training-particle[data-particle-kind="gold-dot"] {
+  color: rgba(245, 190, 91, 0.92);
+}
+
+.training-particle[data-particle-kind="tactical-spark"] {
+  color: rgba(212, 173, 255, 0.9);
+}
+
+.training-particle[data-particle-kind="tactical-spark"] .training-particle-core {
+  width: var(--particle-spark-width);
+  height: var(--particle-spark-height);
+  border-radius: 40%;
+  background: linear-gradient(90deg, transparent, currentColor 38% 72%, transparent);
+  animation-name: training-tactical-spark-drift;
+}
+
+.mode-illustration[data-motion-active="true"] .training-particle-core {
+  will-change: transform, opacity;
+}
+
+.training-scene[data-launching="true"] .training-particle-field {
+  opacity: 0;
+}
+
+.training-scene[data-launching="true"] .training-particle-core {
+  animation-play-state: paused;
+}
+
 .training-radar-overlay {
   position: absolute;
   inset: 0;
@@ -1060,7 +1141,9 @@
 .mode-illustration[data-motion-active="false"] .competitive-exhaust-energy,
 .mode-illustration[data-motion-active="false"] .training-ball-launch-energy,
 .mode-illustration[data-motion-active="false"] .competitive-ground-impact,
-.mode-illustration[data-motion-active="false"] .competitive-motion-trail {
+.mode-illustration[data-motion-active="false"] .competitive-motion-trail,
+.mode-illustration[data-active="false"] .training-particle-core,
+.mode-illustration[data-motion-active="false"] .training-particle-core {
   animation-play-state: paused;
 }
 
@@ -2030,6 +2113,97 @@
   }
 }
 
+@keyframes training-particle-drift {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 2px, 0) rotate(0deg) scale(0.62);
+  }
+
+  18% {
+    opacity: var(--particle-opacity-intro);
+    transform: translate3d(
+        var(--particle-drift-x-1),
+        var(--particle-drift-y-1),
+        0
+      )
+      rotate(var(--particle-rotation-intro))
+      scale(0.94);
+  }
+
+  40% {
+    opacity: var(--particle-opacity);
+    transform: translate3d(
+        var(--particle-drift-x-2),
+        var(--particle-drift-y-2),
+        0
+      )
+      rotate(var(--particle-rotation-soft))
+      scale(1.05);
+  }
+
+  72% {
+    opacity: var(--particle-opacity-soft);
+    transform: translate3d(
+        var(--particle-drift-x-3),
+        var(--particle-drift-y-3),
+        0
+      )
+      rotate(var(--particle-rotation))
+      scale(0.86);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(
+        var(--particle-drift-x-end),
+        calc(var(--particle-drift-y-3) - 5px),
+        0
+      )
+      rotate(var(--particle-rotation-end))
+      scale(1.18);
+  }
+}
+
+@keyframes training-tactical-spark-drift {
+  0%,
+  11% {
+    opacity: 0;
+    transform: translate3d(0, 2px, 0) rotate(var(--particle-rotation))
+      scaleX(0.28);
+  }
+
+  19% {
+    opacity: var(--particle-opacity-spark);
+    transform: translate3d(
+        var(--particle-drift-x-1),
+        var(--particle-drift-y-1),
+        0
+      )
+      rotate(var(--particle-rotation)) scaleX(1.08);
+  }
+
+  25% {
+    opacity: var(--particle-opacity-spark-low);
+    transform: translate3d(
+        var(--particle-drift-x-2),
+        var(--particle-drift-y-2),
+        0
+      )
+      rotate(var(--particle-rotation)) scaleX(0.7);
+  }
+
+  31%,
+  100% {
+    opacity: 0;
+    transform: translate3d(
+        var(--particle-drift-x-3),
+        var(--particle-drift-y-3),
+        0
+      )
+      rotate(var(--particle-rotation)) scaleX(0.24);
+  }
+}
+
 @keyframes home-launch-reduced-fade {
   0%,
   20% {
@@ -2060,6 +2234,8 @@
   .training-radar-car-glow,
   .training-radar-ball-energy,
   .training-lights-glow,
+  .training-particle-field,
+  .training-particle-core,
   .competitive-cage-neon,
   .competitive-projectors-glow,
   .competitive-projectors-haze,
@@ -2073,6 +2249,23 @@
   .home-launch-cover {
     animation: none;
     transition: none;
+  }
+
+  .training-particle-field[data-particle-preset="mid"],
+  .training-particle-field[data-particle-preset="near"],
+  .training-particle-field[data-particle-preset="far"]
+    .training-particle:nth-child(n + 5) {
+    display: none;
+  }
+
+  .training-particle-field[data-particle-preset="far"]
+    .training-particle:nth-child(-n + 4)
+    .training-particle-core {
+    animation: none;
+    opacity: 0.06;
+    filter: blur(0.7px);
+    transform: none;
+    will-change: auto;
   }
 
   .mode-illustration.is-launching .scene-group.is-future {

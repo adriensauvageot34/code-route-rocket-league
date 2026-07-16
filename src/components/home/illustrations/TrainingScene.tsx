@@ -7,10 +7,12 @@ import {
 } from "@/components/home/illustrations/TrainingGroundedActor";
 import { TrainingRadarOverlay } from "@/components/home/illustrations/TrainingRadarOverlay";
 import { useTrainingRadarSequence } from "@/components/home/illustrations/TrainingRadarSequence";
+import { TrainingParticleField } from "@/components/home/illustrations/TrainingParticleField";
 import { homeIllustrationAssets } from "@/lib/home/homeIllustrationAssets";
 import {
   trainingBallRadarTarget,
   trainingCarRadarTargets,
+  type TrainingCarRadarTarget,
   type TrainingRadarTargetId,
 } from "@/lib/home/trainingRadarTargets";
 
@@ -20,6 +22,20 @@ type TrainingSceneProps = {
   active: boolean;
   launching: boolean;
 };
+
+function getTrainingCarTarget(depth: TrainingCarRadarTarget["depth"]) {
+  const target = trainingCarRadarTargets.find((candidate) => candidate.depth === depth);
+
+  if (!target) {
+    throw new Error(`Missing training car target for depth: ${depth}`);
+  }
+
+  return target;
+}
+
+const trainingFarCarTarget = getTrainingCarTarget("trainingCarFar");
+const trainingMidCarTarget = getTrainingCarTarget("trainingCarMid");
+const trainingNearCarTarget = getTrainingCarTarget("trainingCarNear");
 
 export function TrainingScene({ active, launching }: TrainingSceneProps) {
   const {
@@ -35,6 +51,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
   return (
     <div
       className="home-scene training-scene"
+      data-launching={launching ? "true" : "false"}
       data-radar-active={running ? "true" : "false"}
       data-scene="training"
       ref={sceneRef}
@@ -82,28 +99,43 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         />
       </SceneGroup>
 
-      {trainingCarRadarTargets.map((target, index) => (
-        <SceneGroup
-          depth={target.depth}
-          key={target.id}
-          layer={7 + index}
-          name={`training-${target.id}`}
-        >
-          <TrainingGroundedCar
-            phase={getTargetPhase(target.id)}
-            target={target}
-          />
-        </SceneGroup>
-      ))}
+      <SceneGroup blendMode="screen" depth="trainingParticlesFar" layer={7} name="training-particles-far">
+        <TrainingParticleField preset="far" />
+      </SceneGroup>
 
-      <SceneGroup depth={trainingBallRadarTarget.depth} layer={10} name="ball">
+      <SceneGroup depth={trainingFarCarTarget.depth} layer={8} name={`training-${trainingFarCarTarget.id}`}>
+        <TrainingGroundedCar
+          phase={getTargetPhase(trainingFarCarTarget.id)}
+          target={trainingFarCarTarget}
+        />
+      </SceneGroup>
+
+      <SceneGroup blendMode="screen" depth="trainingParticlesMid" layer={9} name="training-particles-mid">
+        <TrainingParticleField preset="mid" />
+      </SceneGroup>
+
+      <SceneGroup depth={trainingMidCarTarget.depth} layer={10} name={`training-${trainingMidCarTarget.id}`}>
+        <TrainingGroundedCar
+          phase={getTargetPhase(trainingMidCarTarget.id)}
+          target={trainingMidCarTarget}
+        />
+      </SceneGroup>
+
+      <SceneGroup depth={trainingNearCarTarget.depth} layer={11} name={`training-${trainingNearCarTarget.id}`}>
+        <TrainingGroundedCar
+          phase={getTargetPhase(trainingNearCarTarget.id)}
+          target={trainingNearCarTarget}
+        />
+      </SceneGroup>
+
+      <SceneGroup depth={trainingBallRadarTarget.depth} layer={12} name="ball">
         <TrainingGroundedBall
           phase={getTargetPhase(trainingBallRadarTarget.id)}
           target={trainingBallRadarTarget}
         />
       </SceneGroup>
 
-      <SceneGroup depth="trainingGround" layer={11} name="training-radar-sweep">
+      <SceneGroup depth="trainingGround" layer={13} name="training-radar-sweep">
         <TrainingRadarOverlay
           active={running}
           direction={passDirection}
@@ -112,16 +144,20 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         />
       </SceneGroup>
 
-      <SceneGroup depth="trainingFennec" layer={12} name="fennec">
+      <SceneGroup blendMode="screen" depth="trainingParticlesNear" layer={14} name="training-particles-near">
+        <TrainingParticleField preset="near" />
+      </SceneGroup>
+
+      <SceneGroup depth="trainingFennec" layer={15} name="fennec">
         <div aria-hidden="true" className="training-fennec-contact-shadow" />
         <SceneLayer asset={assets.fennecBase} />
       </SceneGroup>
 
-      <SceneGroup blendMode="screen" depth="trainingFennec" layer={13} name="fennec-lights-glow">
+      <SceneGroup blendMode="screen" depth="trainingFennec" layer={16} name="fennec-lights-glow">
         <SceneLayer asset={assets.lightsVioletGlow} className="training-lights-glow" />
       </SceneGroup>
 
-      <SceneGroup blendMode="screen" depth="foreground" future layer={14} name="transition">
+      <SceneGroup blendMode="screen" depth="foreground" future layer={17} name="transition">
         <SceneLayer asset={assets.transitionWaveGold} className="training-transition-wave-local" />
       </SceneGroup>
     </div>

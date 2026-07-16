@@ -16,6 +16,7 @@ const expectedFiles = [
   "src/components/home/illustrations/ModeIllustration.tsx",
   "src/components/home/illustrations/TrainingScene.tsx",
   "src/components/home/illustrations/TrainingGroundedActor.tsx",
+  "src/components/home/illustrations/TrainingParticleField.tsx",
   "src/components/home/illustrations/TrainingRadarOverlay.tsx",
   "src/components/home/illustrations/TrainingRadarSequence.tsx",
   "src/components/home/illustrations/CompetitiveScene.tsx",
@@ -24,6 +25,7 @@ const expectedFiles = [
   "src/lib/home/getHomeDashboardViewModel.ts",
   "src/lib/home/homeSceneParallax.ts",
   "src/lib/home/homeLaunch.ts",
+  "src/lib/home/trainingParticlePresets.ts",
   "src/lib/home/trainingRadarTargets.ts",
   "src/hooks/useParallaxController.ts",
   "src/types/home.ts",
@@ -67,6 +69,7 @@ const primaryAction = files["src/components/home/PrimaryHomeAction.tsx"];
 const modeIllustration = files["src/components/home/illustrations/ModeIllustration.tsx"];
 const trainingScene = files["src/components/home/illustrations/TrainingScene.tsx"];
 const trainingGroundedActor = files["src/components/home/illustrations/TrainingGroundedActor.tsx"];
+const trainingParticleField = files["src/components/home/illustrations/TrainingParticleField.tsx"];
 const trainingRadarOverlay = files["src/components/home/illustrations/TrainingRadarOverlay.tsx"];
 const trainingRadarSequence = files["src/components/home/illustrations/TrainingRadarSequence.tsx"];
 const competitiveScene = files["src/components/home/illustrations/CompetitiveScene.tsx"];
@@ -74,6 +77,7 @@ const sceneGroup = files["src/components/home/illustrations/SceneGroup.tsx"];
 const sceneDepths = files["src/lib/home/homeSceneParallax.ts"];
 const homeLaunch = files["src/lib/home/homeLaunch.ts"];
 const parallaxController = files["src/hooks/useParallaxController.ts"];
+const trainingParticlePresets = files["src/lib/home/trainingParticlePresets.ts"];
 const trainingRadarTargets = files["src/lib/home/trainingRadarTargets.ts"];
 const types = files["src/types/home.ts"];
 const viewModel = files["src/lib/home/homeDashboardViewModel.ts"];
@@ -167,7 +171,7 @@ for (const asset of ["parallaxSky", "parallaxFarSkyline", "parallaxMidBuildings"
 }
 assert(!trainingScene.includes("TrainingAnalysisOverlay") && !trainingScene.includes("assets.background"), "Legacy Training background and analysis circles must not render.");
 assert(!trainingScene.includes("distantCarsOcclusion"), "Legacy distant-car occlusion sheet must not render.");
-assert(trainingScene.includes('name={`training-${target.id}`}') && trainingScene.includes("<TrainingGroundedCar"), "Training cars must render as individual grounded scene groups.");
+assert(trainingScene.includes('name={`training-${trainingFarCarTarget.id}`}') && trainingScene.includes("<TrainingGroundedCar"), "Training cars must render as individual grounded scene groups.");
 for (const target of ["left-car", "back-right-car", "front-right-car"]) {
   assert(trainingRadarTargets.includes(`id: "${target}"`), `Grounded Training car missing: ${target}`);
 }
@@ -175,6 +179,59 @@ assert(trainingScene.includes('name="training-radar-surface"') && trainingScene.
 assert(trainingScene.includes('depth="trainingMid" layer={2} name="training-atmospheric-haze"') && trainingScene.indexOf('name="training-atmospheric-haze"') < trainingScene.indexOf('name="training-mid-buildings"') && !trainingScene.includes("training-horizon-haze"), "Training haze must move with and remain behind the second skyline plane.");
 assert(trainingScene.includes('name="ball"') && trainingScene.includes('name="fennec"'), "Training ball and Fennec groups must remain.");
 assert(trainingScene.includes('className="training-transition-wave-local"'), "Prepared Training transition layer must remain.");
+
+for (const [preset, expectedCount] of Object.entries({ far: 12, mid: 10, near: 6 })) {
+  assert(
+    trainingParticlePresets.includes(`${preset}: ${expectedCount},`),
+    `Training particle count must stay deterministic for ${preset}: ${expectedCount}.`
+  );
+  assert(
+    trainingScene.includes(`depth="trainingParticles${preset[0].toUpperCase()}${preset.slice(1)}"`) &&
+      trainingScene.includes(`<TrainingParticleField preset="${preset}" />`),
+    `Training particle field missing from the ${preset} parallax depth.`
+  );
+}
+assert(trainingParticlePresets.includes("far: 1107") && trainingParticlePresets.includes("mid: 2284") && trainingParticlePresets.includes("near: 3916"), "Training particles must use fixed per-depth seeds.");
+assert(!trainingParticlePresets.includes("Math.random"), "Training particles must not use nondeterministic randomness.");
+assert(trainingParticlePresets.includes("index * 0.07"), "Training particle durations must stay decorrelated.");
+
+const particleKinds = { "violet-dust": 0, "gold-dot": 0, "tactical-spark": 0 };
+for (const preset of ["far", "mid", "near"]) {
+  const kindsSource = trainingParticlePresets.match(
+    new RegExp(`${preset}: \\{[\\s\\S]*?kinds: \\[([\\s\\S]*?)\\],\\s*y:`)
+  )?.[1] ?? "";
+  for (const kind of kindsSource.matchAll(/"(violet-dust|gold-dot|tactical-spark)"/g)) {
+    particleKinds[kind[1]] += 1;
+  }
+}
+assert(particleKinds["violet-dust"] === 19 && particleKinds["gold-dot"] === 6 && particleKinds["tactical-spark"] === 3, "Training particles must keep the 19 violet / 6 gold / 3 spark mix.");
+assert(Object.values(particleKinds).reduce((total, count) => total + count, 0) === 28, "Training must render exactly 28 deterministic particles.");
+assert(trainingParticlePresets.includes("exclusionZones") && trainingParticlePresets.includes("isTooClose"), "Particle generation must keep actor exclusions and anti-cluster spacing.");
+assert(trainingParticleField.includes('aria-hidden="true"') && trainingParticleField.includes('data-particle-kind={particle.kind}'), "Particles must remain decorative and expose their deterministic visual kind.");
+assert(!/(<img|<video|<canvas|\.png|\.gif|requestAnimationFrame|useState)/.test(trainingParticleField + trainingParticlePresets), "Particle rendering must stay HTML/CSS-only without a React frame loop.");
+
+for (const orderedName of [
+  'name="training-particles-far"',
+  `name={\`training-${'${trainingFarCarTarget.id}'}\`}`,
+  'name="training-particles-mid"',
+  `name={\`training-${'${trainingMidCarTarget.id}'}\`}`,
+  'name="training-radar-sweep"',
+  'name="training-particles-near"',
+  'name="fennec"',
+]) {
+  assert(trainingScene.includes(orderedName), `Missing particle depth-order marker: ${orderedName}`);
+}
+const trainingParticleOrder = [
+  'name="training-particles-far"',
+  `name={\`training-${'${trainingFarCarTarget.id}'}\`}`,
+  'name="training-particles-mid"',
+  `name={\`training-${'${trainingMidCarTarget.id}'}\`}`,
+  'name="training-radar-sweep"',
+  'name="training-particles-near"',
+  'name="fennec"',
+].map((marker) => trainingScene.indexOf(marker));
+assert(trainingParticleOrder.every((position, index) => index === 0 || position > trainingParticleOrder[index - 1]), "Particle groups must keep their intended actor occlusion order.");
+assert(trainingScene.includes('data-launching={launching ? "true" : "false"}'), "Training particle lifecycle must receive launch state.");
 assert(trainingGroundedActor.includes("training-grounded-actor-base") && trainingGroundedActor.includes("training-contact-shadow"), "Grounded actors must share one transformed base and contact shadow.");
 assert(trainingGroundedActor.includes("training-radar-car-wireframe") && trainingGroundedActor.includes("training-radar-car-glow"), "Car base, wireframe and glow must share the grounded actor container.");
 assert(trainingGroundedActor.includes("training-ball-contact-shadow") && trainingGroundedActor.includes("training-radar-ball-energy"), "Ball energy and contact treatment must share the grounded ball container.");
@@ -203,13 +260,13 @@ for (const depth of ["3", "5", "7", "11", "14"]) {
   assert(sceneDepths.includes(`translationX: ${depth}`), `Missing legacy parallax depth: ${depth}px`);
 }
 assert(sceneDepths.includes("rotation: 0.2"), "Parallax rotation must remain capped at 0.2deg.");
-for (const trainingDepth of ["trainingSky", "trainingSkyline", "trainingMid", "trainingNear", "trainingGround", "trainingCarFar", "trainingCarMid", "trainingCarNear", "trainingBall", "trainingFennec"]) {
+for (const trainingDepth of ["trainingSky", "trainingSkyline", "trainingMid", "trainingNear", "trainingGround", "trainingParticlesFar", "trainingParticlesMid", "trainingParticlesNear", "trainingCarFar", "trainingCarMid", "trainingCarNear", "trainingBall", "trainingFennec"]) {
   assert(sceneDepths.includes(`${trainingDepth}:`), `Missing Training parallax depth: ${trainingDepth}`);
 }
 for (const amplitude of [3, 7, 22, 27, 23, 25, 28, 34]) {
   assert(sceneDepths.includes(`translationX: ${amplitude}`), `Missing Training horizontal amplitude: ${amplitude}px`);
 }
-assert(sceneDepths.includes("translationY: 1") && sceneDepths.includes("translationY: 2"), "Training vertical parallax must stay capped between one and two pixels.");
+assert(sceneDepths.includes("trainingParticlesFar: { translationX: 15, translationY: 1.2") && sceneDepths.includes("trainingParticlesMid: { translationX: 27, translationY: 2") && sceneDepths.includes("trainingParticlesNear: { translationX: 42, translationY: 3"), "Particle parallax must increase distinctly from far to near.");
 assert(parallaxController.includes("requestAnimationFrame") && parallaxController.includes("cancelAnimationFrame"), "Parallax must create and cancel its frame.");
 assert(
   parallaxController.includes("new ResizeObserver") &&
@@ -241,6 +298,8 @@ for (const safetyDepth of ["trainingSkyline", "trainingMid", "trainingNear", "tr
     `Dynamic Training safety depth missing: ${safetyDepth}`
   );
 }
+const trainingSafetyDepthSource = sceneDepths.match(/trainingParallaxSafetyDepths = \[([\s\S]*?)\]/)?.[1] ?? "";
+assert(!trainingSafetyDepthSource.includes("trainingParticles"), "HTML particle planes must not enter raster overscan safety scaling.");
 
 const requestedTrainingTranslations = {
   trainingSkyline: 7,
@@ -322,6 +381,14 @@ for (const separatedGroup of ["statistics-weekly-focus", "statistics-insight", "
 assert(css.includes("aspect-ratio: 1672 / 941"), "Scene ratio must remain 1672x941.");
 assert(css.includes('.mode-illustration[data-motion-active="false"]'), "Hidden and offscreen scene motion must pause.");
 assert(css.includes("@media (prefers-reduced-motion: reduce)"), "Reduced motion support must remain.");
+assert(css.includes("clip-path: polygon(3% 40.5%, 97% 40.5%, 100% 100%, 0 100%)"), "Particles must be clipped to the terrain silhouette.");
+for (const preset of ["far", "mid", "near"]) {
+  assert(css.includes(`data-particle-preset="${preset}"`), `Missing CSS depth band for ${preset} particles.`);
+}
+assert(css.includes("@keyframes training-particle-drift") && css.includes("@keyframes training-tactical-spark-drift"), "Particles must use organic CSS-only motion.");
+assert(css.includes('.mode-illustration[data-active="false"] .training-particle-core') && css.includes('.mode-illustration[data-motion-active="false"] .training-particle-core'), "Inactive and offscreen particle animation must pause.");
+assert(css.includes('.training-scene[data-launching="true"] .training-particle-field') && css.includes("transition: opacity 240ms ease-out"), "Particles must fade and pause during launch.");
+assert(css.includes('.training-particle-field[data-particle-preset="far"]') && css.includes(".training-particle:nth-child(n + 5)"), "Reduced motion must keep at most four static far particles.");
 assert(css.includes("@keyframes training-radar-traverse") && !css.includes("@keyframes training-analysis-scan"), "Training must use the clipped field radar instead of legacy circles.");
 assert(css.includes("@keyframes training-launch-ball-energy") && css.includes("@keyframes home-training-launch-wave"), "Training launch keyframes must remain untouched.");
 assert(css.includes("@keyframes competitive-launch-fennec"), "Competitive prepared launch keyframes must remain.");
