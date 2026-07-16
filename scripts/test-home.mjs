@@ -195,13 +195,13 @@ assert(trainingParticlePresets.includes("far: 1107") && trainingParticlePresets.
 assert(!trainingParticlePresets.includes("Math.random"), "Training particles must not use nondeterministic randomness.");
 assert(trainingParticlePresets.includes("index * 0.07"), "Training particle durations must stay decorrelated.");
 for (const visibilityTuning of [
-  "size: [2, 3.4]",
-  "opacity: [0.18, 0.34]",
-  "size: [2.8, 4.8]",
-  "opacity: [0.26, 0.48]",
-  "size: [4, 7]",
-  "opacity: [0.34, 0.62]",
-  "glow: [8, 13]",
+  "size: [2.8, 4.4]",
+  "opacity: [0.3, 0.5]",
+  "size: [3.6, 5.8]",
+  "opacity: [0.36, 0.58]",
+  "size: [4.4, 7.2]",
+  "opacity: [0.38, 0.64]",
+  "glow: [9, 15]",
 ]) {
   assert(trainingParticlePresets.includes(visibilityTuning), `Training particles lost their visible tuning: ${visibilityTuning}.`);
 }
@@ -218,6 +218,8 @@ for (const preset of ["far", "mid", "near"]) {
 assert(particleKinds["violet-dust"] === 19 && particleKinds["gold-dot"] === 6 && particleKinds["tactical-spark"] === 3, "Training particles must keep the 19 violet / 6 gold / 3 spark mix.");
 assert(Object.values(particleKinds).reduce((total, count) => total + count, 0) === 28, "Training must render exactly 28 deterministic particles.");
 assert(trainingParticlePresets.includes("exclusionZones") && trainingParticlePresets.includes("isTooClose"), "Particle generation must keep actor exclusions and anti-cluster spacing.");
+assert(trainingParticlePresets.includes("TRAINING_PARTICLE_HORIZONTAL_BANDS") && trainingParticlePresets.includes("index % configuration.horizontalBands.length"), "Each particle depth must cycle through left, middle and right horizontal bands.");
+assert(trainingParticlePresets.includes("normalizedX ** 2 + normalizedY ** 2 < 1"), "Actor exclusions must use precise elliptical masks instead of broad rectangles.");
 assert(trainingParticleField.includes('aria-hidden="true"') && trainingParticleField.includes('data-particle-kind={particle.kind}'), "Particles must remain decorative and expose their deterministic visual kind.");
 assert(!/(<img|<video|<canvas|\.png|\.gif|requestAnimationFrame|useState)/.test(trainingParticleField + trainingParticlePresets), "Particle rendering must stay HTML/CSS-only without a React frame loop.");
 
@@ -277,7 +279,7 @@ for (const trainingDepth of ["trainingSky", "trainingSkyline", "trainingMid", "t
 for (const amplitude of [3, 7, 22, 27, 23, 25, 28, 34]) {
   assert(sceneDepths.includes(`translationX: ${amplitude}`), `Missing Training horizontal amplitude: ${amplitude}px`);
 }
-assert(sceneDepths.includes("trainingParticlesFar: { translationX: 15, translationY: 1.2") && sceneDepths.includes("trainingParticlesMid: { translationX: 27, translationY: 2") && sceneDepths.includes("trainingParticlesNear: { translationX: 42, translationY: 3"), "Particle parallax must increase distinctly from far to near.");
+assert(sceneDepths.includes("trainingParticlesFar: { translationX: 10, translationY: 0.8") && sceneDepths.includes("trainingParticlesMid: { translationX: 31, translationY: 2.6") && sceneDepths.includes("trainingParticlesNear: { translationX: 50, translationY: 4.4"), "Particle parallax must increase distinctly from far to near.");
 assert(parallaxController.includes("requestAnimationFrame") && parallaxController.includes("cancelAnimationFrame"), "Parallax must create and cancel its frame.");
 assert(
   parallaxController.includes("new ResizeObserver") &&

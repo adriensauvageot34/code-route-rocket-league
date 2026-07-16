@@ -31,6 +31,7 @@ type TrainingParticlePresetConfiguration = {
   driftY: number;
   duration: readonly [number, number];
   glow: readonly [number, number];
+  horizontalBands: readonly (readonly [number, number])[];
   kinds: readonly TrainingParticleKind[];
   minSpacing: readonly [number, number];
   opacity: readonly [number, number];
@@ -71,9 +72,28 @@ export const TRAINING_PARTICLE_VERTICAL_ZONES = {
   near: [70, 97],
 } as const;
 
+export const TRAINING_PARTICLE_HORIZONTAL_BANDS = {
+  far: [
+    [6, 30],
+    [35, 65],
+    [70, 94],
+  ],
+  mid: [
+    [6, 30],
+    [35, 65],
+    [70, 94],
+  ],
+  near: [
+    [6, 30],
+    [34, 54],
+    [82, 92],
+  ],
+} as const;
+
 const presetConfigurations = {
   far: {
     seed: TRAINING_PARTICLE_SEEDS.far,
+    horizontalBands: TRAINING_PARTICLE_HORIZONTAL_BANDS.far,
     kinds: [
       "violet-dust",
       "gold-dot",
@@ -89,17 +109,18 @@ const presetConfigurations = {
       "violet-dust",
     ],
     y: TRAINING_PARTICLE_VERTICAL_ZONES.far,
-    size: [2, 3.4],
-    opacity: [0.18, 0.34],
+    size: [2.8, 4.4],
+    opacity: [0.3, 0.5],
     duration: [15.2, 22.4],
-    driftX: 4.5,
+    driftX: 5.5,
     driftY: 8.5,
-    blur: [0.18, 0.5],
-    glow: [4.2, 7],
+    blur: [0.12, 0.35],
+    glow: [6, 10],
     minSpacing: [5.5, 2.3],
   },
   mid: {
     seed: TRAINING_PARTICLE_SEEDS.mid,
+    horizontalBands: TRAINING_PARTICLE_HORIZONTAL_BANDS.mid,
     kinds: [
       "violet-dust",
       "gold-dot",
@@ -113,17 +134,18 @@ const presetConfigurations = {
       "violet-dust",
     ],
     y: TRAINING_PARTICLE_VERTICAL_ZONES.mid,
-    size: [2.8, 4.8],
-    opacity: [0.26, 0.48],
+    size: [3.6, 5.8],
+    opacity: [0.36, 0.58],
     duration: [12.4, 18.8],
-    driftX: 7.5,
-    driftY: 13.5,
-    blur: [0.05, 0.25],
-    glow: [6, 10],
+    driftX: 9.5,
+    driftY: 14.5,
+    blur: [0, 0.18],
+    glow: [8, 13],
     minSpacing: [6.5, 3.4],
   },
   near: {
     seed: TRAINING_PARTICLE_SEEDS.near,
+    horizontalBands: TRAINING_PARTICLE_HORIZONTAL_BANDS.near,
     kinds: [
       "violet-dust",
       "gold-dot",
@@ -133,13 +155,13 @@ const presetConfigurations = {
       "violet-dust",
     ],
     y: TRAINING_PARTICLE_VERTICAL_ZONES.near,
-    size: [4, 7],
-    opacity: [0.34, 0.62],
+    size: [4.4, 7.2],
+    opacity: [0.38, 0.64],
     duration: [10.1, 15.9],
-    driftX: 11.5,
-    driftY: 19,
+    driftX: 15.5,
+    driftY: 21,
     blur: [0, 0.1],
-    glow: [8, 13],
+    glow: [9, 15],
     minSpacing: [8, 5],
   },
 } as const satisfies Record<
@@ -154,9 +176,9 @@ const exclusionZones: readonly ExclusionZone[] = [
   { x: 50.6, y: 56.2, radiusX: 9.5, radiusY: 9.5 },
   {
     x: 78,
-    y: 80,
-    radiusX: 24,
-    radiusY: 20,
+    y: 78,
+    radiusX: 19,
+    radiusY: 14,
     presets: ["near"],
   },
 ];
@@ -187,10 +209,10 @@ function isInsideExclusionZone(
   return exclusionZones.some((zone) => {
     if (zone.presets && !zone.presets.includes(preset)) return false;
 
-    return (
-      Math.abs(x - zone.x) < zone.radiusX &&
-      Math.abs(y - zone.y) < zone.radiusY
-    );
+    const normalizedX = (x - zone.x) / zone.radiusX;
+    const normalizedY = (y - zone.y) / zone.radiusY;
+
+    return normalizedX ** 2 + normalizedY ** 2 < 1;
   });
 }
 
@@ -236,9 +258,14 @@ function buildTrainingParticlePreset(
     attempts < configuration.kinds.length * 80
   ) {
     attempts += 1;
-    const x = round(4 + random() * 92);
+    const index = particles.length;
+    const horizontalBand =
+      configuration.horizontalBands[
+        index % configuration.horizontalBands.length
+      ];
+    const x = round(interpolate(horizontalBand, random()));
     const y = round(interpolate(configuration.y, random()));
-    const kind = configuration.kinds[particles.length];
+    const kind = configuration.kinds[index];
 
     if (
       isInsideExclusionZone(preset, x, y) ||
@@ -248,7 +275,6 @@ function buildTrainingParticlePreset(
       continue;
     }
 
-    const index = particles.length;
     const direction = random() < 0.5 ? -1 : 1;
     const sparkSpeed = kind === "tactical-spark" ? 0.88 : 1;
     const duration =
