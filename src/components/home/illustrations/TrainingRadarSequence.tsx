@@ -17,12 +17,11 @@ import {
 export type TrainingRadarPhase = "hidden" | "glow" | "hold" | "fade";
 
 type TrainingRadarSequenceState = {
-  activeTargetId: TrainingRadarTargetId | null;
   passDirection: TrainingRadarDirection;
   passKey: number;
   passTargetId: TrainingRadarTargetId | null;
-  phase: TrainingRadarPhase;
   running: boolean;
+  targetPhases: Record<TrainingRadarTargetId, TrainingRadarPhase>;
 };
 
 type UseTrainingRadarSequenceOptions = {
@@ -30,13 +29,19 @@ type UseTrainingRadarSequenceOptions = {
   launching: boolean;
 };
 
+const HIDDEN_TARGET_PHASES: Record<TrainingRadarTargetId, TrainingRadarPhase> = {
+  "left-car": "hidden",
+  "back-right-car": "hidden",
+  "front-right-car": "hidden",
+  ball: "hidden",
+};
+
 const INITIAL_SEQUENCE_STATE: TrainingRadarSequenceState = {
-  activeTargetId: null,
   passDirection: "ltr",
   passKey: 0,
   passTargetId: null,
-  phase: "hidden",
   running: false,
+  targetPhases: HIDDEN_TARGET_PHASES,
 };
 
 export function useTrainingRadarSequence({
@@ -114,6 +119,19 @@ export function useTrainingRadarSequence({
       timers.add(timer);
     }
 
+    function setTargetPhase(
+      targetId: TrainingRadarTargetId,
+      phase: TrainingRadarPhase,
+    ) {
+      setSequence((current) => ({
+        ...current,
+        targetPhases: {
+          ...current.targetPhases,
+          [targetId]: phase,
+        },
+      }));
+    }
+
     function beginPass() {
       const target = trainingRadarTargets[targetIndex];
       const passDirection: TrainingRadarDirection =
@@ -131,35 +149,19 @@ export function useTrainingRadarSequence({
       const hitDelayMs = getTrainingRadarHitDelayMs(target, passDirection);
 
       schedule(() => {
-        setSequence((current) => ({
-          ...current,
-          activeTargetId: target.id,
-          phase: "glow",
-        }));
+        setTargetPhase(target.id, "glow");
       }, hitDelayMs);
 
       schedule(() => {
-        setSequence((current) =>
-          current.activeTargetId === target.id
-            ? { ...current, phase: "hold" }
-            : current,
-        );
+        setTargetPhase(target.id, "hold");
       }, hitDelayMs + TRAINING_RADAR_TIMING.glowDurationMs);
 
       schedule(() => {
-        setSequence((current) =>
-          current.activeTargetId === target.id
-            ? { ...current, phase: "fade" }
-            : current,
-        );
+        setTargetPhase(target.id, "fade");
       }, hitDelayMs + target.visibleDurationMs);
 
       schedule(() => {
-        setSequence((current) =>
-          current.activeTargetId === target.id
-            ? { ...current, activeTargetId: null, phase: "hidden" }
-            : current,
-        );
+        setTargetPhase(target.id, "hidden");
       }, hitDelayMs + target.visibleDurationMs + TRAINING_RADAR_TIMING.fadeDurationMs);
 
       schedule(beginPass, TRAINING_RADAR_TIMING.passDurationMs);
@@ -175,12 +177,11 @@ export function useTrainingRadarSequence({
   }, [shouldRun]);
 
   return {
-    activeTargetId: shouldRun ? sequence.activeTargetId : null,
     passDirection: shouldRun ? sequence.passDirection : "ltr",
     passKey: shouldRun ? sequence.passKey : 0,
     passTargetId: shouldRun ? sequence.passTargetId : null,
-    phase: shouldRun ? sequence.phase : "hidden",
     running: shouldRun && sequence.running,
     sceneRef,
+    targetPhases: shouldRun ? sequence.targetPhases : HIDDEN_TARGET_PHASES,
   };
 }

@@ -23,15 +23,14 @@ type TrainingSceneProps = {
 
 export function TrainingScene({ active, launching }: TrainingSceneProps) {
   const {
-    activeTargetId,
     passDirection,
     passKey,
-    phase,
     running,
     sceneRef,
+    targetPhases,
   } = useTrainingRadarSequence({ active, launching });
   const getTargetPhase = (targetId: TrainingRadarTargetId) =>
-    activeTargetId === targetId ? phase : "hidden";
+    targetPhases[targetId];
 
   return (
     <div
@@ -52,7 +51,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         />
       </SceneGroup>
 
-      <SceneGroup blendMode="screen" depth="trainingMid" layer={2} name="training-atmospheric-haze">
+      <SceneGroup blendMode="screen" depth="trainingSkyline" layer={2} name="training-atmospheric-haze">
         <div aria-hidden="true" className="training-atmospheric-haze" />
       </SceneGroup>
 
@@ -63,22 +62,18 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         />
       </SceneGroup>
 
-      <SceneGroup blendMode="screen" depth="trainingNear" layer={4} name="training-horizon-haze">
-        <div aria-hidden="true" className="training-horizon-haze" />
-      </SceneGroup>
-
-      <SceneGroup depth="trainingNear" layer={5} name="training-near-buildings">
+      <SceneGroup depth="trainingNear" layer={4} name="training-near-buildings">
         <SceneLayer
           asset={assets.parallaxNearBuildings}
           className="training-city-layer training-city-near"
         />
       </SceneGroup>
 
-      <SceneGroup depth="trainingGround" layer={6} name="training-ground">
+      <SceneGroup depth="trainingGround" layer={5} name="training-ground">
         <SceneLayer asset={assets.parallaxGroundBarrier} preload />
       </SceneGroup>
 
-      <SceneGroup blendMode="screen" depth="trainingGround" layer={7} name="training-radar-surface">
+      <SceneGroup blendMode="screen" depth="trainingGround" layer={6} name="training-radar-surface">
         <TrainingRadarOverlay
           active={running}
           direction={passDirection}
@@ -91,7 +86,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         <SceneGroup
           depth={target.depth}
           key={target.id}
-          layer={8 + index}
+          layer={7 + index}
           name={`training-${target.id}`}
         >
           <TrainingGroundedCar
@@ -101,14 +96,14 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         </SceneGroup>
       ))}
 
-      <SceneGroup depth={trainingBallRadarTarget.depth} layer={11} name="ball">
+      <SceneGroup depth={trainingBallRadarTarget.depth} layer={10} name="ball">
         <TrainingGroundedBall
           phase={getTargetPhase(trainingBallRadarTarget.id)}
           target={trainingBallRadarTarget}
         />
       </SceneGroup>
 
-      <SceneGroup depth="trainingGround" layer={12} name="training-radar-sweep">
+      <SceneGroup depth="trainingGround" layer={11} name="training-radar-sweep">
         <TrainingRadarOverlay
           active={running}
           direction={passDirection}
@@ -117,16 +112,16 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         />
       </SceneGroup>
 
-      <SceneGroup depth="trainingFennec" layer={13} name="fennec">
+      <SceneGroup depth="trainingFennec" layer={12} name="fennec">
         <div aria-hidden="true" className="training-fennec-contact-shadow" />
         <SceneLayer asset={assets.fennecBase} />
       </SceneGroup>
 
-      <SceneGroup blendMode="screen" depth="trainingFennec" layer={14} name="fennec-lights-glow">
+      <SceneGroup blendMode="screen" depth="trainingFennec" layer={13} name="fennec-lights-glow">
         <SceneLayer asset={assets.lightsVioletGlow} className="training-lights-glow" />
       </SceneGroup>
 
-      <SceneGroup blendMode="screen" depth="foreground" future layer={15} name="transition">
+      <SceneGroup blendMode="screen" depth="foreground" future layer={14} name="transition">
         <SceneLayer asset={assets.transitionWaveGold} className="training-transition-wave-local" />
       </SceneGroup>
     </div>

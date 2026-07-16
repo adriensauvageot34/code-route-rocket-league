@@ -7,7 +7,7 @@ export const homeSceneDepths = {
   trainingSky: { translationX: 3, translationY: 1, rotation: 0, scale: 1.02 },
   trainingSkyline: { translationX: 7, translationY: 1, rotation: 0, scale: 1.03 },
   trainingMid: { translationX: 13, translationY: 1.4, rotation: 0, scale: 1.04 },
-  trainingNear: { translationX: 20, translationY: 1.8, rotation: 0, scale: 1.05 },
+  trainingNear: { translationX: 24, translationY: 1.6, rotation: 0, scale: 1.08 },
   trainingGround: { translationX: 27, translationY: 2, rotation: 0, scale: 1.07 },
   trainingCarFar: { translationX: 22, translationY: 2, rotation: 0, scale: 1.07 },
   trainingCarMid: { translationX: 23, translationY: 2, rotation: 0, scale: 1.07 },
