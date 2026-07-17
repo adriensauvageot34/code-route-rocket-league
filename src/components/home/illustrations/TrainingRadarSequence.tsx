@@ -14,7 +14,13 @@ import {
   type TrainingRadarTargetId,
 } from "@/lib/home/trainingRadarTargets";
 
-export type TrainingRadarPhase = "hidden" | "glow" | "hold" | "fade";
+export type TrainingRadarPhase =
+  | "hidden"
+  | "contact"
+  | "surface"
+  | "contour"
+  | "wireframe"
+  | "fade";
 
 type TrainingRadarSequenceState = {
   passDirection: TrainingRadarDirection;
@@ -110,6 +116,7 @@ export function useTrainingRadarSequence({
     const timers = new Set<number>();
     let cancelled = false;
     let targetIndex = 0;
+    let activeTargetId: TrainingRadarTargetId | null = null;
 
     function schedule(callback: () => void, delayMs: number) {
       const timer = window.setTimeout(() => {
@@ -119,10 +126,23 @@ export function useTrainingRadarSequence({
       timers.add(timer);
     }
 
-    function setTargetPhase(
+    function activateTarget(targetId: TrainingRadarTargetId) {
+      activeTargetId = targetId;
+      setSequence((current) => ({
+        ...current,
+        targetPhases: {
+          ...HIDDEN_TARGET_PHASES,
+          [targetId]: "contact",
+        },
+      }));
+    }
+
+    function setTargetPhaseIfActive(
       targetId: TrainingRadarTargetId,
       phase: TrainingRadarPhase,
     ) {
+      if (activeTargetId !== targetId) return;
+
       setSequence((current) => ({
         ...current,
         targetPhases: {
@@ -149,20 +169,29 @@ export function useTrainingRadarSequence({
       const hitDelayMs = getTrainingRadarHitDelayMs(target, passDirection);
 
       schedule(() => {
-        setTargetPhase(target.id, "glow");
+        activateTarget(target.id);
       }, hitDelayMs);
 
       schedule(() => {
-        setTargetPhase(target.id, "hold");
-      }, hitDelayMs + TRAINING_RADAR_TIMING.glowDurationMs);
+        setTargetPhaseIfActive(target.id, "surface");
+      }, hitDelayMs + TRAINING_RADAR_TIMING.surfaceDelayMs);
 
       schedule(() => {
-        setTargetPhase(target.id, "fade");
-      }, hitDelayMs + target.visibleDurationMs);
+        setTargetPhaseIfActive(target.id, "contour");
+      }, hitDelayMs + TRAINING_RADAR_TIMING.contourDelayMs);
 
       schedule(() => {
-        setTargetPhase(target.id, "hidden");
-      }, hitDelayMs + target.visibleDurationMs + TRAINING_RADAR_TIMING.fadeDurationMs);
+        setTargetPhaseIfActive(target.id, "wireframe");
+      }, hitDelayMs + TRAINING_RADAR_TIMING.wireframeDelayMs);
+
+      schedule(() => {
+        setTargetPhaseIfActive(target.id, "fade");
+      }, hitDelayMs + TRAINING_RADAR_TIMING.fadeDelayMs);
+
+      schedule(() => {
+        setTargetPhaseIfActive(target.id, "hidden");
+        if (activeTargetId === target.id) activeTargetId = null;
+      }, hitDelayMs + TRAINING_RADAR_TIMING.targetLifetimeMs);
 
       schedule(beginPass, TRAINING_RADAR_TIMING.passDurationMs);
     }

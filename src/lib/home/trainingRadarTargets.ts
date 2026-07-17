@@ -1,13 +1,16 @@
 import { homeIllustrationAssets, type HomeIllustrationAsset } from "@/lib/home/homeIllustrationAssets";
 
 export const TRAINING_RADAR_TIMING = {
-  passDurationMs: 1750,
+  passDurationMs: 2400,
   entryDurationMs: 250,
-  travelDurationMs: 1500,
-  targetRiseDurationMs: 150,
-  glowDurationMs: 320,
-  visibleDurationMs: 3000,
-  fadeDurationMs: 550,
+  travelDurationMs: 2000,
+  contactDurationMs: 180,
+  surfaceDelayMs: 180,
+  contourDelayMs: 520,
+  wireframeDelayMs: 820,
+  fadeDelayMs: 1500,
+  targetLifetimeMs: 2300,
+  fadeDurationMs: 800,
 } as const;
 
 export const TRAINING_RADAR_CYCLE_MS =
@@ -49,26 +52,28 @@ type TrainingActorGrounding = {
 
 export type TrainingCarRadarTarget = {
   baseAsset: HomeIllustrationAsset;
+  contourAsset: HomeIllustrationAsset;
   depth: "trainingCarFar" | "trainingCarMid" | "trainingCarNear";
   grounding: TrainingActorGrounding;
   glowAsset: HomeIllustrationAsset;
   id: "left-car" | "back-right-car" | "front-right-car";
   placement: TrainingTargetPlacement;
   scanHitProgress: number;
+  surfaceAsset: HomeIllustrationAsset;
   type: "car";
-  visibleDurationMs: number;
   wireframeAsset: HomeIllustrationAsset;
 };
 
 export type TrainingBallRadarTarget = {
   baseAsset: HomeIllustrationAsset;
+  contourAsset: HomeIllustrationAsset;
   depth: "trainingBall";
   energyAsset: HomeIllustrationAsset;
   grounding: TrainingActorGrounding;
   id: "ball";
   scanHitProgress: number;
+  surfaceAsset: HomeIllustrationAsset;
   type: "ball";
-  visibleDurationMs: number;
 };
 
 export type TrainingRadarTarget = TrainingCarRadarTarget | TrainingBallRadarTarget;
@@ -80,6 +85,8 @@ export const trainingCarRadarTargets = [
     id: "left-car",
     type: "car",
     baseAsset: assets.distantCarLeft,
+    surfaceAsset: assets.surfaceScanCar01,
+    contourAsset: assets.contourScanCar01,
     depth: "trainingCarFar",
     wireframeAsset: assets.wireframeCar01,
     glowAsset: assets.wireframeCar01Glow,
@@ -96,12 +103,13 @@ export const trainingCarRadarTargets = [
       shadow: { width: 0.045, height: 0.02 },
     },
     scanHitProgress: 0.45,
-    visibleDurationMs: TRAINING_RADAR_TIMING.visibleDurationMs,
   },
   {
     id: "back-right-car",
     type: "car",
     baseAsset: assets.distantCarBackRight,
+    surfaceAsset: assets.surfaceScanCar02,
+    contourAsset: assets.contourScanCar02,
     depth: "trainingCarMid",
     wireframeAsset: assets.wireframeCar02,
     glowAsset: assets.wireframeCar02Glow,
@@ -118,12 +126,13 @@ export const trainingCarRadarTargets = [
       shadow: { width: 0.035, height: 0.016 },
     },
     scanHitProgress: 0.743,
-    visibleDurationMs: TRAINING_RADAR_TIMING.visibleDurationMs,
   },
   {
     id: "front-right-car",
     type: "car",
     baseAsset: assets.distantCarFrontRight,
+    surfaceAsset: assets.surfaceScanCar03,
+    contourAsset: assets.contourScanCar03,
     depth: "trainingCarNear",
     wireframeAsset: assets.wireframeCar03,
     glowAsset: assets.wireframeCar03Glow,
@@ -140,7 +149,6 @@ export const trainingCarRadarTargets = [
       shadow: { width: 0.085, height: 0.026 },
     },
     scanHitProgress: 0.811,
-    visibleDurationMs: TRAINING_RADAR_TIMING.visibleDurationMs,
   },
 ] as const satisfies readonly TrainingCarRadarTarget[];
 
@@ -148,6 +156,8 @@ export const trainingBallRadarTarget = {
   id: "ball",
   type: "ball",
   baseAsset: assets.ball,
+  surfaceAsset: assets.ballSurfaceScan,
+  contourAsset: assets.ballContourScan,
   depth: "trainingBall",
   energyAsset: assets.ballEnergyGold,
   grounding: {
@@ -156,7 +166,6 @@ export const trainingBallRadarTarget = {
     shadow: { width: 0.075, height: 0.024 },
   },
   scanHitProgress: 0.56,
-  visibleDurationMs: TRAINING_RADAR_TIMING.visibleDurationMs,
 } as const satisfies TrainingBallRadarTarget;
 
 export const trainingRadarTargets = [

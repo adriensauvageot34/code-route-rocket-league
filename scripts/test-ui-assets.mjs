@@ -6,6 +6,22 @@ const uiRoot = join("public", "ui");
 const manifestPath = join("src", "lib", "home", "homeIllustrationAssets.ts");
 const uiFiles = readdirSync(uiRoot).filter((name) => name !== ".gitkeep");
 const kebabCasePattern = /^[a-z0-9]+(?:-[a-z0-9]+)*\.(?:png|webp)$/;
+const intentionallyNamedScanAssets = new Set([
+  "car-01 overlay contour-scan.png",
+  "car-01 overlay surface-scan.png",
+  "car-02 overlay contour-scan.png",
+  "car-02 overlay surface-scan.png",
+  "car-03 overlay contour-scan.png",
+  "car-03 overlay surface-scan.png",
+  "fennec-base contour-scan overlay.png",
+  "fennec-base headlight glow overlay.png",
+  "fennec-base im light overlay.png",
+  "fennec-base rear accent glow.png",
+  "fennec-base reflection overlay.png",
+  "fennec-base surface-scan overlay.png",
+  "training-ball Overlay surface-scan.png",
+  "training-ball overlay contour-scan.png",
+]);
 
 function assert(condition, message) {
   if (!condition) {
@@ -16,7 +32,9 @@ function assert(condition, message) {
 for (const name of uiFiles) {
   assert(extname(name), `UI asset is missing an extension: ${name}`);
   assert(
-    kebabCasePattern.test(name) || name === "terrain_matrice_analyse.png",
+    kebabCasePattern.test(name) ||
+      name === "terrain_matrice_analyse.png" ||
+      intentionallyNamedScanAssets.has(name),
     `UI asset is not lower kebab-case: ${name}`,
   );
   assert(!name.includes("fenneck"), `UI asset still contains the typo fenneck: ${name}`);

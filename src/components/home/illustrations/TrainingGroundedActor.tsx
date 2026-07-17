@@ -5,6 +5,7 @@ import {
   TRAINING_RADAR_TIMING,
   type TrainingBallRadarTarget,
   type TrainingCarRadarTarget,
+  type TrainingRadarDirection,
 } from "@/lib/home/trainingRadarTargets";
 
 type GroundedActorStyle = CSSProperties & {
@@ -16,16 +17,16 @@ type GroundedActorStyle = CSSProperties & {
   "--training-contact-shadow-height": string;
   "--training-contact-shadow-width": string;
   "--training-target-fade-duration": string;
-  "--training-target-glow-duration": string;
-  "--training-target-rise-duration": string;
 };
 
 type TrainingGroundedCarProps = {
+  direction: TrainingRadarDirection;
   phase: TrainingRadarPhase;
   target: TrainingCarRadarTarget;
 };
 
 type TrainingGroundedBallProps = {
+  direction: TrainingRadarDirection;
   phase: TrainingRadarPhase;
   target: TrainingBallRadarTarget;
 };
@@ -43,13 +44,12 @@ function getGroundedActorStyle(
     "--training-actor-translate-y": `${(destination.groundY - sourceAnchor.groundY) * 100}%`,
     "--training-contact-shadow-height": `${shadow.height * 100}%`,
     "--training-contact-shadow-width": `${shadow.width * 100}%`,
-    "--training-target-rise-duration": `${TRAINING_RADAR_TIMING.targetRiseDurationMs}ms`,
-    "--training-target-glow-duration": `${TRAINING_RADAR_TIMING.glowDurationMs}ms`,
     "--training-target-fade-duration": `${TRAINING_RADAR_TIMING.fadeDurationMs}ms`,
   };
 }
 
 export function TrainingGroundedCar({
+  direction,
   phase,
   target,
 }: TrainingGroundedCarProps) {
@@ -80,10 +80,31 @@ export function TrainingGroundedCar({
         unoptimized
       />
       <div
-        className="training-radar-car-target"
+        className="training-radar-object-target training-radar-car-target"
+        data-radar-direction={direction}
         data-radar-phase={phase}
         style={placementStyle}
       >
+        <Image
+          alt=""
+          aria-hidden="true"
+          className="training-radar-object-surface training-radar-car-surface"
+          draggable={false}
+          fill
+          sizes="12vw"
+          src={target.surfaceAsset.path}
+          unoptimized
+        />
+        <Image
+          alt=""
+          aria-hidden="true"
+          className="training-radar-object-contour training-radar-car-contour"
+          draggable={false}
+          fill
+          sizes="12vw"
+          src={target.contourAsset.path}
+          unoptimized
+        />
         <Image
           alt=""
           aria-hidden="true"
@@ -110,6 +131,7 @@ export function TrainingGroundedCar({
 }
 
 export function TrainingGroundedBall({
+  direction,
   phase,
   target,
 }: TrainingGroundedBallProps) {
@@ -133,17 +155,42 @@ export function TrainingGroundedBall({
         src={target.baseAsset.path}
         unoptimized
       />
-      <Image
-        alt=""
-        aria-hidden="true"
-        className="training-radar-ball-energy"
+      <div
+        className="training-radar-object-target training-radar-ball-target"
+        data-radar-direction={direction}
         data-radar-phase={phase}
-        draggable={false}
-        fill
-        sizes={sizes}
-        src={target.energyAsset.path}
-        unoptimized
-      />
+      >
+        <Image
+          alt=""
+          aria-hidden="true"
+          className="training-radar-ball-energy"
+          draggable={false}
+          fill
+          sizes={sizes}
+          src={target.energyAsset.path}
+          unoptimized
+        />
+        <Image
+          alt=""
+          aria-hidden="true"
+          className="training-radar-object-surface training-radar-ball-surface"
+          draggable={false}
+          fill
+          sizes={sizes}
+          src={target.surfaceAsset.path}
+          unoptimized
+        />
+        <Image
+          alt=""
+          aria-hidden="true"
+          className="training-radar-object-contour training-radar-ball-contour"
+          draggable={false}
+          fill
+          sizes={sizes}
+          src={target.contourAsset.path}
+          unoptimized
+        />
+      </div>
       <Image
         alt=""
         aria-hidden="true"
