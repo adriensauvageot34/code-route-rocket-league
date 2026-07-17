@@ -56,6 +56,28 @@ type TrainingParticleStyle = CSSProperties & {
 };
 
 const TRAINING_SCENE_WIDTH = 1672;
+const TRAINING_SCENE_HEIGHT = 941;
+const TRAINING_RADAR_HORIZON_Y = 340;
+const TRAINING_RADAR_CORE_TOP_X = 2;
+const TRAINING_RADAR_CORE_BOTTOM_X = 238;
+
+function getRadarCoreOffsetX(particle: TrainingParticle) {
+  const logicalY = (particle.y / 100) * TRAINING_SCENE_HEIGHT;
+  const verticalProgress = Math.min(
+    1,
+    Math.max(
+      0,
+      (logicalY - TRAINING_RADAR_HORIZON_Y) /
+        (TRAINING_SCENE_HEIGHT - TRAINING_RADAR_HORIZON_Y),
+    ),
+  );
+
+  return (
+    TRAINING_RADAR_CORE_TOP_X +
+    (TRAINING_RADAR_CORE_BOTTOM_X - TRAINING_RADAR_CORE_TOP_X) *
+      verticalProgress
+  );
+}
 
 function getParticleScanDelayMs(
   particle: TrainingParticle,
@@ -64,16 +86,21 @@ function getParticleScanDelayMs(
   const logicalX = (particle.x / 100) * TRAINING_SCENE_WIDTH;
   const sweepDistance =
     TRAINING_RADAR_SWEEP.endX - TRAINING_RADAR_SWEEP.startX;
+  const coreOffsetX = getRadarCoreOffsetX(particle);
   const rawProgress =
     direction === "ltr"
-      ? (logicalX - TRAINING_RADAR_SWEEP.startX) / sweepDistance
-      : (TRAINING_RADAR_SWEEP.endX - logicalX) / sweepDistance;
+      ? (logicalX - TRAINING_RADAR_SWEEP.startX - coreOffsetX) /
+        sweepDistance
+      : (TRAINING_RADAR_SWEEP.endX - logicalX - coreOffsetX) /
+        sweepDistance;
   const progress = Math.min(1, Math.max(0, rawProgress));
-
-  return Math.round(
+  const scanHitMs =
     TRAINING_RADAR_TIMING.entryDurationMs +
-      TRAINING_RADAR_TIMING.travelDurationMs * progress +
-      particle.lagMs,
+    TRAINING_RADAR_TIMING.travelDurationMs * progress;
+
+  return Math.max(
+    0,
+    Math.round(scanHitMs - particle.emissionLeadMs),
   );
 }
 
@@ -103,7 +130,7 @@ function createParticleStyle(
     "--particle-fragment-drift-x-mid": `${(particle.driftX * -0.31).toFixed(2)}px`,
     "--particle-fragment-rise-mid": `${(particle.rise * -0.67).toFixed(2)}px`,
     "--particle-fragment-rise-end": `${(particle.rise * -1.28).toFixed(2)}px`,
-    "--particle-spark-width": `${(particle.size * 2.2).toFixed(2)}px`,
+    "--particle-spark-width": `${(particle.size * 2.8).toFixed(2)}px`,
     "--particle-spark-height": `${Math.max(1, particle.size * 0.32).toFixed(2)}px`,
   };
 }

@@ -586,8 +586,9 @@
   display: block;
   width: var(--particle-size);
   height: var(--particle-size);
-  border-radius: 999px;
+  border-radius: 1px;
   background: currentColor;
+  clip-path: polygon(0 42%, 67% 0, 100% 48%, 64% 100%, 8% 72%);
   opacity: 0;
   mix-blend-mode: screen;
   transform-origin: center;
@@ -603,8 +604,9 @@
   display: block;
   width: var(--particle-fragment-size);
   height: var(--particle-fragment-size);
-  border-radius: 999px;
+  border-radius: 1px;
   background: currentColor;
+  clip-path: polygon(50% 0, 100% 48%, 52% 100%, 0 55%);
   content: "";
   opacity: 0;
   animation: training-radar-particle-fragment var(--particle-duration)
@@ -620,6 +622,10 @@
   color: rgb(241, 181, 83);
 }
 
+.training-particle[data-particle-kind="gold-dot"] .training-particle-core {
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+
 .training-particle[data-particle-kind="tactical-spark"] {
   color: rgb(215, 158, 255);
 }
@@ -627,6 +633,7 @@
 .training-particle[data-particle-kind="tactical-spark"] .training-particle-core {
   width: var(--particle-spark-width);
   height: var(--particle-spark-height);
+  clip-path: polygon(0 38%, 84% 0, 100% 50%, 82% 100%, 0 62%);
   background: linear-gradient(
     90deg,
     transparent,
@@ -679,13 +686,44 @@
 }
 
 .training-tactical-terrain {
-  opacity: 0.43;
+  opacity: 0.56;
   mix-blend-mode: screen;
-  filter: brightness(0.98) saturate(0.82);
+  filter: brightness(1.12) contrast(1.08) saturate(1.35);
+}
+
+.training-tactical-terrain-core {
+  opacity: 0.92;
+  mix-blend-mode: screen;
+  filter:
+    brightness(1.65)
+    contrast(1.18)
+    saturate(1.85)
+    drop-shadow(0 0 5px rgba(237, 185, 73, 0.35));
 }
 
 .training-radar-trail {
-  filter: blur(2px) drop-shadow(0 0 7px rgba(111, 109, 184, 0.16));
+  filter: blur(0.7px) drop-shadow(0 0 6px rgba(111, 80, 184, 0.2));
+}
+
+.training-radar-core-glow,
+.training-radar-core-line {
+  fill: none;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.training-radar-core-glow {
+  stroke: rgba(222, 164, 65, 0.52);
+  stroke-width: 8px;
+  filter: blur(3px) drop-shadow(0 0 8px rgba(154, 93, 238, 0.38));
+}
+
+.training-radar-core-line {
+  stroke: rgba(255, 207, 112, 0.96);
+  stroke-width: 2.5px;
+  filter:
+    drop-shadow(0 0 3px rgba(255, 200, 91, 0.82))
+    drop-shadow(0 0 7px rgba(135, 83, 218, 0.46));
 }
 
 .training-grounded-actor {
@@ -2160,29 +2198,29 @@
     opacity: var(--particle-opacity);
     filter:
       blur(var(--particle-blur))
-      brightness(1.32)
-      saturate(1.2)
+      brightness(1.55)
+      saturate(1.42)
       drop-shadow(0 0 var(--particle-glow) currentColor);
     transform: translate3d(0, -1px, 0) rotate(var(--particle-rotation)) scale(1.12);
   }
 
-  28% {
-    opacity: calc(var(--particle-opacity) * 0.88);
+  22% {
+    opacity: calc(var(--particle-opacity) * 0.9);
     filter:
       blur(var(--particle-blur))
-      brightness(1.16)
-      saturate(1.12)
+      brightness(1.2)
+      saturate(1.16)
       drop-shadow(0 0 var(--particle-glow-soft) currentColor);
     transform: translate3d(
         var(--particle-drift-x-mid),
         var(--particle-rise-mid),
         0
       )
-      rotate(var(--particle-rotation)) scale(0.94);
+      rotate(var(--particle-rotation)) scale(0.9);
   }
 
-  64% {
-    opacity: calc(var(--particle-opacity) * 0.34);
+  58% {
+    opacity: calc(var(--particle-opacity) * 0.38);
     filter:
       blur(0.55px)
       brightness(0.96)
@@ -2214,18 +2252,18 @@
 
 @keyframes training-radar-particle-fragment {
   0%,
-  24% {
+  10% {
     opacity: 0;
     transform: translate(-50%, -50%) scale(0.2);
   }
 
-  31% {
-    opacity: calc(var(--particle-opacity) * 0.72);
+  16% {
+    opacity: calc(var(--particle-opacity) * 0.66);
     transform: translate(-50%, -50%) scale(0.9);
   }
 
-  69% {
-    opacity: calc(var(--particle-opacity) * 0.3);
+  55% {
+    opacity: calc(var(--particle-opacity) * 0.28);
     transform: translate3d(
         calc(-50% + var(--particle-fragment-drift-x-mid)),
         calc(-50% + var(--particle-fragment-rise-mid)),

@@ -9,10 +9,10 @@ export type TrainingParticle = {
   blur: number;
   driftX: number;
   durationMs: number;
+  emissionLeadMs: number;
   glow: number;
   id: string;
   kind: TrainingParticleKind;
-  lagMs: number;
   opacity: number;
   rise: number;
   rotation: number;
@@ -27,7 +27,6 @@ type TrainingParticlePresetConfiguration = {
   durationMs: readonly [number, number];
   glow: readonly [number, number];
   kinds: readonly TrainingParticleKind[];
-  lagMs: readonly [number, number];
   minSpacing: readonly [number, number];
   opacity: readonly [number, number];
   rise: readonly [number, number];
@@ -45,15 +44,15 @@ type ExclusionZone = {
 };
 
 export const TRAINING_PARTICLE_COUNTS = {
-  far: 12,
-  mid: 10,
-  near: 6,
+  far: 9,
+  mid: 7,
+  near: 4,
 } as const;
 
 export const TRAINING_PARTICLE_TYPE_COUNTS = {
-  "violet-dust": 19,
-  "gold-dot": 6,
-  "tactical-spark": 3,
+  "violet-dust": 7,
+  "gold-dot": 4,
+  "tactical-spark": 9,
 } as const;
 
 export const TRAINING_PARTICLE_SEEDS = {
@@ -72,74 +71,63 @@ const presetConfigurations = {
   far: {
     seed: TRAINING_PARTICLE_SEEDS.far,
     kinds: [
-      "violet-dust",
-      "gold-dot",
-      "violet-dust",
-      "violet-dust",
-      "gold-dot",
-      "violet-dust",
       "tactical-spark",
       "violet-dust",
       "gold-dot",
+      "tactical-spark",
       "violet-dust",
+      "tactical-spark",
+      "gold-dot",
       "violet-dust",
-      "violet-dust",
+      "tactical-spark",
     ],
     y: TRAINING_PARTICLE_VERTICAL_ZONES.far,
-    size: [2, 3.4],
-    opacity: [0.18, 0.34],
-    durationMs: [720, 920],
-    lagMs: [35, 85],
-    rise: [5, 8],
-    driftX: [1, 2.8],
-    blur: [0.12, 0.4],
-    glow: [4.2, 7],
+    size: [1.2, 2.2],
+    opacity: [0.25, 0.42],
+    durationMs: [650, 820],
+    rise: [4, 7],
+    driftX: [0.8, 2.2],
+    blur: [0, 0.18],
+    glow: [5, 8],
     minSpacing: [5.5, 2.3],
   },
   mid: {
     seed: TRAINING_PARTICLE_SEEDS.mid,
     kinds: [
       "violet-dust",
+      "tactical-spark",
       "gold-dot",
-      "violet-dust",
-      "violet-dust",
       "tactical-spark",
       "violet-dust",
+      "tactical-spark",
       "gold-dot",
-      "violet-dust",
-      "violet-dust",
-      "violet-dust",
     ],
     y: TRAINING_PARTICLE_VERTICAL_ZONES.mid,
-    size: [2.8, 4.8],
-    opacity: [0.26, 0.48],
-    durationMs: [820, 1050],
-    lagMs: [50, 105],
-    rise: [8, 13],
-    driftX: [1.8, 4],
-    blur: [0.05, 0.25],
-    glow: [6, 10],
+    size: [1.7, 3],
+    opacity: [0.34, 0.54],
+    durationMs: [720, 900],
+    rise: [7, 11],
+    driftX: [1.2, 3.2],
+    blur: [0, 0.12],
+    glow: [7, 11],
     minSpacing: [6.5, 3.4],
   },
   near: {
     seed: TRAINING_PARTICLE_SEEDS.near,
     kinds: [
-      "violet-dust",
-      "gold-dot",
+      "tactical-spark",
       "violet-dust",
       "tactical-spark",
       "violet-dust",
-      "violet-dust",
     ],
     y: TRAINING_PARTICLE_VERTICAL_ZONES.near,
-    size: [4, 7],
-    opacity: [0.34, 0.62],
-    durationMs: [950, 1200],
-    lagMs: [65, 125],
-    rise: [11, 18],
-    driftX: [2.5, 5.5],
-    blur: [0, 0.1],
-    glow: [8, 13],
+    size: [2.2, 4.2],
+    opacity: [0.42, 0.64],
+    durationMs: [800, 980],
+    rise: [10, 15],
+    driftX: [1.8, 4.2],
+    blur: [0, 0.08],
+    glow: [9, 14],
     minSpacing: [8, 5],
   },
 } as const satisfies Record<
@@ -258,6 +246,10 @@ function buildTrainingParticlePreset(
 
     const direction = random() < 0.5 ? -1 : 1;
 
+    const durationMs = Math.round(
+      interpolate(configuration.durationMs, random()) + index * 3,
+    );
+
     particles.push({
       id: `${preset}-${String(index + 1).padStart(2, "0")}`,
       kind,
@@ -265,10 +257,8 @@ function buildTrainingParticlePreset(
       y,
       size: round(interpolate(configuration.size, random())),
       opacity: round(interpolate(configuration.opacity, random()), 3),
-      durationMs: Math.round(
-        interpolate(configuration.durationMs, random()) + index * 3,
-      ),
-      lagMs: Math.round(interpolate(configuration.lagMs, random())),
+      durationMs,
+      emissionLeadMs: Math.round(durationMs * 0.07),
       rise: round(interpolate(configuration.rise, random())),
       driftX: round(
         direction * interpolate(configuration.driftX, random()),
