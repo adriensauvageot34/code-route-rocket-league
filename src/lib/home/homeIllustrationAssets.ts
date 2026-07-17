@@ -42,9 +42,16 @@ export const homeIllustrationAssets = {
       alpha: "transparent",
       blendMode: "normal"
     },
-    parallaxGroundBarrier: {
-      path: "/ui/parallax-plan-01-sol-barriere.png",
-      role: "training parallax pitch and barrier",
+    parallaxGround: {
+      path: "/ui/parallax-plan-01-sol.png",
+      role: "training parallax pitch surface",
+      dimensions: { width: 1672, height: 941 },
+      alpha: "transparent",
+      blendMode: "normal"
+    },
+    parallaxBarrier: {
+      path: "/ui/parallax-plan-01-barriere.png",
+      role: "stable training pitch barrier",
       dimensions: { width: 1672, height: 941 },
       alpha: "transparent",
       blendMode: "normal"
@@ -71,6 +78,48 @@ export const homeIllustrationAssets = {
       alpha: "transparent",
       blendMode: "normal"
     },
+    fennecRimLight: {
+      path: "/ui/fennec-base im light overlay.png",
+      role: "permanent premium Fennec rim light",
+      dimensions: { width: 1672, height: 941 },
+      alpha: "transparent",
+      blendMode: "screen"
+    },
+    fennecHeadlightGlow: {
+      path: "/ui/fennec-base headlight glow overlay.png",
+      role: "soft permanent Fennec headlight glow",
+      dimensions: { width: 1672, height: 941 },
+      alpha: "transparent",
+      blendMode: "screen"
+    },
+    fennecReflection: {
+      path: "/ui/fennec-base reflection overlay.png",
+      role: "Fennec ground reflection",
+      dimensions: { width: 1672, height: 941 },
+      alpha: "transparent",
+      blendMode: "screen"
+    },
+    fennecRearAccent: {
+      path: "/ui/fennec-base rear accent glow.png",
+      role: "subtle Fennec rear accent glow",
+      dimensions: { width: 1672, height: 941 },
+      alpha: "transparent",
+      blendMode: "screen"
+    },
+    fennecSurfaceScan: {
+      path: "/ui/fennec-base surface-scan overlay.png",
+      role: "reserved Fennec surface scan",
+      dimensions: { width: 1672, height: 941 },
+      alpha: "transparent",
+      blendMode: "screen"
+    },
+    fennecContourScan: {
+      path: "/ui/fennec-base contour-scan overlay.png",
+      role: "reserved Fennec contour scan",
+      dimensions: { width: 1672, height: 941 },
+      alpha: "transparent",
+      blendMode: "screen"
+    },
     lightsVioletGlow: {
       path: "/ui/training-lights-violet-glow-screen.png",
       role: "violet headlight glow on black",
@@ -91,6 +140,20 @@ export const homeIllustrationAssets = {
       dimensions: { width: 1672, height: 941 },
       alpha: "transparent",
       blendMode: "normal"
+    },
+    ballSurfaceScan: {
+      path: "/ui/training-ball Overlay surface-scan.png",
+      role: "ball surface volume scan",
+      dimensions: { width: 1672, height: 941 },
+      alpha: "transparent",
+      blendMode: "screen"
+    },
+    ballContourScan: {
+      path: "/ui/training-ball overlay contour-scan.png",
+      role: "ball contour scan",
+      dimensions: { width: 1672, height: 941 },
+      alpha: "transparent",
+      blendMode: "screen"
     },
     transitionWaveGold: {
       path: "/ui/training-transition-wave-gold.png",
@@ -134,6 +197,20 @@ export const homeIllustrationAssets = {
       alpha: "transparent",
       blendMode: "normal"
     },
+    surfaceScanCar01: {
+      path: "/ui/car-01 overlay surface-scan.png",
+      role: "surface scan matched to the distant left car",
+      dimensions: { width: 1607, height: 979 },
+      alpha: "transparent",
+      blendMode: "screen"
+    },
+    contourScanCar01: {
+      path: "/ui/car-01 overlay contour-scan.png",
+      role: "contour scan matched to the distant left car",
+      dimensions: { width: 1607, height: 979 },
+      alpha: "transparent",
+      blendMode: "screen"
+    },
     wireframeCar01Glow: {
       path: "/ui/training-wireframe-car-01-radar-glow.png",
       role: "radar glow matched to wireframe car 01",
@@ -148,6 +225,20 @@ export const homeIllustrationAssets = {
       alpha: "transparent",
       blendMode: "normal"
     },
+    surfaceScanCar02: {
+      path: "/ui/car-02 overlay surface-scan.png",
+      role: "surface scan matched to the distant back-right car",
+      dimensions: { width: 1612, height: 975 },
+      alpha: "transparent",
+      blendMode: "screen"
+    },
+    contourScanCar02: {
+      path: "/ui/car-02 overlay contour-scan.png",
+      role: "contour scan matched to the distant back-right car",
+      dimensions: { width: 1612, height: 975 },
+      alpha: "transparent",
+      blendMode: "screen"
+    },
     wireframeCar02Glow: {
       path: "/ui/training-wireframe-car-02-radar-glow.png",
       role: "radar glow matched to wireframe car 02",
@@ -161,6 +252,20 @@ export const homeIllustrationAssets = {
       dimensions: { width: 1619, height: 972 },
       alpha: "transparent",
       blendMode: "normal"
+    },
+    surfaceScanCar03: {
+      path: "/ui/car-03 overlay surface-scan.png",
+      role: "surface scan matched to the distant front-right car",
+      dimensions: { width: 1619, height: 972 },
+      alpha: "transparent",
+      blendMode: "screen"
+    },
+    contourScanCar03: {
+      path: "/ui/car-03 overlay contour-scan.png",
+      role: "contour scan matched to the distant front-right car",
+      dimensions: { width: 1619, height: 972 },
+      alpha: "transparent",
+      blendMode: "screen"
     },
     wireframeCar03Glow: {
       path: "/ui/training-wireframe-car-03-radar-glow.png",

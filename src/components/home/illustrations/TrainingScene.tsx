@@ -87,7 +87,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       </SceneGroup>
 
       <SceneGroup depth="trainingGround" layer={5} name="training-ground">
-        <SceneLayer asset={assets.parallaxGroundBarrier} preload />
+        <SceneLayer asset={assets.parallaxGround} preload />
       </SceneGroup>
 
       <SceneGroup blendMode="screen" depth="trainingGround" layer={6} name="training-radar-surface">
@@ -99,53 +99,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         />
       </SceneGroup>
 
-      <SceneGroup blendMode="screen" depth="trainingParticlesFar" layer={7} name="training-particles-far">
-        <TrainingParticleField
-          active={running}
-          direction={passDirection}
-          passKey={passKey}
-          preset="far"
-        />
-      </SceneGroup>
-
-      <SceneGroup depth={trainingFarCarTarget.depth} layer={8} name={`training-${trainingFarCarTarget.id}`}>
-        <TrainingGroundedCar
-          phase={getTargetPhase(trainingFarCarTarget.id)}
-          target={trainingFarCarTarget}
-        />
-      </SceneGroup>
-
-      <SceneGroup blendMode="screen" depth="trainingParticlesMid" layer={9} name="training-particles-mid">
-        <TrainingParticleField
-          active={running}
-          direction={passDirection}
-          passKey={passKey}
-          preset="mid"
-        />
-      </SceneGroup>
-
-      <SceneGroup depth={trainingMidCarTarget.depth} layer={10} name={`training-${trainingMidCarTarget.id}`}>
-        <TrainingGroundedCar
-          phase={getTargetPhase(trainingMidCarTarget.id)}
-          target={trainingMidCarTarget}
-        />
-      </SceneGroup>
-
-      <SceneGroup depth={trainingNearCarTarget.depth} layer={11} name={`training-${trainingNearCarTarget.id}`}>
-        <TrainingGroundedCar
-          phase={getTargetPhase(trainingNearCarTarget.id)}
-          target={trainingNearCarTarget}
-        />
-      </SceneGroup>
-
-      <SceneGroup depth={trainingBallRadarTarget.depth} layer={12} name="ball">
-        <TrainingGroundedBall
-          phase={getTargetPhase(trainingBallRadarTarget.id)}
-          target={trainingBallRadarTarget}
-        />
-      </SceneGroup>
-
-      <SceneGroup depth="trainingGround" layer={13} name="training-radar-sweep">
+      <SceneGroup depth="trainingGround" layer={7} name="training-radar-sweep">
         <TrainingRadarOverlay
           active={running}
           direction={passDirection}
@@ -154,7 +108,61 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         />
       </SceneGroup>
 
-      <SceneGroup blendMode="screen" depth="trainingParticlesNear" layer={14} name="training-particles-near">
+      <SceneGroup depth="trainingGround" layer={8} name="training-barrier">
+        <SceneLayer asset={assets.parallaxBarrier} preload />
+      </SceneGroup>
+
+      <SceneGroup blendMode="screen" depth="trainingParticlesFar" layer={9} name="training-particles-far">
+        <TrainingParticleField
+          active={running}
+          direction={passDirection}
+          passKey={passKey}
+          preset="far"
+        />
+      </SceneGroup>
+
+      <SceneGroup depth={trainingFarCarTarget.depth} layer={10} name={`training-${trainingFarCarTarget.id}`}>
+        <TrainingGroundedCar
+          direction={passDirection}
+          phase={getTargetPhase(trainingFarCarTarget.id)}
+          target={trainingFarCarTarget}
+        />
+      </SceneGroup>
+
+      <SceneGroup blendMode="screen" depth="trainingParticlesMid" layer={11} name="training-particles-mid">
+        <TrainingParticleField
+          active={running}
+          direction={passDirection}
+          passKey={passKey}
+          preset="mid"
+        />
+      </SceneGroup>
+
+      <SceneGroup depth={trainingMidCarTarget.depth} layer={12} name={`training-${trainingMidCarTarget.id}`}>
+        <TrainingGroundedCar
+          direction={passDirection}
+          phase={getTargetPhase(trainingMidCarTarget.id)}
+          target={trainingMidCarTarget}
+        />
+      </SceneGroup>
+
+      <SceneGroup depth={trainingNearCarTarget.depth} layer={13} name={`training-${trainingNearCarTarget.id}`}>
+        <TrainingGroundedCar
+          direction={passDirection}
+          phase={getTargetPhase(trainingNearCarTarget.id)}
+          target={trainingNearCarTarget}
+        />
+      </SceneGroup>
+
+      <SceneGroup depth={trainingBallRadarTarget.depth} layer={14} name="ball">
+        <TrainingGroundedBall
+          direction={passDirection}
+          phase={getTargetPhase(trainingBallRadarTarget.id)}
+          target={trainingBallRadarTarget}
+        />
+      </SceneGroup>
+
+      <SceneGroup blendMode="screen" depth="trainingParticlesNear" layer={15} name="training-particles-near">
         <TrainingParticleField
           active={running}
           direction={passDirection}
@@ -163,13 +171,13 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         />
       </SceneGroup>
 
-      <SceneGroup depth="trainingFennec" layer={15} name="fennec">
+      <SceneGroup depth="trainingFennec" layer={16} name="fennec">
         <div aria-hidden="true" className="training-fennec-contact-shadow" />
+        <SceneLayer asset={assets.fennecReflection} className="training-fennec-reflection" />
         <SceneLayer asset={assets.fennecBase} />
-      </SceneGroup>
-
-      <SceneGroup blendMode="screen" depth="trainingFennec" layer={16} name="fennec-lights-glow">
-        <SceneLayer asset={assets.lightsVioletGlow} className="training-lights-glow" />
+        <SceneLayer asset={assets.fennecRimLight} className="training-fennec-rim-light" />
+        <SceneLayer asset={assets.fennecHeadlightGlow} className="training-fennec-headlight-glow" />
+        <SceneLayer asset={assets.fennecRearAccent} className="training-fennec-rear-accent" />
       </SceneGroup>
 
       <SceneGroup blendMode="screen" depth="foreground" future layer={17} name="transition">

@@ -33,8 +33,8 @@ const CORE_REVEAL_PATHS: Record<TrainingRadarDirection, string> = {
 };
 
 const SWEEP_PATHS: Record<TrainingRadarDirection, string> = {
-  ltr: "M -170 340 L 2 340 L 238 941 L 66 941 Z",
-  rtl: "M 170 340 L -2 340 L -238 941 L -66 941 Z",
+  ltr: "M -286 340 L 2 340 L 238 941 L -50 941 Z",
+  rtl: "M 286 340 L -2 340 L -238 941 L 50 941 Z",
 };
 
 const CORE_PATHS: Record<TrainingRadarDirection, string> = {
@@ -142,12 +142,34 @@ export function TrainingRadarOverlay({
           y2="0"
         >
           <stop offset="0" stopColor="#6654b9" stopOpacity="0" />
-          <stop offset="0.55" stopColor="#785fd0" stopOpacity="0.05" />
-          <stop offset="0.88" stopColor="#bb8541" stopOpacity="0.13" />
-          <stop offset="1" stopColor="#f3c46b" stopOpacity="0.25" />
+          <stop offset="0.5" stopColor="#785fd0" stopOpacity="0.06" />
+          <stop offset="0.84" stopColor="#bb8541" stopOpacity="0.16" />
+          <stop offset="1" stopColor="#f3c46b" stopOpacity="0.29" />
         </linearGradient>
+        <linearGradient
+          id="training-radar-depth-gradient"
+          x1="0"
+          x2="0"
+          y1="0"
+          y2="1"
+        >
+          <stop offset="0" stopColor="#2e2e2e" />
+          <stop offset="0.42" stopColor="#555" />
+          <stop offset="0.72" stopColor="#b8b8b8" />
+          <stop offset="1" stopColor="white" />
+        </linearGradient>
+        <mask id="training-radar-depth-mask" maskUnits="userSpaceOnUse">
+          <rect
+            fill="url(#training-radar-depth-gradient)"
+            height="941"
+            width="1672"
+          />
+        </mask>
       </defs>
-      <g clipPath="url(#training-radar-field-sweep-clip)">
+      <g
+        clipPath="url(#training-radar-field-sweep-clip)"
+        mask="url(#training-radar-depth-mask)"
+      >
         <g className="training-radar-motion">
           <path
             className="training-radar-trail"
