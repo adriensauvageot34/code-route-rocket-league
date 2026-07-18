@@ -551,7 +551,37 @@
 }
 
 .training-particle-field {
-  clip-path: polygon(3% 40.5%, 97% 40.5%, 100% 100%, 0 100%);
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent 44%,
+    rgb(0 0 0 / 0.04) 47%,
+    rgb(0 0 0 / 0.22) 60%,
+    rgb(0 0 0 / 0.52) 73%,
+    rgb(0 0 0 / 0.82) 86%,
+    black 100%
+  );
+  clip-path: polygon(
+    3% 44.2%,
+    22% 44.8%,
+    40% 44.3%,
+    50% 44.1%,
+    65% 43.9%,
+    82% 44.7%,
+    97% 44.2%,
+    100% 100%,
+    0 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent 44%,
+    rgb(0 0 0 / 0.04) 47%,
+    rgb(0 0 0 / 0.22) 60%,
+    rgb(0 0 0 / 0.52) 73%,
+    rgb(0 0 0 / 0.82) 86%,
+    black 100%
+  );
   opacity: 1;
   transition: opacity 240ms ease-out;
 }
@@ -561,7 +591,7 @@
 }
 
 .training-particle-field[data-particle-preset="far"] .training-particle-band {
-  clip-path: polygon(3% 41%, 97% 41%, 98% 57%, 2% 57%);
+  clip-path: polygon(3% 44.5%, 97% 44.5%, 98% 57%, 2% 57%);
 }
 
 .training-particle-field[data-particle-preset="mid"] .training-particle-band {

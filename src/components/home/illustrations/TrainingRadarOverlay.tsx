@@ -66,9 +66,27 @@ export function TrainingRadarOverlay({
         viewBox="0 0 1672 941"
       >
         <defs>
-          <clipPath id="training-radar-field-surface-clip">
-            <path d={TRAINING_RADAR_FIELD_PATH} />
-          </clipPath>
+          <linearGradient
+            id="training-radar-surface-depth-gradient"
+            x1="0"
+            x2="0"
+            y1="0"
+            y2="1"
+          >
+            <stop offset="0" stopColor="black" />
+            <stop offset="0.16" stopColor="#060606" />
+            <stop offset="0.42" stopColor="#3a3a3a" />
+            <stop offset="0.66" stopColor="#8c8c8c" />
+            <stop offset="0.84" stopColor="#d5d5d5" />
+            <stop offset="1" stopColor="white" />
+          </linearGradient>
+          <mask id="training-radar-field-surface-mask" maskUnits="userSpaceOnUse">
+            <rect width="1672" height="941" fill="black" />
+            <path
+              d={TRAINING_RADAR_FIELD_PATH}
+              fill="url(#training-radar-surface-depth-gradient)"
+            />
+          </mask>
           <linearGradient
             id="training-radar-terrain-mask-gradient"
             x1={movesLeftToRight ? "0" : "1"}
@@ -99,7 +117,7 @@ export function TrainingRadarOverlay({
             </g>
           </mask>
         </defs>
-        <g clipPath="url(#training-radar-field-surface-clip)">
+        <g mask="url(#training-radar-field-surface-mask)">
           <image
             className="training-tactical-terrain"
             height="941"
@@ -131,9 +149,6 @@ export function TrainingRadarOverlay({
       viewBox="0 0 1672 941"
     >
       <defs>
-        <clipPath id="training-radar-field-sweep-clip">
-          <path d={TRAINING_RADAR_FIELD_PATH} />
-        </clipPath>
         <linearGradient
           id="training-radar-trail-gradient"
           x1={movesLeftToRight ? "0" : "1"}
@@ -153,23 +168,22 @@ export function TrainingRadarOverlay({
           y1="0"
           y2="1"
         >
-          <stop offset="0" stopColor="#2e2e2e" />
-          <stop offset="0.42" stopColor="#555" />
-          <stop offset="0.72" stopColor="#b8b8b8" />
+          <stop offset="0" stopColor="black" />
+          <stop offset="0.16" stopColor="#060606" />
+          <stop offset="0.42" stopColor="#3a3a3a" />
+          <stop offset="0.66" stopColor="#8c8c8c" />
+          <stop offset="0.84" stopColor="#d5d5d5" />
           <stop offset="1" stopColor="white" />
         </linearGradient>
-        <mask id="training-radar-depth-mask" maskUnits="userSpaceOnUse">
-          <rect
+        <mask id="training-radar-field-sweep-mask" maskUnits="userSpaceOnUse">
+          <rect width="1672" height="941" fill="black" />
+          <path
+            d={TRAINING_RADAR_FIELD_PATH}
             fill="url(#training-radar-depth-gradient)"
-            height="941"
-            width="1672"
           />
         </mask>
       </defs>
-      <g
-        clipPath="url(#training-radar-field-sweep-clip)"
-        mask="url(#training-radar-depth-mask)"
-      >
+      <g mask="url(#training-radar-field-sweep-mask)">
         <g className="training-radar-motion">
           <path
             className="training-radar-trail"
