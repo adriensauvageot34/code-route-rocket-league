@@ -170,26 +170,6 @@ export function TrainingGroundedBall({
           src={target.energyAsset.path}
           unoptimized
         />
-        <Image
-          alt=""
-          aria-hidden="true"
-          className="training-radar-object-surface training-radar-ball-surface"
-          draggable={false}
-          fill
-          sizes={sizes}
-          src={target.surfaceAsset.path}
-          unoptimized
-        />
-        <Image
-          alt=""
-          aria-hidden="true"
-          className="training-radar-object-contour training-radar-ball-contour"
-          draggable={false}
-          fill
-          sizes={sizes}
-          src={target.contourAsset.path}
-          unoptimized
-        />
       </div>
       <Image
         alt=""
