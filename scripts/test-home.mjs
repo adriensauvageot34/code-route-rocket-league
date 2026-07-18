@@ -189,7 +189,7 @@ for (const premiumFennecLayer of ["fennecReflection", "fennecHeadlightGlow", "fe
 assert(!trainingScene.includes("assets.fennecRimLight") && !trainingScene.includes("fennecSurfaceScan") && !trainingScene.includes("fennecContourScan"), "Unsafe Fennec scan and rim overlays must stay disabled in the scene.");
 assert(trainingScene.includes('className="training-transition-wave-local"'), "Prepared Training transition layer must remain.");
 
-for (const [preset, expectedCount] of Object.entries({ far: 9, mid: 7, near: 4 })) {
+for (const [preset, expectedCount] of Object.entries({ far: 6, mid: 5, near: 3 })) {
   assert(
     trainingParticlePresets.includes(`${preset}: ${expectedCount},`),
     `Training particle count must stay deterministic for ${preset}: ${expectedCount}.`
@@ -203,31 +203,30 @@ for (const [preset, expectedCount] of Object.entries({ far: 9, mid: 7, near: 4 }
 assert(trainingParticlePresets.includes("far: 1107") && trainingParticlePresets.includes("mid: 2284") && trainingParticlePresets.includes("near: 3916"), "Training particles must use fixed per-depth seeds.");
 assert(!trainingParticlePresets.includes("Math.random"), "Training particles must not use nondeterministic randomness.");
 for (const visibilityTuning of [
-  "size: [1.2, 2.2]",
-  "opacity: [0.4, 0.58]",
-  "size: [1.7, 3]",
-  "opacity: [0.5, 0.7]",
-  "size: [2.2, 4.2]",
-  "opacity: [0.56, 0.76]",
-  "glow: [11, 15]",
+  "size: [2.2, 3.4]",
+  "opacity: [0.78, 0.94]",
+  "size: [2.8, 4.5]",
+  "opacity: [0.82, 1]",
+  "size: [3.6, 5.4]",
+  "opacity: [0.86, 1]",
+  "glow: [18, 25]",
 ]) {
   assert(trainingParticlePresets.includes(visibilityTuning), `Radar-linked tactical particles lost their calibrated tuning: ${visibilityTuning}.`);
 }
 for (const lifetimeTuning of [
-  "durationMs: [760, 920]",
-  "durationMs: [820, 1000]",
-  "durationMs: [900, 1100]",
-  "emissionLeadMs: Math.round(durationMs * 0.08)",
-  "rise: [10, 15]",
+  "durationMs: [950, 1150]",
+  "durationMs: [1050, 1300]",
+  "durationMs: [1150, 1400]",
+  "rise: [12, 18]",
   "driftX: [1.8, 4.2]",
 ]) {
   assert(trainingParticlePresets.includes(lifetimeTuning), `Radar trail timing or lift missing: ${lifetimeTuning}.`);
 }
-const radarTrailParticleCounts = { "violet-dust": 7, "gold-dot": 4, "tactical-spark": 9 };
+const radarTrailParticleCounts = { "violet-dust": 5, "gold-dot": 2, "tactical-spark": 7 };
 for (const [kind, expectedCount] of Object.entries(radarTrailParticleCounts)) {
   assert(trainingParticlePresets.includes(`"${kind}": ${expectedCount}`), `Radar trail particle count missing for ${kind}: ${expectedCount}.`);
 }
-assert(Object.values(radarTrailParticleCounts).reduce((total, count) => total + count, 0) === 20, "Training radar trail must render exactly 20 deterministic particles per pass.");
+assert(Object.values(radarTrailParticleCounts).reduce((total, count) => total + count, 0) === 14, "Training radar trail must render exactly 14 readable particles per pass.");
 assert(trainingParticlePresets.includes("(index + 0.5 + (random() - 0.5) * 0.44) / expectedCount"), "Radar particles must span the sweep from left to right instead of clustering.");
 assert(trainingParticlePresets.includes("exclusionZones") && trainingParticlePresets.includes("isTooClose"), "Particle generation must keep actor exclusions and anti-cluster spacing.");
 assert(trainingParticlePresets.includes("normalizedX ** 2 + normalizedY ** 2 < 1"), "Actor exclusions must use precise elliptical masks.");
@@ -239,8 +238,8 @@ assert(trainingParticleField.includes("TRAINING_RADAR_SWEEP") && trainingParticl
 assert(
   trainingParticleField.includes("getParticleScanDelayMs") &&
     trainingParticleField.includes("getRadarCoreOffsetX") &&
-    trainingParticleField.includes("Math.round(scanHitMs - particle.emissionLeadMs)"),
-  "Particles must peak exactly on the slanted radar core instead of appearing after it.",
+    trainingParticleField.includes("Math.round(scanHitMs)"),
+  "Particles must start exactly on the slanted radar core without an appearance delay.",
 );
 assert(trainingParticleField.includes("Math.max(") && trainingParticleField.includes("TRAINING_RADAR_CORE_BOTTOM_X"), "Particle timing must clamp safely and follow the radar perspective from horizon to foreground.");
 assert(trainingParticleField.includes('direction === "ltr"') && trainingParticleField.includes("TRAINING_RADAR_SWEEP.endX - logicalX"), "Particle delay must reverse with the radar direction.");
@@ -443,7 +442,7 @@ for (const keyframe of ["training-radar-particle-disintegrate", "training-radar-
 for (const kind of ["violet-dust", "gold-dot", "tactical-spark"]) {
   assert(css.includes(`data-particle-kind="${kind}"`), `Missing radar trail particle shape: ${kind}.`);
 }
-assert(css.includes("var(--particle-delay) 1 both") && !css.includes("var(--particle-delay) infinite"), "Radar particles must play once after each scan hit, never loop independently.");
+assert(css.includes("var(--particle-delay) 1 forwards") && !css.includes("var(--particle-delay) infinite"), "Radar particles must play once after each scan hit, never loop independently.");
 assert(css.includes("drop-shadow(0 0 var(--particle-glow) currentColor)") && css.includes("drop-shadow(0 0 0 transparent)"), "Particles must leave the radar glowing and end with no glow.");
 assert(css.includes("var(--particle-rise-mid)") && css.includes("var(--particle-rise-soft)") && css.includes("var(--particle-rise-end)"), "Particles must rise progressively while disintegrating.");
 assert(css.includes("var(--particle-fragment-rise-mid)") && css.includes("var(--particle-fragment-rise-end)"), "Each radar particle must shed a secondary rising fragment.");
@@ -461,14 +460,14 @@ for (const premiumClass of ["training-fennec-reflection", "training-fennec-rim-l
 for (const safeOpacity of ["opacity: 0.25", "opacity: 0.34", "opacity: 0.12"]) {
   assert(css.includes(safeOpacity), `Safe Training overlay opacity missing: ${safeOpacity}.`);
 }
-assert(/\.training-fennec-reflection\s*\{[\s\S]*?opacity:\s*0\.1;[\s\S]*?scale\(0\.84\);/s.test(css), "Fennec reflection must stay compact and discreet under the car.");
-assert(/\.training-fennec-headlight-glow\s*\{[\s\S]*?opacity:\s*0\.27;/s.test(css), "Fennec headlights must retain a subtle premium glow.");
-assert(/\.training-fennec-rear-accent\s*\{[\s\S]*?opacity:\s*0\.12;/s.test(css), "Fennec rear accent must remain very subtle.");
+assert(/\.training-fennec-reflection\s*\{[\s\S]*?opacity:\s*0\.08;[\s\S]*?ellipse\(15% 8\.5% at 79% 79%\)[\s\S]*?scale\(0\.72\);/s.test(css), "Fennec reflection must stay tightly cropped, compact and discreet under the car.");
+assert(/\.training-fennec-headlight-glow\s*\{[\s\S]*?opacity:\s*0\.22;/s.test(css), "Fennec headlights must retain a subtle premium glow.");
+assert(/\.training-fennec-rear-accent\s*\{[\s\S]*?opacity:\s*0\.08;/s.test(css), "Fennec rear accent must remain very subtle.");
 assert(css.includes(".training-radar-ball-target::before") && css.includes("display: none"), "The ball must not render the full-canvas contact ring.");
 assert(css.includes('.mode-illustration[data-active="false"] .training-particle-core') && css.includes('.mode-illustration[data-motion-active="false"] .training-particle-core::after'), "Inactive and offscreen particle and fragment animations must pause.");
 assert(css.includes('.training-scene[data-launching="true"] .training-particle-field') && css.includes("transition: opacity 240ms ease-out"), "Particles must fade and pause during launch.");
-assert(css.includes("transparent 44%") && css.includes("rgb(0 0 0 / 0.12) 47%") && css.includes("rgb(0 0 0 / 0.68) 73%") && css.includes("black 100%"), "Radar particles must be hidden at the horizon, visible in the middle and strongest in the foreground.");
-assert(css.includes("8% {") && css.includes("brightness(1.72)"), "Radar particles must flash at emission instead of fading in after the scan line.");
+assert(css.includes("transparent 44%") && css.includes("rgb(0 0 0 / 0.22) 47%") && css.includes("rgb(0 0 0 / 0.78) 73%") && css.includes("black 100%"), "Radar particles must be hidden at the horizon, readable in the middle and strongest in the foreground.");
+assert(css.includes("brightness(1.9)") && css.includes("var(--particle-delay) 1 forwards"), "Radar particles must flash immediately at emission while staying hidden before the scan line arrives.");
 assert(/@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.training-particle-field\s*\{\s*display:\s*none;/s.test(css), "Reduced motion must hide the radar particle trail together with the radar.");
 
 assert(css.includes("@keyframes training-radar-traverse") && !css.includes("@keyframes training-analysis-scan"), "Training must use the clipped field radar instead of legacy circles.");

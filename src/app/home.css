@@ -555,10 +555,10 @@
     180deg,
     transparent 0%,
     transparent 44%,
-    rgb(0 0 0 / 0.12) 47%,
-    rgb(0 0 0 / 0.38) 60%,
-    rgb(0 0 0 / 0.68) 73%,
-    rgb(0 0 0 / 0.88) 86%,
+    rgb(0 0 0 / 0.22) 47%,
+    rgb(0 0 0 / 0.5) 60%,
+    rgb(0 0 0 / 0.78) 73%,
+    rgb(0 0 0 / 0.94) 86%,
     black 100%
   );
   clip-path: polygon(
@@ -576,10 +576,10 @@
     180deg,
     transparent 0%,
     transparent 44%,
-    rgb(0 0 0 / 0.12) 47%,
-    rgb(0 0 0 / 0.38) 60%,
-    rgb(0 0 0 / 0.68) 73%,
-    rgb(0 0 0 / 0.88) 86%,
+    rgb(0 0 0 / 0.22) 47%,
+    rgb(0 0 0 / 0.5) 60%,
+    rgb(0 0 0 / 0.78) 73%,
+    rgb(0 0 0 / 0.94) 86%,
     black 100%
   );
   opacity: 1;
@@ -624,7 +624,7 @@
   transform-origin: center;
   animation: training-radar-particle-disintegrate var(--particle-duration)
     cubic-bezier(0.16, 0.74, 0.22, 1)
-    var(--particle-delay) 1 both;
+    var(--particle-delay) 1 forwards;
 }
 
 .training-particle-core::after {
@@ -641,7 +641,7 @@
   opacity: 0;
   animation: training-radar-particle-fragment var(--particle-duration)
     cubic-bezier(0.2, 0.7, 0.2, 1)
-    var(--particle-delay) 1 both;
+    var(--particle-delay) 1 forwards;
 }
 
 .training-particle[data-particle-kind="violet-dust"] {
@@ -844,11 +844,12 @@
 
 .scene-group[data-scene-group="fennec"] .training-fennec-reflection {
   z-index: 0;
-  opacity: 0.1;
+  opacity: 0.08;
   mix-blend-mode: screen;
-  filter: brightness(0.78) saturate(0.9);
-  transform: translate3d(0.35%, 0.25%, 0) scale(0.84);
-  transform-origin: 79% 77.5%;
+  clip-path: ellipse(15% 8.5% at 79% 79%);
+  filter: brightness(0.62) saturate(0.72);
+  transform: scale(0.72);
+  transform-origin: 79% 79%;
 }
 
 .scene-group[data-scene-group="fennec"] .training-fennec-rim-light {
@@ -860,13 +861,13 @@
 
 .scene-group[data-scene-group="fennec"] .training-fennec-headlight-glow {
   z-index: 3;
-  opacity: 0.27;
+  opacity: 0.22;
   mix-blend-mode: screen;
 }
 
 .scene-group[data-scene-group="fennec"] .training-fennec-rear-accent {
   z-index: 3;
-  opacity: 0.12;
+  opacity: 0.08;
   mix-blend-mode: screen;
   filter: brightness(0.98) saturate(1.1);
 }
@@ -2380,28 +2381,18 @@
 
 @keyframes training-radar-particle-disintegrate {
   0%,
-  1% {
-    opacity: 0;
-    filter:
-      blur(var(--particle-blur))
-      brightness(1.34)
-      saturate(1.22)
-      drop-shadow(0 0 var(--particle-glow) currentColor);
-    transform: translate3d(0, 0, 0) rotate(var(--particle-rotation)) scale(0.28);
-  }
-
-  8% {
+  6% {
     opacity: var(--particle-opacity);
     filter:
       blur(var(--particle-blur))
-      brightness(1.72)
-      saturate(1.5)
+      brightness(1.9)
+      saturate(1.62)
       drop-shadow(0 0 var(--particle-glow) currentColor);
-    transform: translate3d(0, -1px, 0) rotate(var(--particle-rotation)) scale(1.12);
+    transform: translate3d(0, 0, 0) rotate(var(--particle-rotation)) scale(1.14);
   }
 
-  28% {
-    opacity: calc(var(--particle-opacity) * 0.84);
+  24% {
+    opacity: calc(var(--particle-opacity) * 0.82);
     filter:
       blur(var(--particle-blur))
       brightness(1.2)
@@ -2415,8 +2406,8 @@
       rotate(var(--particle-rotation)) scale(0.9);
   }
 
-  62% {
-    opacity: calc(var(--particle-opacity) * 0.34);
+  64% {
+    opacity: calc(var(--particle-opacity) * 0.32);
     filter:
       blur(0.55px)
       brightness(0.96)
@@ -2449,16 +2440,11 @@
 @keyframes training-radar-particle-fragment {
   0%,
   8% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.2);
-  }
-
-  14% {
     opacity: calc(var(--particle-opacity) * 0.66);
     transform: translate(-50%, -50%) scale(0.9);
   }
 
-  58% {
+  60% {
     opacity: calc(var(--particle-opacity) * 0.28);
     transform: translate3d(
         calc(-50% + var(--particle-fragment-drift-x-mid)),
@@ -2556,12 +2542,12 @@
   }
 
   .training-fennec-headlight-glow {
-    opacity: 0.27;
+    opacity: 0.22;
     filter: brightness(0.96) saturate(1.08);
   }
 
   .training-fennec-rear-accent {
-    opacity: 0.12;
+    opacity: 0.08;
     filter: brightness(0.96) saturate(1.08);
   }
 

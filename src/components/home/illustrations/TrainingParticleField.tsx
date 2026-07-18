@@ -98,10 +98,7 @@ function getParticleScanDelayMs(
     TRAINING_RADAR_TIMING.entryDurationMs +
     TRAINING_RADAR_TIMING.travelDurationMs * progress;
 
-  return Math.max(
-    0,
-    Math.round(scanHitMs - particle.emissionLeadMs),
-  );
+  return Math.max(0, Math.round(scanHitMs));
 }
 
 function createParticleStyle(
@@ -125,12 +122,12 @@ function createParticleStyle(
     "--particle-blur": `${particle.blur}px`,
     "--particle-glow": `${particle.glow}px`,
     "--particle-glow-soft": `${(particle.glow * 0.42).toFixed(2)}px`,
-    "--particle-fragment-size": `${Math.max(1, particle.size * 0.3).toFixed(2)}px`,
+    "--particle-fragment-size": `${Math.max(1, particle.size * 0.35).toFixed(2)}px`,
     "--particle-fragment-drift-x": `${(particle.driftX * -0.65).toFixed(2)}px`,
     "--particle-fragment-drift-x-mid": `${(particle.driftX * -0.31).toFixed(2)}px`,
     "--particle-fragment-rise-mid": `${(particle.rise * -0.67).toFixed(2)}px`,
     "--particle-fragment-rise-end": `${(particle.rise * -1.28).toFixed(2)}px`,
-    "--particle-spark-width": `${(particle.size * 2.8).toFixed(2)}px`,
+    "--particle-spark-width": `${(particle.size * 1.9).toFixed(2)}px`,
     "--particle-spark-height": `${Math.max(1, particle.size * 0.32).toFixed(2)}px`,
   };
 }
