@@ -555,10 +555,10 @@
     180deg,
     transparent 0%,
     transparent 44%,
-    rgb(0 0 0 / 0.04) 47%,
-    rgb(0 0 0 / 0.22) 60%,
-    rgb(0 0 0 / 0.52) 73%,
-    rgb(0 0 0 / 0.82) 86%,
+    rgb(0 0 0 / 0.12) 47%,
+    rgb(0 0 0 / 0.38) 60%,
+    rgb(0 0 0 / 0.68) 73%,
+    rgb(0 0 0 / 0.88) 86%,
     black 100%
   );
   clip-path: polygon(
@@ -576,10 +576,10 @@
     180deg,
     transparent 0%,
     transparent 44%,
-    rgb(0 0 0 / 0.04) 47%,
-    rgb(0 0 0 / 0.22) 60%,
-    rgb(0 0 0 / 0.52) 73%,
-    rgb(0 0 0 / 0.82) 86%,
+    rgb(0 0 0 / 0.12) 47%,
+    rgb(0 0 0 / 0.38) 60%,
+    rgb(0 0 0 / 0.68) 73%,
+    rgb(0 0 0 / 0.88) 86%,
     black 100%
   );
   opacity: 1;
@@ -844,9 +844,11 @@
 
 .scene-group[data-scene-group="fennec"] .training-fennec-reflection {
   z-index: 0;
-  opacity: 0.15;
+  opacity: 0.1;
   mix-blend-mode: screen;
-  filter: brightness(0.92) saturate(1.08);
+  filter: brightness(0.78) saturate(0.9);
+  transform: translate3d(0.35%, 0.25%, 0) scale(0.84);
+  transform-origin: 79% 77.5%;
 }
 
 .scene-group[data-scene-group="fennec"] .training-fennec-rim-light {
@@ -858,13 +860,13 @@
 
 .scene-group[data-scene-group="fennec"] .training-fennec-headlight-glow {
   z-index: 3;
-  opacity: 0.32;
+  opacity: 0.27;
   mix-blend-mode: screen;
 }
 
 .scene-group[data-scene-group="fennec"] .training-fennec-rear-accent {
   z-index: 3;
-  opacity: 0.18;
+  opacity: 0.12;
   mix-blend-mode: screen;
   filter: brightness(0.98) saturate(1.1);
 }
@@ -2378,7 +2380,7 @@
 
 @keyframes training-radar-particle-disintegrate {
   0%,
-  2% {
+  1% {
     opacity: 0;
     filter:
       blur(var(--particle-blur))
@@ -2388,18 +2390,18 @@
     transform: translate3d(0, 0, 0) rotate(var(--particle-rotation)) scale(0.28);
   }
 
-  7% {
+  8% {
     opacity: var(--particle-opacity);
     filter:
       blur(var(--particle-blur))
-      brightness(1.55)
-      saturate(1.42)
+      brightness(1.72)
+      saturate(1.5)
       drop-shadow(0 0 var(--particle-glow) currentColor);
     transform: translate3d(0, -1px, 0) rotate(var(--particle-rotation)) scale(1.12);
   }
 
-  22% {
-    opacity: calc(var(--particle-opacity) * 0.9);
+  28% {
+    opacity: calc(var(--particle-opacity) * 0.84);
     filter:
       blur(var(--particle-blur))
       brightness(1.2)
@@ -2413,8 +2415,8 @@
       rotate(var(--particle-rotation)) scale(0.9);
   }
 
-  58% {
-    opacity: calc(var(--particle-opacity) * 0.38);
+  62% {
+    opacity: calc(var(--particle-opacity) * 0.34);
     filter:
       blur(0.55px)
       brightness(0.96)
@@ -2446,17 +2448,17 @@
 
 @keyframes training-radar-particle-fragment {
   0%,
-  10% {
+  8% {
     opacity: 0;
     transform: translate(-50%, -50%) scale(0.2);
   }
 
-  16% {
+  14% {
     opacity: calc(var(--particle-opacity) * 0.66);
     transform: translate(-50%, -50%) scale(0.9);
   }
 
-  55% {
+  58% {
     opacity: calc(var(--particle-opacity) * 0.28);
     transform: translate3d(
         calc(-50% + var(--particle-fragment-drift-x-mid)),
@@ -2554,12 +2556,12 @@
   }
 
   .training-fennec-headlight-glow {
-    opacity: 0.32;
+    opacity: 0.27;
     filter: brightness(0.96) saturate(1.08);
   }
 
   .training-fennec-rear-accent {
-    opacity: 0.18;
+    opacity: 0.12;
     filter: brightness(0.96) saturate(1.08);
   }
 
