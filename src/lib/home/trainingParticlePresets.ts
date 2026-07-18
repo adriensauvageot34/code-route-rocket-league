@@ -9,7 +9,6 @@ export type TrainingParticle = {
   blur: number;
   driftX: number;
   durationMs: number;
-  emissionLeadMs: number;
   glow: number;
   id: string;
   kind: TrainingParticleKind;
@@ -44,15 +43,15 @@ type ExclusionZone = {
 };
 
 export const TRAINING_PARTICLE_COUNTS = {
-  far: 9,
-  mid: 7,
-  near: 4,
+  far: 6,
+  mid: 5,
+  near: 3,
 } as const;
 
 export const TRAINING_PARTICLE_TYPE_COUNTS = {
-  "violet-dust": 7,
-  "gold-dot": 4,
-  "tactical-spark": 9,
+  "violet-dust": 5,
+  "gold-dot": 2,
+  "tactical-spark": 7,
 } as const;
 
 export const TRAINING_PARTICLE_SEEDS = {
@@ -62,9 +61,9 @@ export const TRAINING_PARTICLE_SEEDS = {
 } as const;
 
 export const TRAINING_PARTICLE_VERTICAL_ZONES = {
-  far: [45, 56],
-  mid: [54, 76],
-  near: [70, 97],
+  far: [47, 56],
+  mid: [55, 75],
+  near: [70, 96],
 } as const;
 
 const presetConfigurations = {
@@ -77,18 +76,15 @@ const presetConfigurations = {
       "tactical-spark",
       "violet-dust",
       "tactical-spark",
-      "gold-dot",
-      "violet-dust",
-      "tactical-spark",
     ],
     y: TRAINING_PARTICLE_VERTICAL_ZONES.far,
-    size: [1.2, 2.2],
-    opacity: [0.4, 0.58],
-    durationMs: [760, 920],
-    rise: [4, 7],
+    size: [2.2, 3.4],
+    opacity: [0.78, 0.94],
+    durationMs: [950, 1150],
+    rise: [5, 9],
     driftX: [0.8, 2.2],
     blur: [0, 0.18],
-    glow: [7, 10],
+    glow: [13, 18],
     minSpacing: [5.5, 2.3],
   },
   mid: {
@@ -99,17 +95,15 @@ const presetConfigurations = {
       "gold-dot",
       "tactical-spark",
       "violet-dust",
-      "tactical-spark",
-      "gold-dot",
     ],
     y: TRAINING_PARTICLE_VERTICAL_ZONES.mid,
-    size: [1.7, 3],
-    opacity: [0.5, 0.7],
-    durationMs: [820, 1000],
-    rise: [7, 11],
+    size: [2.8, 4.5],
+    opacity: [0.82, 1],
+    durationMs: [1050, 1300],
+    rise: [8, 13],
     driftX: [1.2, 3.2],
     blur: [0, 0.12],
-    glow: [9, 13],
+    glow: [16, 22],
     minSpacing: [6.5, 3.4],
   },
   near: {
@@ -118,16 +112,15 @@ const presetConfigurations = {
       "tactical-spark",
       "violet-dust",
       "tactical-spark",
-      "violet-dust",
     ],
     y: TRAINING_PARTICLE_VERTICAL_ZONES.near,
-    size: [2.2, 4.2],
-    opacity: [0.56, 0.76],
-    durationMs: [900, 1100],
-    rise: [10, 15],
+    size: [3.6, 5.4],
+    opacity: [0.86, 1],
+    durationMs: [1150, 1400],
+    rise: [12, 18],
     driftX: [1.8, 4.2],
     blur: [0, 0.08],
-    glow: [11, 15],
+    glow: [18, 25],
     minSpacing: [8, 5],
   },
 } as const satisfies Record<
@@ -258,7 +251,6 @@ function buildTrainingParticlePreset(
       size: round(interpolate(configuration.size, random())),
       opacity: round(interpolate(configuration.opacity, random()), 3),
       durationMs,
-      emissionLeadMs: Math.round(durationMs * 0.08),
       rise: round(interpolate(configuration.rise, random())),
       driftX: round(
         direction * interpolate(configuration.driftX, random()),
