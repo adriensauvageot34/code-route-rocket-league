@@ -182,9 +182,10 @@ assert(trainingScene.includes('name="training-radar-surface"') && trainingScene.
 assert(trainingScene.indexOf('name="training-radar-sweep"') < trainingScene.indexOf('name="training-barrier"') && trainingScene.indexOf('name="training-barrier"') < trainingScene.indexOf('name="training-particles-far"'), "The stable barrier must occlude the ground scan while remaining behind Training actors.");
 assert(trainingScene.includes('depth="trainingMid" layer={2} name="training-atmospheric-haze"') && trainingScene.indexOf('name="training-atmospheric-haze"') < trainingScene.indexOf('name="training-mid-buildings"') && !trainingScene.includes("training-horizon-haze"), "Training haze must move with and remain behind the second skyline plane.");
 assert(trainingScene.includes('name="ball"') && trainingScene.includes('name="fennec"'), "Training ball and Fennec groups must remain.");
-for (const premiumFennecLayer of ["fennecReflection", "fennecRimLight", "fennecHeadlightGlow", "fennecRearAccent"]) {
+for (const premiumFennecLayer of ["fennecReflection", "fennecHeadlightGlow", "fennecRearAccent"]) {
   assert(trainingScene.includes(`assets.${premiumFennecLayer}`), `Missing permanent premium Fennec layer: ${premiumFennecLayer}.`);
 }
+assert(!trainingScene.includes("assets.fennecRimLight") && !trainingScene.includes("fennecSurfaceScan") && !trainingScene.includes("fennecContourScan"), "Unsafe Fennec scan and rim overlays must stay disabled in the scene.");
 assert(trainingScene.includes('className="training-transition-wave-local"'), "Prepared Training transition layer must remain.");
 
 for (const [preset, expectedCount] of Object.entries({ far: 9, mid: 7, near: 4 })) {
@@ -233,7 +234,23 @@ assert(trainingParticleField.includes('aria-hidden="true"') && trainingParticleF
 for (const radarProp of ["active: boolean", "direction: TrainingRadarDirection", "passKey: number"]) {
   assert(trainingParticleField.includes(radarProp), `Radar particle field missing synchronization prop: ${radarProp}.`);
 }
-assert(trainingParticleField.includes("TRAINING_RADAR_SWEEP") && trainingParticleField.includes("TRAINING_RADAR_TIMING"), "Particle delays must derive from the same sweep geometry and timing…586 tokens truncated…adarOverlay.includes('className="training-radar-core-glow"') && trainingRadarOverlay.includes('className="training-radar-core-line"'), "The radar must separate its soft halo from its sharp central scan line.");
+assert(trainingParticleField.includes("TRAINING_RADAR_SWEEP") && trainingParticleField.includes("TRAINING_RADAR_TIMING"), "Particle delays must derive from the same sweep geometry and timing as the radar.");
+assert(
+  trainingParticleField.includes("getParticleScanDelayMs") &&
+    trainingParticleField.includes("getRadarCoreOffsetX") &&
+    trainingParticleField.includes("Math.round(scanHitMs - particle.emissionLeadMs)"),
+  "Particles must peak exactly on the slanted radar core instead of appearing after it.",
+);
+assert(trainingParticleField.includes("Math.max(") && trainingParticleField.includes("TRAINING_RADAR_CORE_BOTTOM_X"), "Particle timing must clamp safely and follow the radar perspective from horizon to foreground.");
+assert(trainingParticleField.includes('direction === "ltr"') && trainingParticleField.includes("TRAINING_RADAR_SWEEP.endX - logicalX"), "Particle delay must reverse with the radar direction.");
+assert(trainingParticleField.includes(".slice(-2)"), "The previous radar pass must remain long enough to finish disintegrating.");
+assert(trainingParticleField.includes("memo(function TrainingParticleField"), "Unrelated radar target phases must not restart the delayed particle trail.");
+assert(trainingParticleField.includes("memo(function TrainingParticleSprite"), "Each launched particle must finish without being restarted by later radar updates.");
+assert(trainingParticleField.includes("--particle-rise-end") && trainingParticleField.includes("--particle-glow-soft") && trainingParticleField.includes("--particle-fragment-rise-end"), "Particle trail must expose lift, glow decay and disintegration fragments.");
+assert(trainingScene.includes("active={running}") && trainingScene.includes("direction={passDirection}") && trainingScene.includes("passKey={passKey}"), "All particle depths must receive the live radar pass.");
+assert(!/(<img|<video|<canvas|\.png|\.gif|requestAnimationFrame)/.test(trainingParticleField + trainingParticlePresets), "Particle rendering must stay HTML/CSS-only without a per-frame React loop.");
+assert(trainingRadarOverlay.includes('id="training-radar-terrain-core-mask"') && trainingRadarOverlay.includes('className="training-tactical-terrain-core"'), "The tactical mesh must receive a dedicated high-intensity reveal under the radar core.");
+assert(trainingRadarOverlay.includes('className="training-radar-core-glow"') && trainingRadarOverlay.includes('className="training-radar-core-line"'), "The radar must separate its soft halo from its sharp central scan line.");
 
 for (const orderedName of [
   'name="training-radar-sweep"',
@@ -261,10 +278,12 @@ assert(trainingParticleOrder.every((position, index) => index === 0 || position 
 assert(trainingScene.includes('data-launching={launching ? "true" : "false"}'), "Training particle lifecycle must receive launch state.");
 assert(trainingGroundedActor.includes("training-grounded-actor-base") && trainingGroundedActor.includes("training-contact-shadow"), "Grounded actors must share one transformed base and contact shadow.");
 assert(trainingGroundedActor.includes("training-radar-car-surface") && trainingGroundedActor.includes("training-radar-car-contour") && trainingGroundedActor.includes("training-radar-car-wireframe") && trainingGroundedActor.includes("training-radar-car-glow"), "Cars must layer surface, contour, wireframe and glow inside their grounded container.");
-assert(trainingGroundedActor.includes("training-ball-contact-shadow") && trainingGroundedActor.includes("training-radar-ball-energy") && trainingGroundedActor.includes("training-radar-ball-surface") && trainingGroundedActor.includes("training-radar-ball-contour"), "Ball energy, surface and contour treatment must share the grounded ball container.");
+assert(trainingGroundedActor.includes("training-ball-contact-shadow") && trainingGroundedActor.includes("training-radar-ball-energy"), "Ball energy and contact treatment must share the grounded ball container.");
+assert(!trainingGroundedActor.includes("training-radar-ball-surface") && !trainingGroundedActor.includes("training-radar-ball-contour"), "Unaligned ball surface and contour scans must remain disabled.");
 assert(trainingRadarOverlay.includes('viewBox="0 0 1672 941"') && trainingRadarOverlay.includes("TRAINING_RADAR_FIELD_PATH"), "Training radar must share and clip to the logical field canvas.");
 assert(trainingRadarOverlay.includes("data-radar-direction") && trainingScene.includes("direction={passDirection}"), "Training radar direction must drive both reveal layers.");
 assert(trainingRadarOverlay.includes('id="training-radar-depth-mask"') && trainingRadarOverlay.includes('M -286 340 L 2 340'), "Training scan must keep the broad legacy reveal zone with a perspective fade.");
+assert(trainingRadarTargets.includes('"M 0 382 C 360 392') && trainingScene.indexOf('name="training-radar-sweep"') < trainingScene.indexOf('name="training-barrier"'), "The radar must be tightly clipped to the visible pitch below the stable barrier.");
 assert(trainingRadarOverlay.includes('mix-blend-mode') === false && css.includes("mix-blend-mode: screen"), "Black tactical terrain must be screen blended in CSS.");
 assert(trainingRadarSequence.includes("document.visibilityState") && trainingRadarSequence.includes("IntersectionObserver") && trainingRadarSequence.includes("prefers-reduced-motion"), "Radar lifecycle must follow page, illustration, and motion visibility.");
 assert(!trainingRadarSequence.includes("requestAnimationFrame"), "Radar must not create a per-frame React loop.");
@@ -436,6 +455,10 @@ for (const layeredScanMarker of ["training-object-contact", "training-object-rev
 for (const premiumClass of ["training-fennec-reflection", "training-fennec-rim-light", "training-fennec-headlight-glow", "training-fennec-rear-accent"]) {
   assert(css.includes(premiumClass), `Premium Fennec treatment missing: ${premiumClass}.`);
 }
+for (const safeOpacity of ["opacity: 0.15", "opacity: 0.32", "opacity: 0.18", "opacity: 0.25", "opacity: 0.34", "opacity: 0.12"]) {
+  assert(css.includes(safeOpacity), `Safe Training overlay opacity missing: ${safeOpacity}.`);
+}
+assert(css.includes(".training-radar-ball-target::before") && css.includes("display: none"), "The ball must not render the full-canvas contact ring.");
 assert(css.includes('.mode-illustration[data-active="false"] .training-particle-core') && css.includes('.mode-illustration[data-motion-active="false"] .training-particle-core::after'), "Inactive and offscreen particle and fragment animations must pause.");
 assert(css.includes('.training-scene[data-launching="true"] .training-particle-field') && css.includes("transition: opacity 240ms ease-out"), "Particles must fade and pause during launch.");
 assert(/@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.training-particle-field\s*\{\s*display:\s*none;/s.test(css), "Reduced motion must hide the radar particle trail together with the radar.");

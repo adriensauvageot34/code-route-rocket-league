@@ -175,7 +175,6 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         <div aria-hidden="true" className="training-fennec-contact-shadow" />
         <SceneLayer asset={assets.fennecReflection} className="training-fennec-reflection" />
         <SceneLayer asset={assets.fennecBase} />
-        <SceneLayer asset={assets.fennecRimLight} className="training-fennec-rim-light" />
         <SceneLayer asset={assets.fennecHeadlightGlow} className="training-fennec-headlight-glow" />
         <SceneLayer asset={assets.fennecRearAccent} className="training-fennec-rear-accent" />
       </SceneGroup>

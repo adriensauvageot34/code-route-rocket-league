@@ -814,31 +814,29 @@
 
 .scene-group[data-scene-group="fennec"] .training-fennec-reflection {
   z-index: 0;
-  opacity: 0.44;
+  opacity: 0.15;
   mix-blend-mode: screen;
   filter: brightness(0.92) saturate(1.08);
 }
 
 .scene-group[data-scene-group="fennec"] .training-fennec-rim-light {
   z-index: 2;
-  opacity: 0.58;
+  opacity: 0;
   mix-blend-mode: screen;
   filter: brightness(1.04) saturate(1.12);
 }
 
 .scene-group[data-scene-group="fennec"] .training-fennec-headlight-glow {
   z-index: 3;
-  opacity: 0.64;
+  opacity: 0.32;
   mix-blend-mode: screen;
-  animation: training-lights-breathe 4.6s ease-in-out infinite;
 }
 
 .scene-group[data-scene-group="fennec"] .training-fennec-rear-accent {
   z-index: 3;
-  opacity: 0.4;
+  opacity: 0.18;
   mix-blend-mode: screen;
   filter: brightness(0.98) saturate(1.1);
-  animation: training-lights-breathe 5.2s ease-in-out -1.8s infinite;
 }
 
 .training-radar-object-target {
@@ -853,6 +851,10 @@
 
 .training-radar-ball-target {
   inset: 0;
+}
+
+.training-radar-ball-target::before {
+  display: none;
 }
 
 .training-radar-object-target::before {
@@ -947,47 +949,47 @@
 
 .training-radar-object-target[data-radar-phase="contour"]
   .training-radar-object-surface {
-  opacity: 0.62;
+  opacity: 0.25;
 }
 
 .training-radar-object-target[data-radar-phase="wireframe"]
   .training-radar-object-surface {
-  opacity: 0.34;
+  opacity: 0.1;
 }
 
 .training-radar-object-target[data-radar-phase="wireframe"]
   .training-radar-object-contour {
-  opacity: 0.46;
+  opacity: 0.24;
 }
 
 .training-radar-car-target[data-radar-phase="wireframe"]
   .training-radar-car-wireframe {
-  opacity: 0.72;
+  opacity: 0.34;
 }
 
 .training-radar-car-target[data-radar-phase="wireframe"]
   .training-radar-car-glow {
-  opacity: 0.24;
+  opacity: 0.12;
 }
 
 .training-radar-ball-target[data-radar-phase="contact"]
   .training-radar-ball-energy {
-  opacity: 0.82;
-  filter: brightness(1.48) saturate(1.28);
+  opacity: 0.74;
+  filter: brightness(1.4) saturate(1.22);
 }
 
 .training-radar-ball-target[data-radar-phase="surface"]
   .training-radar-ball-energy {
-  opacity: 0.42;
-  filter: brightness(1.2) saturate(1.16);
+  opacity: 0.12;
+  filter: brightness(1.08) saturate(1.08);
 }
 
 .training-radar-ball-target[data-radar-phase="contour"]
   .training-radar-ball-energy,
 .training-radar-ball-target[data-radar-phase="wireframe"]
   .training-radar-ball-energy {
-  opacity: 0.18;
-  filter: brightness(1.04) saturate(1.08);
+  opacity: 0;
+  filter: brightness(1) saturate(1);
 }
 
 .training-radar-object-target[data-radar-phase="fade"]
@@ -2318,11 +2320,11 @@
   }
 
   38% {
-    opacity: 0.82;
+    opacity: 0.34;
   }
 
   100% {
-    opacity: 0.68;
+    opacity: 0.3;
     clip-path: inset(0);
   }
 }
@@ -2335,11 +2337,11 @@
   }
 
   38% {
-    opacity: 0.82;
+    opacity: 0.34;
   }
 
   100% {
-    opacity: 0.68;
+    opacity: 0.3;
     clip-path: inset(0);
   }
 }
@@ -2521,8 +2523,16 @@
     opacity: 0;
   }
 
-  .training-fennec-headlight-glow,
-  .training-fennec-rear-accent,
+  .training-fennec-headlight-glow {
+    opacity: 0.32;
+    filter: brightness(0.96) saturate(1.08);
+  }
+
+  .training-fennec-rear-accent {
+    opacity: 0.18;
+    filter: brightness(0.96) saturate(1.08);
+  }
+
   .competitive-cage-neon {
     opacity: 0.64;
     filter: brightness(0.96) saturate(1.08);
