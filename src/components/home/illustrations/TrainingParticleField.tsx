@@ -30,6 +30,7 @@ type TrainingParticlePass = {
 };
 
 type TrainingParticleStyle = CSSProperties & {
+  "--particle-birth-flash-size": string;
   "--particle-blur": string;
   "--particle-delay": string;
   "--particle-drift-x": string;
@@ -43,6 +44,8 @@ type TrainingParticleStyle = CSSProperties & {
   "--particle-fragment-size": string;
   "--particle-glow": string;
   "--particle-glow-soft": string;
+  "--particle-kick-x": string;
+  "--particle-kick-y": string;
   "--particle-opacity": string;
   "--particle-rise-end": string;
   "--particle-rise-mid": string;
@@ -105,6 +108,9 @@ function createParticleStyle(
   particle: TrainingParticle,
   direction: TrainingRadarDirection,
 ): TrainingParticleStyle {
+  const trailDirection = direction === "ltr" ? -1 : 1;
+  const directionalDriftX = particle.driftX * trailDirection;
+
   return {
     "--particle-x": `${particle.x}%`,
     "--particle-y": `${particle.y}%`,
@@ -112,23 +118,26 @@ function createParticleStyle(
     "--particle-opacity": String(particle.opacity),
     "--particle-duration": `${particle.durationMs}ms`,
     "--particle-delay": `${getParticleScanDelayMs(particle, direction)}ms`,
-    "--particle-drift-x": `${particle.driftX}px`,
-    "--particle-drift-x-mid": `${(particle.driftX * 0.2).toFixed(2)}px`,
-    "--particle-drift-x-soft": `${(particle.driftX * 0.62).toFixed(2)}px`,
-    "--particle-rise-mid": `${(particle.rise * -0.22).toFixed(2)}px`,
-    "--particle-rise-soft": `${(particle.rise * -0.64).toFixed(2)}px`,
+    "--particle-drift-x": `${directionalDriftX.toFixed(2)}px`,
+    "--particle-drift-x-mid": `${(directionalDriftX * 0.52).toFixed(2)}px`,
+    "--particle-drift-x-soft": `${(directionalDriftX * 0.8).toFixed(2)}px`,
+    "--particle-kick-x": `${(directionalDriftX * 0.28).toFixed(2)}px`,
+    "--particle-kick-y": `${(particle.rise * -0.18).toFixed(2)}px`,
+    "--particle-rise-mid": `${(particle.rise * -0.42).toFixed(2)}px`,
+    "--particle-rise-soft": `${(particle.rise * -0.74).toFixed(2)}px`,
     "--particle-rise-end": `${-particle.rise}px`,
     "--particle-rotation": `${particle.rotation}deg`,
     "--particle-blur": `${particle.blur}px`,
     "--particle-glow": `${particle.glow}px`,
     "--particle-glow-soft": `${(particle.glow * 0.42).toFixed(2)}px`,
     "--particle-fragment-size": `${Math.max(1, particle.size * 0.35).toFixed(2)}px`,
-    "--particle-fragment-drift-x": `${(particle.driftX * -0.65).toFixed(2)}px`,
-    "--particle-fragment-drift-x-mid": `${(particle.driftX * -0.31).toFixed(2)}px`,
+    "--particle-fragment-drift-x": `${(directionalDriftX * 1.16).toFixed(2)}px`,
+    "--particle-fragment-drift-x-mid": `${(directionalDriftX * 0.62).toFixed(2)}px`,
     "--particle-fragment-rise-mid": `${(particle.rise * -0.67).toFixed(2)}px`,
     "--particle-fragment-rise-end": `${(particle.rise * -1.28).toFixed(2)}px`,
     "--particle-spark-width": `${(particle.size * 1.9).toFixed(2)}px`,
     "--particle-spark-height": `${Math.max(1, particle.size * 0.32).toFixed(2)}px`,
+    "--particle-birth-flash-size": `${Math.max(4, particle.size * 2.4).toFixed(2)}px`,
   };
 }
 
@@ -150,6 +159,7 @@ const TrainingParticleSprite = memo(function TrainingParticleSprite({
       data-particle-kind={particle.kind}
       style={createParticleStyle(particle, direction)}
     >
+      <span className="training-particle-birth-flash" />
       <span className="training-particle-core" />
     </span>
   );
@@ -162,22 +172,20 @@ export const TrainingParticleField = memo(function TrainingParticleField({
   preset,
 }: TrainingParticleFieldProps) {
   const [passes, setPasses] = useState<TrainingParticlePass[]>([]);
+  const displayedPasses =
+    !active || passKey === 0
+      ? []
+      : passes.some((pass) => pass.key === passKey)
+        ? passes
+        : [...passes, { direction, key: passKey }].slice(-2);
 
   useEffect(() => {
-    const syncTimer = window.setTimeout(() => {
-      if (!active || passKey === 0) {
-        setPasses([]);
-        return;
-      }
+    setPasses((current) => {
+      if (!active || passKey === 0) return current.length === 0 ? current : [];
+      if (current.some((pass) => pass.key === passKey)) return current;
 
-      setPasses((current) => {
-        if (current.some((pass) => pass.key === passKey)) return current;
-
-        return [...current, { direction, key: passKey }].slice(-2);
-      });
-    }, 0);
-
-    return () => window.clearTimeout(syncTimer);
+      return [...current, { direction, key: passKey }].slice(-2);
+    });
   }, [active, direction, passKey]);
 
   return (
@@ -187,7 +195,7 @@ export const TrainingParticleField = memo(function TrainingParticleField({
       data-active={active ? "true" : "false"}
       data-particle-preset={preset}
     >
-      {passes.map((pass) => (
+      {displayedPasses.map((pass) => (
         <div
           className="training-particle-band"
           data-particle-pass={pass.key}

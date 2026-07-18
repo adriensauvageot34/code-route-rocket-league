@@ -82,7 +82,7 @@ const presetConfigurations = {
     opacity: [0.78, 0.94],
     durationMs: [950, 1150],
     rise: [5, 9],
-    driftX: [0.8, 2.2],
+    driftX: [3, 6],
     blur: [0, 0.18],
     glow: [13, 18],
     minSpacing: [5.5, 2.3],
@@ -101,7 +101,7 @@ const presetConfigurations = {
     opacity: [0.82, 1],
     durationMs: [1050, 1300],
     rise: [8, 13],
-    driftX: [1.2, 3.2],
+    driftX: [4, 8],
     blur: [0, 0.12],
     glow: [16, 22],
     minSpacing: [6.5, 3.4],
@@ -118,7 +118,7 @@ const presetConfigurations = {
     opacity: [0.86, 1],
     durationMs: [1150, 1400],
     rise: [12, 18],
-    driftX: [1.8, 4.2],
+    driftX: [5, 10],
     blur: [0, 0.08],
     glow: [18, 25],
     minSpacing: [8, 5],
@@ -237,8 +237,6 @@ function buildTrainingParticlePreset(
       continue;
     }
 
-    const direction = random() < 0.5 ? -1 : 1;
-
     const durationMs = Math.round(
       interpolate(configuration.durationMs, random()) + index * 3,
     );
@@ -252,9 +250,7 @@ function buildTrainingParticlePreset(
       opacity: round(interpolate(configuration.opacity, random()), 3),
       durationMs,
       rise: round(interpolate(configuration.rise, random())),
-      driftX: round(
-        direction * interpolate(configuration.driftX, random()),
-      ),
+      driftX: round(interpolate(configuration.driftX, random())),
       rotation:
         kind === "tactical-spark"
           ? round(interpolate([-32, 32], random()))

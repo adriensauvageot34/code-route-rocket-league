@@ -627,6 +627,28 @@
     var(--particle-delay) 1 forwards;
 }
 
+.training-particle-birth-flash {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  width: var(--particle-birth-flash-size);
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(255 238 196 / 0.96) 48%,
+    currentColor 52%,
+    transparent
+  );
+  opacity: 0;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 var(--particle-glow) currentColor);
+  transform-origin: center;
+  animation: training-radar-particle-birth-flash var(--particle-duration)
+    linear var(--particle-delay) 1 forwards;
+}
+
 .training-particle-core::after {
   position: absolute;
   top: 50%;
@@ -674,6 +696,7 @@
   );
 }
 
+.mode-illustration[data-motion-active="true"] .training-particle-birth-flash,
 .mode-illustration[data-motion-active="true"] .training-particle-core,
 .mode-illustration[data-motion-active="true"] .training-particle-core::after {
   will-change: transform, opacity, filter;
@@ -683,6 +706,7 @@
   opacity: 0;
 }
 
+.training-scene[data-launching="true"] .training-particle-birth-flash,
 .training-scene[data-launching="true"] .training-particle-core,
 .training-scene[data-launching="true"] .training-particle-core::after {
   animation-play-state: paused;
@@ -2380,15 +2404,29 @@
 }
 
 @keyframes training-radar-particle-disintegrate {
-  0%,
+  0% {
+    opacity: var(--particle-opacity);
+    filter:
+      blur(var(--particle-blur))
+      brightness(2.05)
+      saturate(1.7)
+      drop-shadow(0 0 var(--particle-glow) currentColor);
+    transform: translate3d(0, 0, 0) rotate(var(--particle-rotation)) scale(0.52);
+  }
+
   6% {
     opacity: var(--particle-opacity);
     filter:
       blur(var(--particle-blur))
-      brightness(1.9)
-      saturate(1.62)
+      brightness(2.2)
+      saturate(1.76)
       drop-shadow(0 0 var(--particle-glow) currentColor);
-    transform: translate3d(0, 0, 0) rotate(var(--particle-rotation)) scale(1.14);
+    transform: translate3d(
+        var(--particle-kick-x),
+        var(--particle-kick-y),
+        0
+      )
+      rotate(var(--particle-rotation)) scale(1.22);
   }
 
   24% {
@@ -2434,6 +2472,24 @@
         0
       )
       rotate(var(--particle-rotation)) scale(0.08);
+  }
+}
+
+@keyframes training-radar-particle-birth-flash {
+  0% {
+    opacity: calc(var(--particle-opacity) * 0.82);
+    transform: translate(-50%, -50%) rotate(var(--particle-rotation)) scaleX(0.45);
+  }
+
+  5% {
+    opacity: var(--particle-opacity);
+    transform: translate(-50%, -50%) rotate(var(--particle-rotation)) scaleX(1.25);
+  }
+
+  16%,
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--particle-rotation)) scaleX(2);
   }
 }
 
