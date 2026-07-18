@@ -172,6 +172,7 @@ for (const asset of ["parallaxSky", "parallaxFarSkyline", "parallaxMidBuildings"
   assert(trainingScene.includes(`assets.${asset}`), `Training parallax layer missing: ${asset}`);
 }
 assert(!trainingScene.includes("parallaxGroundBarrier") && homeIllustrationAssets.includes('/ui/parallax-plan-01-sol.png') && homeIllustrationAssets.includes('/ui/parallax-plan-01-barriere.png'), "Training must compose separate pitch and barrier assets.");
+assert(homeIllustrationAssets.includes('/ui/matrice_analyse.png') && !homeIllustrationAssets.includes('/ui/terrain_matrice_analyse.png'), "Training radar must reveal the barrier-free tactical pitch matrix only.");
 assert(!trainingScene.includes("TrainingAnalysisOverlay") && !trainingScene.includes("assets.background"), "Legacy Training background and analysis circles must not render.");
 assert(!trainingScene.includes("distantCarsOcclusion"), "Legacy distant-car occlusion sheet must not render.");
 assert(trainingScene.includes('name={`training-${trainingFarCarTarget.id}`}') && trainingScene.includes("<TrainingGroundedCar"), "Training cars must render as individual grounded scene groups.");
