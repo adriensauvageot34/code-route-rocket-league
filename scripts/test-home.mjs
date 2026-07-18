@@ -283,8 +283,10 @@ assert(trainingGroundedActor.includes("training-ball-contact-shadow") && trainin
 assert(!trainingGroundedActor.includes("training-radar-ball-surface") && !trainingGroundedActor.includes("training-radar-ball-contour"), "Unaligned ball surface and contour scans must remain disabled.");
 assert(trainingRadarOverlay.includes('viewBox="0 0 1672 941"') && trainingRadarOverlay.includes("TRAINING_RADAR_FIELD_PATH"), "Training radar must share and clip to the logical field canvas.");
 assert(trainingRadarOverlay.includes("data-radar-direction") && trainingScene.includes("direction={passDirection}"), "Training radar direction must drive both reveal layers.");
-assert(trainingRadarOverlay.includes('id="training-radar-depth-mask"') && trainingRadarOverlay.includes('M -286 340 L 2 340'), "Training scan must keep the broad legacy reveal zone with a perspective fade.");
-assert(trainingRadarTargets.includes('"M 0 382 C 360 392') && trainingScene.indexOf('name="training-radar-sweep"') < trainingScene.indexOf('name="training-barrier"'), "The radar must be tightly clipped to the visible pitch below the stable barrier.");
+assert(trainingRadarOverlay.includes('id="training-radar-field-surface-mask"') && trainingRadarOverlay.includes('id="training-radar-field-sweep-mask"'), "Every radar layer must use a field surface mask.");
+assert(!trainingRadarOverlay.includes('clipPath="url(#training-radar-field') && trainingRadarOverlay.includes('M -286 340 L 2 340'), "Training scan must keep the broad legacy reveal zone behind its strict field mask.");
+assert(trainingRadarOverlay.includes('stopColor="black"') && trainingRadarOverlay.includes('offset="0.16" stopColor="#060606"') && trainingRadarOverlay.includes('offset="0.84" stopColor="#d5d5d5"'), "Training radar depth must stay nearly invisible at the horizon and strong only in the foreground.");
+assert(trainingRadarTargets.includes('"M 0 414 C 360 423') && trainingScene.indexOf('name="training-radar-sweep"') < trainingScene.indexOf('name="training-barrier"'), "The radar must be tightly masked to the visible pitch below the stable barrier.");
 assert(trainingRadarOverlay.includes('mix-blend-mode') === false && css.includes("mix-blend-mode: screen"), "Black tactical terrain must be screen blended in CSS.");
 assert(trainingRadarSequence.includes("document.visibilityState") && trainingRadarSequence.includes("IntersectionObserver") && trainingRadarSequence.includes("prefers-reduced-motion"), "Radar lifecycle must follow page, illustration, and motion visibility.");
 assert(!trainingRadarSequence.includes("requestAnimationFrame"), "Radar must not create a per-frame React loop.");
@@ -431,7 +433,7 @@ for (const separatedGroup of ["statistics-weekly-focus", "statistics-insight", "
 assert(css.includes("aspect-ratio: 1672 / 941"), "Scene ratio must remain 1672x941.");
 assert(css.includes('.mode-illustration[data-motion-active="false"]'), "Hidden and offscreen scene motion must pause.");
 assert(css.includes("@media (prefers-reduced-motion: reduce)"), "Reduced motion support must remain.");
-assert(css.includes("clip-path: polygon(3% 40.5%, 97% 40.5%, 100% 100%, 0 100%)"), "Particles must be clipped to the terrain silhouette.");
+assert(css.includes("3% 44.2%") && css.includes("82% 44.7%") && css.includes("97% 44.2%"), "Particles must be clipped below the curved terrain horizon.");
 for (const preset of ["far", "mid", "near"]) {
   assert(css.includes(`data-particle-preset="${preset}"`), `Missing CSS depth band for ${preset} radar particles.`);
 }
@@ -462,6 +464,7 @@ for (const safeOpacity of ["opacity: 0.15", "opacity: 0.32", "opacity: 0.18", "o
 assert(css.includes(".training-radar-ball-target::before") && css.includes("display: none"), "The ball must not render the full-canvas contact ring.");
 assert(css.includes('.mode-illustration[data-active="false"] .training-particle-core') && css.includes('.mode-illustration[data-motion-active="false"] .training-particle-core::after'), "Inactive and offscreen particle and fragment animations must pause.");
 assert(css.includes('.training-scene[data-launching="true"] .training-particle-field') && css.includes("transition: opacity 240ms ease-out"), "Particles must fade and pause during launch.");
+assert(css.includes("transparent 44%") && css.includes("rgb(0 0 0 / 0.04) 47%") && css.includes("black 100%"), "Radar particles must be hidden at the horizon and gain strength only toward the foreground.");
 assert(/@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.training-particle-field\s*\{\s*display:\s*none;/s.test(css), "Reduced motion must hide the radar particle trail together with the radar.");
 
 assert(css.includes("@keyframes training-radar-traverse") && !css.includes("@keyframes training-analysis-scan"), "Training must use the clipped field radar instead of legacy circles.");
