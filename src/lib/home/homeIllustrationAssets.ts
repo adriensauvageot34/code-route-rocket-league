@@ -57,12 +57,12 @@ export const homeIllustrationAssets = {
       blendMode: "normal"
     },
     tacticalTerrain: {
-      path: "/ui/terrain_matrice_analyse.png",
-      role: "hidden tactical pitch matrix revealed by radar",
-      dimensions: { width: 1536, height: 1024 },
+      path: "/ui/matrice_analyse.png",
+      role: "barrier-free tactical pitch matrix revealed by radar",
+      dimensions: { width: 1672, height: 941 },
       alpha: "none",
       blendMode: "screen",
-      notes: "Black-backed source is always clipped, masked, and screen blended."
+      notes: "Barrier-free source is always clipped to the pitch, masked, and screen blended."
     },
     background: {
       path: "/ui/training-background.png",

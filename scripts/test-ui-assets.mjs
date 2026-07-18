@@ -33,7 +33,7 @@ for (const name of uiFiles) {
   assert(extname(name), `UI asset is missing an extension: ${name}`);
   assert(
     kebabCasePattern.test(name) ||
-      name === "terrain_matrice_analyse.png" ||
+      name === "matrice_analyse.png" ||
       intentionallyNamedScanAssets.has(name),
     `UI asset is not lower kebab-case: ${name}`,
   );
@@ -61,6 +61,7 @@ const manifest = readFileSync(manifestPath, "utf8");
 const manifestPaths = [...manifest.matchAll(/path: "(\/ui\/[^"]+)"/g)].map((match) => match[1]);
 
 assert(manifestPaths.length >= 18, "The home illustration asset manifest is unexpectedly small.");
+assert(manifestPaths.includes("/ui/matrice_analyse.png") && !manifestPaths.includes("/ui/terrain_matrice_analyse.png"), "Training radar must use the barrier-free tactical matrix.");
 
 for (const publicPath of manifestPaths) {
   const filePath = join("public", publicPath.replace(/^\/+/, ""));
