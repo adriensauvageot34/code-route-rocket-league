@@ -62,7 +62,7 @@ export const TRAINING_PARTICLE_SEEDS = {
 } as const;
 
 export const TRAINING_PARTICLE_VERTICAL_ZONES = {
-  far: [43, 55],
+  far: [45, 56],
   mid: [54, 76],
   near: [70, 97],
 } as const;
@@ -83,12 +83,12 @@ const presetConfigurations = {
     ],
     y: TRAINING_PARTICLE_VERTICAL_ZONES.far,
     size: [1.2, 2.2],
-    opacity: [0.25, 0.42],
-    durationMs: [650, 820],
+    opacity: [0.4, 0.58],
+    durationMs: [760, 920],
     rise: [4, 7],
     driftX: [0.8, 2.2],
     blur: [0, 0.18],
-    glow: [5, 8],
+    glow: [7, 10],
     minSpacing: [5.5, 2.3],
   },
   mid: {
@@ -104,12 +104,12 @@ const presetConfigurations = {
     ],
     y: TRAINING_PARTICLE_VERTICAL_ZONES.mid,
     size: [1.7, 3],
-    opacity: [0.34, 0.54],
-    durationMs: [720, 900],
+    opacity: [0.5, 0.7],
+    durationMs: [820, 1000],
     rise: [7, 11],
     driftX: [1.2, 3.2],
     blur: [0, 0.12],
-    glow: [7, 11],
+    glow: [9, 13],
     minSpacing: [6.5, 3.4],
   },
   near: {
@@ -122,12 +122,12 @@ const presetConfigurations = {
     ],
     y: TRAINING_PARTICLE_VERTICAL_ZONES.near,
     size: [2.2, 4.2],
-    opacity: [0.42, 0.64],
-    durationMs: [800, 980],
+    opacity: [0.56, 0.76],
+    durationMs: [900, 1100],
     rise: [10, 15],
     driftX: [1.8, 4.2],
     blur: [0, 0.08],
-    glow: [9, 14],
+    glow: [11, 15],
     minSpacing: [8, 5],
   },
 } as const satisfies Record<
@@ -258,7 +258,7 @@ function buildTrainingParticlePreset(
       size: round(interpolate(configuration.size, random())),
       opacity: round(interpolate(configuration.opacity, random()), 3),
       durationMs,
-      emissionLeadMs: Math.round(durationMs * 0.07),
+      emissionLeadMs: Math.round(durationMs * 0.08),
       rise: round(interpolate(configuration.rise, random())),
       driftX: round(
         direction * interpolate(configuration.driftX, random()),

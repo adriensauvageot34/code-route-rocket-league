@@ -204,20 +204,20 @@ assert(trainingParticlePresets.includes("far: 1107") && trainingParticlePresets.
 assert(!trainingParticlePresets.includes("Math.random"), "Training particles must not use nondeterministic randomness.");
 for (const visibilityTuning of [
   "size: [1.2, 2.2]",
-  "opacity: [0.25, 0.42]",
+  "opacity: [0.4, 0.58]",
   "size: [1.7, 3]",
-  "opacity: [0.34, 0.54]",
+  "opacity: [0.5, 0.7]",
   "size: [2.2, 4.2]",
-  "opacity: [0.42, 0.64]",
-  "glow: [9, 14]",
+  "opacity: [0.56, 0.76]",
+  "glow: [11, 15]",
 ]) {
   assert(trainingParticlePresets.includes(visibilityTuning), `Radar-linked tactical particles lost their calibrated tuning: ${visibilityTuning}.`);
 }
 for (const lifetimeTuning of [
-  "durationMs: [650, 820]",
-  "durationMs: [720, 900]",
-  "durationMs: [800, 980]",
-  "emissionLeadMs: Math.round(durationMs * 0.07)",
+  "durationMs: [760, 920]",
+  "durationMs: [820, 1000]",
+  "durationMs: [900, 1100]",
+  "emissionLeadMs: Math.round(durationMs * 0.08)",
   "rise: [10, 15]",
   "driftX: [1.8, 4.2]",
 ]) {
@@ -458,13 +458,17 @@ for (const layeredScanMarker of ["training-object-contact", "training-object-rev
 for (const premiumClass of ["training-fennec-reflection", "training-fennec-rim-light", "training-fennec-headlight-glow", "training-fennec-rear-accent"]) {
   assert(css.includes(premiumClass), `Premium Fennec treatment missing: ${premiumClass}.`);
 }
-for (const safeOpacity of ["opacity: 0.15", "opacity: 0.32", "opacity: 0.18", "opacity: 0.25", "opacity: 0.34", "opacity: 0.12"]) {
+for (const safeOpacity of ["opacity: 0.25", "opacity: 0.34", "opacity: 0.12"]) {
   assert(css.includes(safeOpacity), `Safe Training overlay opacity missing: ${safeOpacity}.`);
 }
+assert(/\.training-fennec-reflection\s*\{[\s\S]*?opacity:\s*0\.1;[\s\S]*?scale\(0\.84\);/s.test(css), "Fennec reflection must stay compact and discreet under the car.");
+assert(/\.training-fennec-headlight-glow\s*\{[\s\S]*?opacity:\s*0\.27;/s.test(css), "Fennec headlights must retain a subtle premium glow.");
+assert(/\.training-fennec-rear-accent\s*\{[\s\S]*?opacity:\s*0\.12;/s.test(css), "Fennec rear accent must remain very subtle.");
 assert(css.includes(".training-radar-ball-target::before") && css.includes("display: none"), "The ball must not render the full-canvas contact ring.");
 assert(css.includes('.mode-illustration[data-active="false"] .training-particle-core') && css.includes('.mode-illustration[data-motion-active="false"] .training-particle-core::after'), "Inactive and offscreen particle and fragment animations must pause.");
 assert(css.includes('.training-scene[data-launching="true"] .training-particle-field') && css.includes("transition: opacity 240ms ease-out"), "Particles must fade and pause during launch.");
-assert(css.includes("transparent 44%") && css.includes("rgb(0 0 0 / 0.04) 47%") && css.includes("black 100%"), "Radar particles must be hidden at the horizon and gain strength only toward the foreground.");
+assert(css.includes("transparent 44%") && css.includes("rgb(0 0 0 / 0.12) 47%") && css.includes("rgb(0 0 0 / 0.68) 73%") && css.includes("black 100%"), "Radar particles must be hidden at the horizon, visible in the middle and strongest in the foreground.");
+assert(css.includes("8% {") && css.includes("brightness(1.72)"), "Radar particles must flash at emission instead of fading in after the scan line.");
 assert(/@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.training-particle-field\s*\{\s*display:\s*none;/s.test(css), "Reduced motion must hide the radar particle trail together with the radar.");
 
 assert(css.includes("@keyframes training-radar-traverse") && !css.includes("@keyframes training-analysis-scan"), "Training must use the clipped field radar instead of legacy circles.");
