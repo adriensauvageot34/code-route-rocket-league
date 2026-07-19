@@ -1,9 +1,9 @@
 import { homeIllustrationAssets, type HomeIllustrationAsset } from "@/lib/home/homeIllustrationAssets";
 
 export const TRAINING_RADAR_TIMING = {
-  passDurationMs: 2400,
+  passDurationMs: 2900,
   entryDurationMs: 250,
-  travelDurationMs: 2000,
+  travelDurationMs: 2500,
   contactDurationMs: 180,
   wireframeDelayMs: 820,
   fadeDelayMs: 1500,
@@ -12,10 +12,10 @@ export const TRAINING_RADAR_TIMING = {
 } as const;
 
 export const TRAINING_VOLUME_SCAN_TIMING = {
-  activeDurationMs: 320,
+  activeDurationMs: 380,
   contourDelayMs: 60,
-  fadeDurationMs: 180,
-  totalDurationMs: 520,
+  fadeDurationMs: 210,
+  totalDurationMs: 610,
 } as const;
 
 export const TRAINING_RADAR_CYCLE_MS =
@@ -116,7 +116,7 @@ export const trainingCarRadarTargets = [
     },
     objectScan: {
       angle: "-19deg",
-      durationMs: 320,
+      durationMs: 380,
       contourDelayMs: 40,
     },
     scanHitProgress: 0.45,
@@ -144,7 +144,7 @@ export const trainingCarRadarTargets = [
     },
     objectScan: {
       angle: "-20deg",
-      durationMs: 320,
+      durationMs: 380,
       contourDelayMs: 50,
     },
     scanHitProgress: 0.743,
@@ -172,7 +172,7 @@ export const trainingCarRadarTargets = [
     },
     objectScan: {
       angle: "-18deg",
-      durationMs: 320,
+      durationMs: 380,
       contourDelayMs: 60,
     },
     scanHitProgress: 0.811,
