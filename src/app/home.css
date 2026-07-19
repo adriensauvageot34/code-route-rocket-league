@@ -885,8 +885,10 @@
 
 .scene-group[data-scene-group="fennec"] .training-fennec-headlight-glow {
   z-index: 3;
-  opacity: 0.22;
+  opacity: 0.24;
   mix-blend-mode: screen;
+  filter: brightness(0.96) saturate(1.08);
+  animation: training-fennec-headlight-breathe 3s ease-in-out infinite;
 }
 
 .scene-group[data-scene-group="fennec"] .training-fennec-rear-accent {
@@ -1037,6 +1039,10 @@
   border-radius: 50%;
   pointer-events: none;
   transform: translate(-50%, -88%);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 220% 100%;
+  mask-size: 220% 100%;
 }
 
 .training-radar-ball-volume-surface {
@@ -1048,6 +1054,18 @@
     transparent 72%
   );
   box-shadow: inset 0 0 8px rgb(244 188 78 / 0.32);
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    black 0 46%,
+    rgb(0 0 0 / 0.82) 58%,
+    transparent 72%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    black 0 46%,
+    rgb(0 0 0 / 0.82) 58%,
+    transparent 72%
+  );
 }
 
 .training-radar-ball-volume-contour {
@@ -1056,6 +1074,18 @@
   box-shadow:
     0 0 4px rgb(244 188 78 / 0.28),
     inset 0 0 4px rgb(139 88 222 / 0.2);
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 28%,
+    black 42% 66%,
+    transparent 82%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 28%,
+    black 42% 66%,
+    transparent 82%
+  );
 }
 
 .training-radar-car-target[data-volume-scan-phase="active"][data-radar-direction="ltr"]
@@ -1084,17 +1114,30 @@
     linear var(--training-volume-contour-delay) both;
 }
 
-.training-radar-ball-target[data-volume-scan-phase="active"]
+.training-radar-ball-target[data-volume-scan-phase="active"][data-radar-direction="ltr"]
   .training-radar-ball-volume-surface {
-  animation: training-ball-volume-surface var(--training-volume-scan-duration)
-    ease-out both;
+  animation: training-ball-volume-surface-ltr var(--training-volume-scan-duration)
+    linear both;
 }
 
-.training-radar-ball-target[data-volume-scan-phase="active"]
+.training-radar-ball-target[data-volume-scan-phase="active"][data-radar-direction="rtl"]
+  .training-radar-ball-volume-surface {
+  animation: training-ball-volume-surface-rtl var(--training-volume-scan-duration)
+    linear both;
+}
+
+.training-radar-ball-target[data-volume-scan-phase="active"][data-radar-direction="ltr"]
   .training-radar-ball-volume-contour {
-  animation: training-ball-volume-contour
+  animation: training-ball-volume-contour-ltr
     calc(var(--training-volume-scan-duration) - var(--training-volume-contour-delay))
-    ease-out var(--training-volume-contour-delay) both;
+    linear var(--training-volume-contour-delay) both;
+}
+
+.training-radar-ball-target[data-volume-scan-phase="active"][data-radar-direction="rtl"]
+  .training-radar-ball-volume-contour {
+  animation: training-ball-volume-contour-rtl
+    calc(var(--training-volume-scan-duration) - var(--training-volume-contour-delay))
+    linear var(--training-volume-contour-delay) both;
 }
 
 .training-radar-car-target[data-tactical-active="true"]
@@ -2527,42 +2570,110 @@
   }
 }
 
-@keyframes training-ball-volume-surface {
+@keyframes training-fennec-headlight-breathe {
+  0%,
+  100% {
+    opacity: 0.24;
+    filter: brightness(0.96) saturate(1.08);
+  }
+
+  50% {
+    opacity: 0.56;
+    filter: brightness(1.14) saturate(1.16);
+  }
+}
+
+@keyframes training-ball-volume-surface-ltr {
   0% {
-    opacity: 0.14;
+    opacity: 0.18;
     filter: brightness(1) saturate(1);
+    -webkit-mask-position: 130% 50%;
+    mask-position: 130% 50%;
   }
 
   18% {
-    opacity: 0.28;
+    opacity: 0.38;
     filter: brightness(1.24) saturate(1.18);
   }
 
   72% {
-    opacity: 0.24;
+    opacity: 0.3;
   }
 
   100% {
     opacity: 0;
     filter: brightness(1.04) saturate(1.04);
+    -webkit-mask-position: -30% 50%;
+    mask-position: -30% 50%;
   }
 }
 
-@keyframes training-ball-volume-contour {
+@keyframes training-ball-volume-surface-rtl {
   0% {
-    opacity: 0.1;
+    opacity: 0.18;
+    filter: brightness(1) saturate(1);
+    -webkit-mask-position: -30% 50%;
+    mask-position: -30% 50%;
   }
 
-  20% {
+  18% {
+    opacity: 0.38;
+    filter: brightness(1.24) saturate(1.18);
+  }
+
+  72% {
     opacity: 0.3;
-  }
-
-  66% {
-    opacity: 0.24;
   }
 
   100% {
     opacity: 0;
+    filter: brightness(1.04) saturate(1.04);
+    -webkit-mask-position: 130% 50%;
+    mask-position: 130% 50%;
+  }
+}
+
+@keyframes training-ball-volume-contour-ltr {
+  0% {
+    opacity: 0.12;
+    -webkit-mask-position: 130% 50%;
+    mask-position: 130% 50%;
+  }
+
+  20% {
+    opacity: 0.36;
+  }
+
+  66% {
+    opacity: 0.28;
+  }
+
+  100% {
+    opacity: 0;
+    -webkit-mask-position: -30% 50%;
+    mask-position: -30% 50%;
+  }
+}
+
+@keyframes training-ball-volume-contour-rtl {
+  0% {
+    opacity: 0.12;
+    -webkit-mask-position: -30% 50%;
+    mask-position: -30% 50%;
+  }
+
+  20% {
+    opacity: 0.36;
+  }
+
+  66% {
+    opacity: 0.28;
+  }
+
+  100% {
+    opacity: 0;
+    -webkit-mask-position: 130% 50%;
+    mask-position: 130% 50%;
   }
 }
 

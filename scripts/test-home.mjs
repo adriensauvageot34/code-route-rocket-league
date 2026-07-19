@@ -475,7 +475,12 @@ for (const safeOpacity of ["opacity: 0.32", "opacity: 0.24", "opacity: 0.3", "op
   assert(css.includes(safeOpacity), `Safe Training overlay opacity missing: ${safeOpacity}.`);
 }
 assert(/\.training-fennec-reflection\s*\{[\s\S]*?opacity:\s*0\.08;[\s\S]*?ellipse\(15% 8\.5% at 79% 79%\)[\s\S]*?scale\(0\.72\);/s.test(css), "Fennec reflection must stay tightly cropped, compact and discreet under the car.");
-assert(/\.training-fennec-headlight-glow\s*\{[\s\S]*?opacity:\s*0\.22;/s.test(css), "Fennec headlights must retain a subtle premium glow.");
+assert(/\.training-fennec-headlight-glow\s*\{[\s\S]*?opacity:\s*0\.24;[\s\S]*?animation:\s*training-fennec-headlight-breathe 3s ease-in-out infinite;/s.test(css), "Fennec headlights must retain a gentle independent breathing glow.");
+assert(/@keyframes training-fennec-headlight-breathe\s*\{[\s\S]*?opacity:\s*0\.24;[\s\S]*?opacity:\s*0\.56;/s.test(css), "Fennec headlight breathing must stay inside the restrained premium opacity range.");
+assert(css.includes("training-ball-volume-surface-ltr") && css.includes("training-ball-volume-surface-rtl") && css.includes("training-ball-volume-contour-ltr") && css.includes("training-ball-volume-contour-rtl"), "The ball volume scan must visibly traverse the ball in both radar directions.");
+assert(css.includes("opacity: 0.38") && css.includes("opacity: 0.36") && css.includes("mask-position: 130% 50%") && css.includes("mask-position: -30% 50%"), "The safe ball fallback must expose a readable directional surface and contour pass.");
+const ballVolumeKeyframes = css.slice(css.indexOf("@keyframes training-ball-volume-surface-ltr"), css.indexOf("@keyframes training-object-tactical-wireframe"));
+assert(!ballVolumeKeyframes.includes("scale(") && !ballVolumeKeyframes.includes("width:"), "The systematic ball volume scan must not resize or displace the ball.");
 assert(/\.training-fennec-rear-accent\s*\{[\s\S]*?opacity:\s*0\.08;/s.test(css), "Fennec rear accent must remain very subtle.");
 assert(css.includes(".training-radar-ball-target::before") && css.includes("display: none"), "The ball must not render the full-canvas contact ring.");
 assert(css.includes('.mode-illustration[data-active="false"] .training-particle-core') && css.includes('.mode-illustration[data-motion-active="false"] .training-particle-core::after'), "Inactive and offscreen particle and fragment animations must pause.");
