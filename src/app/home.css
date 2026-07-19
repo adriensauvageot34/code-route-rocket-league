@@ -1068,23 +1068,23 @@
   filter: brightness(1.18) saturate(1.24);
   -webkit-mask-image: linear-gradient(
     var(--training-ball-volume-mask-angle),
-    transparent 40.5%,
+    transparent 39.5%,
     rgb(0 0 0 / 0.12) 43%,
     rgb(0 0 0 / 0.5) 46%,
-    black 47.5% 52.5%,
+    black 47% 53%,
     rgb(0 0 0 / 0.55) 54.5%,
     rgb(0 0 0 / 0.12) 57%,
-    transparent 58.5%
+    transparent 60.5%
   );
   mask-image: linear-gradient(
     var(--training-ball-volume-mask-angle),
-    transparent 40.5%,
+    transparent 39.5%,
     rgb(0 0 0 / 0.12) 43%,
     rgb(0 0 0 / 0.5) 46%,
-    black 47.5% 52.5%,
+    black 47% 53%,
     rgb(0 0 0 / 0.55) 54.5%,
     rgb(0 0 0 / 0.12) 57%,
-    transparent 58.5%
+    transparent 60.5%
   );
 }
 
@@ -1100,19 +1100,19 @@
     drop-shadow(0 0 3px rgb(244 188 78 / 0.34));
   -webkit-mask-image: linear-gradient(
     var(--training-ball-volume-mask-angle),
-    transparent 42.5%,
+    transparent 41.5%,
     rgb(0 0 0 / 0.2) 45%,
-    black 47.8% 52.2%,
+    black 47.5% 52.5%,
     rgb(0 0 0 / 0.45) 54.5%,
-    transparent 57%
+    transparent 58.5%
   );
   mask-image: linear-gradient(
     var(--training-ball-volume-mask-angle),
-    transparent 42.5%,
+    transparent 41.5%,
     rgb(0 0 0 / 0.2) 45%,
-    black 47.8% 52.2%,
+    black 47.5% 52.5%,
     rgb(0 0 0 / 0.45) 54.5%,
-    transparent 57%
+    transparent 58.5%
   );
 }
 
@@ -2613,10 +2613,10 @@
 
 @keyframes training-ball-volume-surface-ltr {
   0% {
-    opacity: 0.18;
+    opacity: 0.3;
     filter: brightness(1) saturate(1);
-    -webkit-mask-position: 130% 50%;
-    mask-position: 130% 50%;
+    -webkit-mask-position: 88% 50%;
+    mask-position: 88% 50%;
   }
 
   18% {
@@ -2631,17 +2631,17 @@
   100% {
     opacity: 0;
     filter: brightness(1.04) saturate(1.04);
-    -webkit-mask-position: -30% 50%;
-    mask-position: -30% 50%;
+    -webkit-mask-position: 12% 50%;
+    mask-position: 12% 50%;
   }
 }
 
 @keyframes training-ball-volume-surface-rtl {
   0% {
-    opacity: 0.18;
+    opacity: 0.3;
     filter: brightness(1) saturate(1);
-    -webkit-mask-position: -30% 50%;
-    mask-position: -30% 50%;
+    -webkit-mask-position: 12% 50%;
+    mask-position: 12% 50%;
   }
 
   18% {
@@ -2656,16 +2656,16 @@
   100% {
     opacity: 0;
     filter: brightness(1.04) saturate(1.04);
-    -webkit-mask-position: 130% 50%;
-    mask-position: 130% 50%;
+    -webkit-mask-position: 88% 50%;
+    mask-position: 88% 50%;
   }
 }
 
 @keyframes training-ball-volume-contour-ltr {
   0% {
-    opacity: 0.12;
-    -webkit-mask-position: 130% 50%;
-    mask-position: 130% 50%;
+    opacity: 0.18;
+    -webkit-mask-position: 88% 50%;
+    mask-position: 88% 50%;
   }
 
   20% {
@@ -2678,16 +2678,16 @@
 
   100% {
     opacity: 0;
-    -webkit-mask-position: -30% 50%;
-    mask-position: -30% 50%;
+    -webkit-mask-position: 12% 50%;
+    mask-position: 12% 50%;
   }
 }
 
 @keyframes training-ball-volume-contour-rtl {
   0% {
-    opacity: 0.12;
-    -webkit-mask-position: -30% 50%;
-    mask-position: -30% 50%;
+    opacity: 0.18;
+    -webkit-mask-position: 12% 50%;
+    mask-position: 12% 50%;
   }
 
   20% {
@@ -2700,8 +2700,8 @@
 
   100% {
     opacity: 0;
-    -webkit-mask-position: 130% 50%;
-    mask-position: 130% 50%;
+    -webkit-mask-position: 88% 50%;
+    mask-position: 88% 50%;
   }
 }
 
