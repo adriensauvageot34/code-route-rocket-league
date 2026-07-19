@@ -297,10 +297,12 @@ assert(trainingRadarOverlay.includes('mix-blend-mode') === false && css.includes
 assert(trainingRadarSequence.includes("document.visibilityState") && trainingRadarSequence.includes("IntersectionObserver") && trainingRadarSequence.includes("prefers-reduced-motion"), "Radar lifecycle must follow page, illustration, and motion visibility.");
 assert(!trainingRadarSequence.includes("requestAnimationFrame"), "Radar must not create a per-frame React loop.");
 assert(trainingRadarSequence.includes('targetIndex % 2 === 0 ? "ltr" : "rtl"') && trainingRadarSequence.includes("getTrainingRadarHitDelayMs(target, passDirection)"), "Radar passes must alternate direction and keep target hits synchronized.");
+assert(trainingRadarSequence.includes("volumeHitDelayMs - TRAINING_VOLUME_SCAN_TIMING.leadMs") && trainingRadarSequence.includes("Math.max(") && trainingRadarSequence.includes("volumeStartDelayMs + TRAINING_VOLUME_SCAN_TIMING.activeDurationMs"), "Systematic volume scans must lead the theoretical hit while keeping their lifecycle synchronized.");
+assert(trainingRadarSequence.includes("activateTacticalTarget(target.id)") && trainingRadarSequence.includes("}, tacticalHitDelayMs);"), "Selective tactical activation must keep its original theoretical hit delay.");
 for (const target of ["left-car", "back-right-car", "front-right-car", "ball"]) {
   assert(trainingRadarTargets.includes(`id: "${target}"`), `Missing training radar target: ${target}`);
 }
-for (const timing of ["passDurationMs: 2900", "travelDurationMs: 2500", "contactDurationMs: 180", "wireframeDelayMs: 820", "fadeDelayMs: 1500", "targetLifetimeMs: 2300", "fadeDurationMs: 800", "activeDurationMs: 380", "contourDelayMs: 60", "fadeDurationMs: 210", "totalDurationMs: 610"]) {
+for (const timing of ["passDurationMs: 2900", "travelDurationMs: 2500", "contactDurationMs: 180", "wireframeDelayMs: 820", "fadeDelayMs: 1500", "targetLifetimeMs: 2300", "fadeDurationMs: 800", "activeDurationMs: 380", "contourDelayMs: 60", "fadeDurationMs: 210", "leadMs: 120", "totalDurationMs: 610"]) {
   assert(trainingRadarTargets.includes(timing), `Missing centralized radar timing: ${timing}`);
 }
 for (const placement of ['left: "34.76%"', 'left: "69.28%"', 'left: "73.84%"']) {
