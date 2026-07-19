@@ -183,9 +183,10 @@ assert(trainingScene.includes('name="training-radar-surface"') && trainingScene.
 assert(trainingScene.indexOf('name="training-radar-sweep"') < trainingScene.indexOf('name="training-barrier"') && trainingScene.indexOf('name="training-barrier"') < trainingScene.indexOf('name="training-particles-far"'), "The stable barrier must occlude the ground scan while remaining behind Training actors.");
 assert(trainingScene.includes('depth="trainingMid" layer={2} name="training-atmospheric-haze"') && trainingScene.indexOf('name="training-atmospheric-haze"') < trainingScene.indexOf('name="training-mid-buildings"') && !trainingScene.includes("training-horizon-haze"), "Training haze must move with and remain behind the second skyline plane.");
 assert(trainingScene.includes('name="ball"') && trainingScene.includes('name="fennec"') && trainingScene.includes('name="fennec-lights-glow"'), "Training ball, Fennec and separate light-glow groups must remain.");
-for (const premiumFennecLayer of ["fennecReflection", "fennecHeadlightGlow", "fennecRearAccent"]) {
+for (const premiumFennecLayer of ["fennecHeadlightGlow", "fennecRearAccent"]) {
   assert(trainingScene.includes(`assets.${premiumFennecLayer}`), `Missing permanent premium Fennec layer: ${premiumFennecLayer}.`);
 }
+assert(!homeIllustrationAssets.includes("fennec-base reflection overlay.png") && !trainingScene.includes("assets.fennecReflection"), "The parasitic Fennec reflection overlay must never be registered or rendered.");
 assert(trainingScene.includes("assets.lightsVioletGlow") && trainingScene.indexOf('name="fennec"') < trainingScene.indexOf('name="fennec-lights-glow"'), "The violet screen asset must render in a separate group above the Fennec.");
 assert(!trainingScene.includes("assets.fennecRimLight") && !trainingScene.includes("fennecSurfaceScan") && !trainingScene.includes("fennecContourScan"), "Unsafe Fennec scan and rim overlays must stay disabled in the scene.");
 assert(trainingScene.includes('className="training-transition-wave-local"'), "Prepared Training transition layer must remain.");
@@ -474,13 +475,13 @@ assert(trainingRadarTargets.includes('angle: "-19deg"') && trainingRadarTargets.
 assert(css.includes("calc(90deg + var(--training-object-scan-angle))") && css.includes("var(--training-volume-scan-duration)") && css.includes("var(--training-volume-contour-delay)"), "Directional surface mask and near-immediate contour must share the short volume-scan timing.");
 assert(css.includes('[data-volume-scan-phase="active"]') && css.includes('[data-tactical-active="true"]') && !css.includes("data-radar-active"), "Systematic volume reveal and selective tactical activation must use separate CSS state channels.");
 assert(css.includes("opacity: 0.3") && css.includes("opacity: 0.09") && css.includes("--training-target-lifetime"), "Selective tactical wireframe and glow must keep their longer restrained lifecycle.");
-for (const premiumClass of ["training-fennec-reflection", "training-fennec-rim-light", "training-lights-glow", "training-fennec-headlight-glow", "training-fennec-rear-accent"]) {
+for (const premiumClass of ["training-fennec-rim-light", "training-lights-glow", "training-fennec-headlight-glow", "training-fennec-rear-accent"]) {
   assert(css.includes(premiumClass), `Premium Fennec treatment missing: ${premiumClass}.`);
 }
 for (const safeOpacity of ["opacity: 0.32", "opacity: 0.24", "opacity: 0.3", "opacity: 0.09"]) {
   assert(css.includes(safeOpacity), `Safe Training overlay opacity missing: ${safeOpacity}.`);
 }
-assert(/\.training-fennec-reflection\s*\{[\s\S]*?opacity:\s*0\.03;[\s\S]*?ellipse\(12% 6\.5% at 79% 79%\)[\s\S]*?scale\(0\.72\);/s.test(css), "Fennec reflection must stay tightly cropped and nearly invisible under the car.");
+assert(!css.includes("training-fennec-reflection"), "The removed Fennec reflection overlay must not retain dead rendering CSS.");
 assert(/\.training-fennec-headlight-glow\s*\{[\s\S]*?opacity:\s*0\.05;[\s\S]*?animation:\s*none;/s.test(css), "The legacy Fennec headlight overlay must remain strongly reduced to avoid doubling the screen glow.");
 assert(/\.training-lights-glow\s*\{[\s\S]*?opacity:\s*0\.48;[\s\S]*?mix-blend-mode:\s*screen;[\s\S]*?animation:\s*training-lights-breathe 3\.6s ease-in-out infinite;/s.test(css), "The violet Fennec light asset must breathe visibly as a separate screen layer.");
 assert(/@keyframes training-lights-breathe\s*\{[\s\S]*?opacity:\s*0\.48;[\s\S]*?brightness\(0\.86\)[\s\S]*?opacity:\s*0\.76;[\s\S]*?brightness\(1\.12\)/s.test(css), "The separate violet lights must restore the stronger legacy breathing range.");
