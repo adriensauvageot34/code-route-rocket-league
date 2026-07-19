@@ -189,7 +189,11 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         <SceneLayer asset={assets.fennecRearAccent} className="training-fennec-rear-accent" />
       </SceneGroup>
 
-      <SceneGroup blendMode="screen" depth="foreground" future layer={17} name="transition">
+      <SceneGroup blendMode="screen" depth="trainingFennec" layer={17} name="fennec-lights-glow">
+        <SceneLayer asset={assets.lightsVioletGlow} className="training-lights-glow" />
+      </SceneGroup>
+
+      <SceneGroup blendMode="screen" depth="foreground" future layer={18} name="transition">
         <SceneLayer asset={assets.transitionWaveGold} className="training-transition-wave-local" />
       </SceneGroup>
     </div>
