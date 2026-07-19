@@ -15,6 +15,7 @@ export const TRAINING_VOLUME_SCAN_TIMING = {
   activeDurationMs: 380,
   contourDelayMs: 60,
   fadeDurationMs: 210,
+  leadMs: 120,
   totalDurationMs: 610,
 } as const;
 
