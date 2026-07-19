@@ -300,7 +300,7 @@ assert(trainingRadarSequence.includes('targetIndex % 2 === 0 ? "ltr" : "rtl"') &
 for (const target of ["left-car", "back-right-car", "front-right-car", "ball"]) {
   assert(trainingRadarTargets.includes(`id: "${target}"`), `Missing training radar target: ${target}`);
 }
-for (const timing of ["passDurationMs: 2400", "travelDurationMs: 2000", "contactDurationMs: 180", "wireframeDelayMs: 820", "fadeDelayMs: 1500", "targetLifetimeMs: 2300", "fadeDurationMs: 800", "activeDurationMs: 320", "contourDelayMs: 60", "totalDurationMs: 520"]) {
+for (const timing of ["passDurationMs: 2900", "travelDurationMs: 2500", "contactDurationMs: 180", "wireframeDelayMs: 820", "fadeDelayMs: 1500", "targetLifetimeMs: 2300", "fadeDurationMs: 800", "activeDurationMs: 380", "contourDelayMs: 60", "fadeDurationMs: 210", "totalDurationMs: 610"]) {
   assert(trainingRadarTargets.includes(timing), `Missing centralized radar timing: ${timing}`);
 }
 for (const placement of ['left: "34.76%"', 'left: "69.28%"', 'left: "73.84%"']) {
@@ -465,7 +465,7 @@ for (const layeredScanMarker of ["training-object-contact", "training-object-sur
   assert(css.includes(layeredScanMarker), `Layered Training object scan CSS missing: ${layeredScanMarker}.`);
 }
 assert(css.includes("opacity: 0.34") && css.includes("opacity: 0.3") && css.includes("mask-position: 130% 50%") && css.includes("mask-position: -30% 50%"), "Surface and contour scans must reveal progressively behind the aligned local line at restrained opacity.");
-assert(trainingRadarTargets.includes('angle: "-19deg"') && trainingRadarTargets.includes("durationMs: 320") && trainingGroundedActor.includes("--training-volume-scan-duration") && trainingGroundedActor.includes("--training-volume-contour-delay"), "Each car volume scan must expose its own mask axis and short persistence timing.");
+assert(trainingRadarTargets.includes('angle: "-19deg"') && trainingRadarTargets.includes("durationMs: 380") && trainingGroundedActor.includes("--training-volume-scan-duration") && trainingGroundedActor.includes("--training-volume-contour-delay"), "Each car volume scan must expose its own mask axis and short persistence timing.");
 assert(css.includes("calc(90deg + var(--training-object-scan-angle))") && css.includes("var(--training-volume-scan-duration)") && css.includes("var(--training-volume-contour-delay)"), "Directional surface mask and near-immediate contour must share the short volume-scan timing.");
 assert(css.includes('[data-volume-scan-phase="active"]') && css.includes('[data-tactical-active="true"]') && !css.includes("data-radar-active"), "Systematic volume reveal and selective tactical activation must use separate CSS state channels.");
 assert(css.includes("opacity: 0.3") && css.includes("opacity: 0.09") && css.includes("--training-target-lifetime"), "Selective tactical wireframe and glow must keep their longer restrained lifecycle.");
