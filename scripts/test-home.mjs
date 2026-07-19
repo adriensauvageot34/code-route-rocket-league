@@ -182,10 +182,11 @@ for (const target of ["left-car", "back-right-car", "front-right-car"]) {
 assert(trainingScene.includes('name="training-radar-surface"') && trainingScene.includes('name="training-radar-sweep"') && !trainingScene.includes('name="training-radar-targets"'), "Training radar surfaces must stay behind the grounded actors.");
 assert(trainingScene.indexOf('name="training-radar-sweep"') < trainingScene.indexOf('name="training-barrier"') && trainingScene.indexOf('name="training-barrier"') < trainingScene.indexOf('name="training-particles-far"'), "The stable barrier must occlude the ground scan while remaining behind Training actors.");
 assert(trainingScene.includes('depth="trainingMid" layer={2} name="training-atmospheric-haze"') && trainingScene.indexOf('name="training-atmospheric-haze"') < trainingScene.indexOf('name="training-mid-buildings"') && !trainingScene.includes("training-horizon-haze"), "Training haze must move with and remain behind the second skyline plane.");
-assert(trainingScene.includes('name="ball"') && trainingScene.includes('name="fennec"'), "Training ball and Fennec groups must remain.");
+assert(trainingScene.includes('name="ball"') && trainingScene.includes('name="fennec"') && trainingScene.includes('name="fennec-lights-glow"'), "Training ball, Fennec and separate light-glow groups must remain.");
 for (const premiumFennecLayer of ["fennecReflection", "fennecHeadlightGlow", "fennecRearAccent"]) {
   assert(trainingScene.includes(`assets.${premiumFennecLayer}`), `Missing permanent premium Fennec layer: ${premiumFennecLayer}.`);
 }
+assert(trainingScene.includes("assets.lightsVioletGlow") && trainingScene.indexOf('name="fennec"') < trainingScene.indexOf('name="fennec-lights-glow"'), "The violet screen asset must render in a separate group above the Fennec.");
 assert(!trainingScene.includes("assets.fennecRimLight") && !trainingScene.includes("fennecSurfaceScan") && !trainingScene.includes("fennecContourScan"), "Unsafe Fennec scan and rim overlays must stay disabled in the scene.");
 assert(trainingScene.includes('className="training-transition-wave-local"'), "Prepared Training transition layer must remain.");
 
@@ -263,6 +264,7 @@ for (const orderedName of [
   `name={\`training-${'${trainingMidCarTarget.id}'}\`}`,
   'name="training-particles-near"',
   'name="fennec"',
+  'name="fennec-lights-glow"',
 ]) {
   assert(trainingScene.includes(orderedName), `Missing particle depth-order marker: ${orderedName}`);
 }
@@ -275,6 +277,7 @@ const trainingParticleOrder = [
   `name={\`training-${'${trainingMidCarTarget.id}'}\`}`,
   'name="training-particles-near"',
   'name="fennec"',
+  'name="fennec-lights-glow"',
 ].map((marker) => trainingScene.indexOf(marker));
 assert(trainingParticleOrder.every((position, index) => index === 0 || position > trainingParticleOrder[index - 1]), "Particle groups must keep their intended actor occlusion order.");
 assert(trainingScene.includes('data-launching={launching ? "true" : "false"}'), "Training particle lifecycle must receive launch state.");
@@ -471,15 +474,16 @@ assert(trainingRadarTargets.includes('angle: "-19deg"') && trainingRadarTargets.
 assert(css.includes("calc(90deg + var(--training-object-scan-angle))") && css.includes("var(--training-volume-scan-duration)") && css.includes("var(--training-volume-contour-delay)"), "Directional surface mask and near-immediate contour must share the short volume-scan timing.");
 assert(css.includes('[data-volume-scan-phase="active"]') && css.includes('[data-tactical-active="true"]') && !css.includes("data-radar-active"), "Systematic volume reveal and selective tactical activation must use separate CSS state channels.");
 assert(css.includes("opacity: 0.3") && css.includes("opacity: 0.09") && css.includes("--training-target-lifetime"), "Selective tactical wireframe and glow must keep their longer restrained lifecycle.");
-for (const premiumClass of ["training-fennec-reflection", "training-fennec-rim-light", "training-fennec-headlight-glow", "training-fennec-rear-accent"]) {
+for (const premiumClass of ["training-fennec-reflection", "training-fennec-rim-light", "training-lights-glow", "training-fennec-headlight-glow", "training-fennec-rear-accent"]) {
   assert(css.includes(premiumClass), `Premium Fennec treatment missing: ${premiumClass}.`);
 }
 for (const safeOpacity of ["opacity: 0.32", "opacity: 0.24", "opacity: 0.3", "opacity: 0.09"]) {
   assert(css.includes(safeOpacity), `Safe Training overlay opacity missing: ${safeOpacity}.`);
 }
 assert(/\.training-fennec-reflection\s*\{[\s\S]*?opacity:\s*0\.03;[\s\S]*?ellipse\(12% 6\.5% at 79% 79%\)[\s\S]*?scale\(0\.72\);/s.test(css), "Fennec reflection must stay tightly cropped and nearly invisible under the car.");
-assert(/\.training-fennec-headlight-glow\s*\{[\s\S]*?opacity:\s*0\.26;[\s\S]*?animation:\s*training-fennec-headlight-breathe 3s ease-in-out infinite;/s.test(css), "Fennec headlights must retain a readable independent breathing glow.");
-assert(/@keyframes training-fennec-headlight-breathe\s*\{[\s\S]*?opacity:\s*0\.26;[\s\S]*?opacity:\s*0\.64;/s.test(css), "Fennec headlight breathing must stay inside the requested premium opacity range.");
+assert(/\.training-fennec-headlight-glow\s*\{[\s\S]*?opacity:\s*0\.05;[\s\S]*?animation:\s*none;/s.test(css), "The legacy Fennec headlight overlay must remain strongly reduced to avoid doubling the screen glow.");
+assert(/\.training-lights-glow\s*\{[\s\S]*?mix-blend-mode:\s*screen;[\s\S]*?animation:\s*training-lights-breathe 3\.6s ease-in-out infinite;/s.test(css), "The violet Fennec light asset must breathe softly as a separate screen layer.");
+assert(/@keyframes training-lights-breathe\s*\{[\s\S]*?opacity:\s*0\.16;[\s\S]*?opacity:\s*0\.3;/s.test(css), "The separate violet lights must keep a restrained breathing range.");
 assert(css.includes("training-ball-volume-surface-ltr") && css.includes("training-ball-volume-surface-rtl") && css.includes("training-ball-volume-contour-ltr") && css.includes("training-ball-volume-contour-rtl"), "The ball volume scan must visibly traverse the ball in both radar directions.");
 assert(css.includes("--training-ball-volume-mask-angle: 90deg") && /\.training-radar-ball-target\[data-radar-direction="rtl"\]\s*\{\s*--training-ball-volume-mask-angle:\s*270deg;/s.test(css), "The RTL ball pass must mirror the mask gradient instead of lighting the whole layer at once.");
 assert(/@keyframes training-ball-volume-surface-ltr\s*\{[\s\S]*?mask-position:\s*88% 50%;[\s\S]*?mask-position:\s*12% 50%;/s.test(css), "The LTR ball mask must enter the sphere immediately instead of starting far outside it.");
