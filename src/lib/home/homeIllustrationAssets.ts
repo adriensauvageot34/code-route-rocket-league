@@ -92,13 +92,6 @@ export const homeIllustrationAssets = {
       alpha: "transparent",
       blendMode: "screen"
     },
-    fennecReflection: {
-      path: "/ui/fennec-base reflection overlay.png",
-      role: "Fennec ground reflection",
-      dimensions: { width: 1672, height: 941 },
-      alpha: "transparent",
-      blendMode: "screen"
-    },
     fennecRearAccent: {
       path: "/ui/fennec-base rear accent glow.png",
       role: "subtle Fennec rear accent glow",
