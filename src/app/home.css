@@ -888,6 +888,137 @@
   filter: brightness(0.98) saturate(1.1);
 }
 
+.training-radar-fennec-target {
+  --training-fennec-volume-mask-angle: 90deg;
+
+  display: contents;
+}
+
+.training-radar-fennec-target[data-radar-direction="rtl"] {
+  --training-fennec-volume-mask-angle: 270deg;
+}
+
+.training-radar-fennec-surface,
+.training-radar-fennec-contour,
+.training-radar-fennec-impact {
+  opacity: 0;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  transition: opacity var(--training-volume-fade-duration) ease-out;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 220% 100%;
+  mask-size: 220% 100%;
+}
+
+.training-radar-fennec-surface {
+  z-index: 2;
+  filter: brightness(1.08) saturate(1.14);
+  -webkit-mask-image: linear-gradient(
+    var(--training-fennec-volume-mask-angle),
+    transparent 46.5%,
+    rgb(0 0 0 / 0.28) 48%,
+    black 49.2% 50.8%,
+    rgb(0 0 0 / 0.34) 52%,
+    transparent 53.5%
+  );
+  mask-image: linear-gradient(
+    var(--training-fennec-volume-mask-angle),
+    transparent 46.5%,
+    rgb(0 0 0 / 0.28) 48%,
+    black 49.2% 50.8%,
+    rgb(0 0 0 / 0.34) 52%,
+    transparent 53.5%
+  );
+}
+
+.training-radar-fennec-contour {
+  --training-fennec-detail-start: 0.14;
+  --training-fennec-detail-peak: 0.28;
+  --training-fennec-detail-tail: 0.12;
+
+  z-index: 3;
+  filter: brightness(1.06) saturate(1.12);
+  -webkit-mask-image: linear-gradient(
+    var(--training-fennec-volume-mask-angle),
+    transparent 47.5%,
+    black 49.5% 50.5%,
+    transparent 52.5%
+  );
+  mask-image: linear-gradient(
+    var(--training-fennec-volume-mask-angle),
+    transparent 47.5%,
+    black 49.5% 50.5%,
+    transparent 52.5%
+  );
+}
+
+.training-radar-fennec-impact {
+  --training-fennec-detail-start: 0.08;
+  --training-fennec-detail-peak: 0.16;
+  --training-fennec-detail-tail: 0.05;
+
+  z-index: 4;
+  filter: brightness(1.04) saturate(1.08);
+  -webkit-mask-image: linear-gradient(
+    var(--training-fennec-volume-mask-angle),
+    transparent 48%,
+    black 49.7% 50.3%,
+    transparent 52%
+  );
+  mask-image: linear-gradient(
+    var(--training-fennec-volume-mask-angle),
+    transparent 48%,
+    black 49.7% 50.3%,
+    transparent 52%
+  );
+}
+
+.training-radar-fennec-target[data-radar-direction="ltr"]
+  :is(.training-radar-fennec-surface, .training-radar-fennec-contour, .training-radar-fennec-impact) {
+  -webkit-mask-position: 17% 50%;
+  mask-position: 17% 50%;
+}
+
+.training-radar-fennec-target[data-radar-direction="rtl"]
+  :is(.training-radar-fennec-surface, .training-radar-fennec-contour, .training-radar-fennec-impact) {
+  -webkit-mask-position: 38% 50%;
+  mask-position: 38% 50%;
+}
+
+.training-radar-fennec-target[data-volume-scan-phase="active"][data-radar-direction="ltr"]
+  .training-radar-fennec-surface {
+  animation: training-fennec-volume-surface-ltr var(--training-volume-scan-duration) linear both;
+}
+
+.training-radar-fennec-target[data-volume-scan-phase="active"][data-radar-direction="rtl"]
+  .training-radar-fennec-surface {
+  animation: training-fennec-volume-surface-rtl var(--training-volume-scan-duration) linear both;
+}
+
+.training-radar-fennec-target[data-volume-scan-phase="active"][data-radar-direction="ltr"]
+  .training-radar-fennec-contour,
+.training-radar-fennec-target[data-volume-scan-phase="active"][data-radar-direction="ltr"]
+  .training-radar-fennec-impact {
+  animation: training-fennec-volume-detail-ltr
+    calc(var(--training-volume-scan-duration) - var(--training-volume-contour-delay))
+    linear var(--training-volume-contour-delay) both;
+}
+
+.training-radar-fennec-target[data-volume-scan-phase="active"][data-radar-direction="rtl"]
+  .training-radar-fennec-contour,
+.training-radar-fennec-target[data-volume-scan-phase="active"][data-radar-direction="rtl"]
+  .training-radar-fennec-impact {
+  animation: training-fennec-volume-detail-rtl
+    calc(var(--training-volume-scan-duration) - var(--training-volume-contour-delay))
+    linear var(--training-volume-contour-delay) both;
+}
+
+.training-radar-fennec-target[data-volume-scan-phase="fade"]
+  :is(.training-radar-fennec-surface, .training-radar-fennec-contour, .training-radar-fennec-impact) {
+  opacity: 0;
+}
+
 .scene-group[data-scene-group="fennec-lights-glow"] .training-lights-glow {
   z-index: 4;
   opacity: 0.48;
@@ -1527,6 +1658,9 @@
 .mode-illustration[data-motion-active="false"] .training-radar-object-contour,
 .mode-illustration[data-motion-active="false"] .training-radar-ball-volume-surface,
 .mode-illustration[data-motion-active="false"] .training-radar-ball-volume-contour,
+.mode-illustration[data-motion-active="false"] .training-radar-fennec-surface,
+.mode-illustration[data-motion-active="false"] .training-radar-fennec-contour,
+.mode-illustration[data-motion-active="false"] .training-radar-fennec-impact,
 .mode-illustration[data-motion-active="false"] .training-radar-car-wireframe,
 .mode-illustration[data-motion-active="false"] .training-radar-car-glow,
 .mode-illustration[data-motion-active="false"] .training-radar-ball-energy {
@@ -2597,6 +2731,86 @@
   }
 }
 
+@keyframes training-fennec-volume-surface-ltr {
+  0% {
+    opacity: 0.24;
+    -webkit-mask-position: 34% 50%;
+    mask-position: 34% 50%;
+  }
+
+  24% {
+    opacity: 0.4;
+  }
+
+  72% {
+    opacity: 0.3;
+  }
+
+  100% {
+    opacity: 0.14;
+    -webkit-mask-position: 17% 50%;
+    mask-position: 17% 50%;
+  }
+}
+
+@keyframes training-fennec-volume-surface-rtl {
+  0% {
+    opacity: 0.24;
+    -webkit-mask-position: 21% 50%;
+    mask-position: 21% 50%;
+  }
+
+  24% {
+    opacity: 0.4;
+  }
+
+  72% {
+    opacity: 0.3;
+  }
+
+  100% {
+    opacity: 0.14;
+    -webkit-mask-position: 38% 50%;
+    mask-position: 38% 50%;
+  }
+}
+
+@keyframes training-fennec-volume-detail-ltr {
+  0% {
+    opacity: var(--training-fennec-detail-start);
+    -webkit-mask-position: 34% 50%;
+    mask-position: 34% 50%;
+  }
+
+  28% {
+    opacity: var(--training-fennec-detail-peak);
+  }
+
+  100% {
+    opacity: var(--training-fennec-detail-tail);
+    -webkit-mask-position: 17% 50%;
+    mask-position: 17% 50%;
+  }
+}
+
+@keyframes training-fennec-volume-detail-rtl {
+  0% {
+    opacity: var(--training-fennec-detail-start);
+    -webkit-mask-position: 21% 50%;
+    mask-position: 21% 50%;
+  }
+
+  28% {
+    opacity: var(--training-fennec-detail-peak);
+  }
+
+  100% {
+    opacity: var(--training-fennec-detail-tail);
+    -webkit-mask-position: 38% 50%;
+    mask-position: 38% 50%;
+  }
+}
+
 @keyframes training-fennec-headlight-breathe {
   0%,
   100% {
@@ -2898,6 +3112,9 @@
   .training-radar-object-contour,
   .training-radar-ball-volume-surface,
   .training-radar-ball-volume-contour,
+  .training-radar-fennec-surface,
+  .training-radar-fennec-contour,
+  .training-radar-fennec-impact,
   .training-radar-car-wireframe,
   .training-radar-car-glow,
   .training-radar-ball-energy,
@@ -2943,6 +3160,9 @@
   .training-radar-object-contour,
   .training-radar-ball-volume-surface,
   .training-radar-ball-volume-contour,
+  .training-radar-fennec-surface,
+  .training-radar-fennec-contour,
+  .training-radar-fennec-impact,
   .training-radar-car-wireframe,
   .training-radar-car-glow,
   .training-radar-ball-energy {

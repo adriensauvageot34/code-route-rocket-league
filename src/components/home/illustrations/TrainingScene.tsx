@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { SceneGroup, SceneLayer } from "@/components/home/illustrations/SceneGroup";
 import {
   TrainingGroundedBall,
@@ -10,10 +11,13 @@ import { useTrainingRadarSequence } from "@/components/home/illustrations/Traini
 import { TrainingParticleField } from "@/components/home/illustrations/TrainingParticleField";
 import { homeIllustrationAssets } from "@/lib/home/homeIllustrationAssets";
 import {
+  TRAINING_VOLUME_SCAN_TIMING,
   trainingBallRadarTarget,
   trainingCarRadarTargets,
+  trainingFennecVolumeScanTarget,
   type TrainingCarRadarTarget,
   type TrainingRadarTargetId,
+  type TrainingVolumeScanTargetId,
 } from "@/lib/home/trainingRadarTargets";
 
 const assets = homeIllustrationAssets.training;
@@ -37,6 +41,12 @@ const trainingFarCarTarget = getTrainingCarTarget("trainingCarFar");
 const trainingMidCarTarget = getTrainingCarTarget("trainingCarMid");
 const trainingNearCarTarget = getTrainingCarTarget("trainingCarNear");
 
+const trainingFennecScanStyle = {
+  "--training-volume-contour-delay": `${TRAINING_VOLUME_SCAN_TIMING.contourDelayMs}ms`,
+  "--training-volume-fade-duration": `${TRAINING_VOLUME_SCAN_TIMING.fadeDurationMs}ms`,
+  "--training-volume-scan-duration": `${TRAINING_VOLUME_SCAN_TIMING.activeDurationMs}ms`,
+} as CSSProperties;
+
 export function TrainingScene({ active, launching }: TrainingSceneProps) {
   const {
     passDirection,
@@ -49,9 +59,9 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
   } = useTrainingRadarSequence({ active, launching });
   const getTacticalPhase = (targetId: TrainingRadarTargetId) =>
     tacticalPhases[targetId];
-  const getVolumeScanDirection = (targetId: TrainingRadarTargetId) =>
+  const getVolumeScanDirection = (targetId: TrainingVolumeScanTargetId) =>
     volumeScanDirections[targetId];
-  const getVolumeScanPhase = (targetId: TrainingRadarTargetId) =>
+  const getVolumeScanPhase = (targetId: TrainingVolumeScanTargetId) =>
     volumeScanPhases[targetId];
 
   return (
@@ -184,6 +194,25 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       <SceneGroup depth="trainingFennec" layer={16} name="fennec">
         <div aria-hidden="true" className="training-fennec-contact-shadow" />
         <SceneLayer asset={assets.fennecBase} />
+        <div
+          className="training-radar-fennec-target"
+          data-radar-direction={getVolumeScanDirection(trainingFennecVolumeScanTarget.id)}
+          data-volume-scan-phase={getVolumeScanPhase(trainingFennecVolumeScanTarget.id)}
+          style={trainingFennecScanStyle}
+        >
+          <SceneLayer
+            asset={trainingFennecVolumeScanTarget.surfaceAsset}
+            className="training-radar-fennec-surface"
+          />
+          <SceneLayer
+            asset={trainingFennecVolumeScanTarget.contourAsset}
+            className="training-radar-fennec-contour"
+          />
+          <SceneLayer
+            asset={trainingFennecVolumeScanTarget.impactAsset}
+            className="training-radar-fennec-impact"
+          />
+        </div>
         <SceneLayer asset={assets.fennecHeadlightGlow} className="training-fennec-headlight-glow" />
         <SceneLayer asset={assets.fennecRearAccent} className="training-fennec-rear-accent" />
       </SceneGroup>

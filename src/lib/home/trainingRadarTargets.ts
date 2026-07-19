@@ -89,7 +89,20 @@ export type TrainingBallRadarTarget = {
   type: "ball";
 };
 
+export type TrainingFennecVolumeScanTarget = {
+  contourAsset: HomeIllustrationAsset;
+  depth: "trainingFennec";
+  id: "fennec";
+  impactAsset: HomeIllustrationAsset;
+  scanHitProgress: number;
+  surfaceAsset: HomeIllustrationAsset;
+  type: "fennec";
+};
+
 export type TrainingRadarTarget = TrainingCarRadarTarget | TrainingBallRadarTarget;
+export type TrainingVolumeScanTarget =
+  | TrainingRadarTarget
+  | TrainingFennecVolumeScanTarget;
 
 const assets = homeIllustrationAssets.training;
 
@@ -201,10 +214,27 @@ export const trainingRadarTargets = [
   trainingBallRadarTarget,
 ] as const satisfies readonly TrainingRadarTarget[];
 
+export const trainingFennecVolumeScanTarget = {
+  id: "fennec",
+  type: "fennec",
+  surfaceAsset: assets.fennecSurfaceScan,
+  contourAsset: assets.fennecContourScan,
+  impactAsset: assets.fennecRimLight,
+  depth: "trainingFennec",
+  scanHitProgress: 0.79,
+} as const satisfies TrainingFennecVolumeScanTarget;
+
+export const trainingVolumeScanTargets = [
+  ...trainingRadarTargets,
+  trainingFennecVolumeScanTarget,
+] as const satisfies readonly TrainingVolumeScanTarget[];
+
 export type TrainingRadarTargetId = (typeof trainingRadarTargets)[number]["id"];
+export type TrainingVolumeScanTargetId =
+  (typeof trainingVolumeScanTargets)[number]["id"];
 
 export function getTrainingRadarHitDelayMs(
-  target: TrainingRadarTarget,
+  target: TrainingVolumeScanTarget,
   direction: TrainingRadarDirection,
 ) {
   const hitProgress =

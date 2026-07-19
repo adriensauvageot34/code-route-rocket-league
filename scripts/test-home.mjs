@@ -188,7 +188,10 @@ for (const premiumFennecLayer of ["fennecHeadlightGlow", "fennecRearAccent"]) {
 }
 assert(!homeIllustrationAssets.includes("fennec-base reflection overlay.png") && !trainingScene.includes("assets.fennecReflection"), "The parasitic Fennec reflection overlay must never be registered or rendered.");
 assert(trainingScene.includes("assets.lightsVioletGlow") && trainingScene.indexOf('name="fennec"') < trainingScene.indexOf('name="fennec-lights-glow"'), "The violet screen asset must render in a separate group above the Fennec.");
-assert(!trainingScene.includes("assets.fennecRimLight") && !trainingScene.includes("fennecSurfaceScan") && !trainingScene.includes("fennecContourScan"), "Unsafe Fennec scan and rim overlays must stay disabled in the scene.");
+for (const fennecVolumeAsset of ["fennecSurfaceScan", "fennecContourScan", "fennecRimLight"]) {
+  assert(trainingRadarTargets.includes(fennecVolumeAsset), `Missing Fennec systematic volume asset: ${fennecVolumeAsset}.`);
+}
+assert(trainingScene.includes("training-radar-fennec-target") && trainingScene.includes("trainingFennecVolumeScanTarget.surfaceAsset") && trainingScene.includes("trainingFennecVolumeScanTarget.contourAsset") && trainingScene.includes("trainingFennecVolumeScanTarget.impactAsset") && trainingScene.includes("data-volume-scan-phase") && trainingScene.includes("data-radar-direction"), "The Fennec scan overlays must share the live systematic volume state.");
 assert(trainingScene.includes('className="training-transition-wave-local"'), "Prepared Training transition layer must remain.");
 
 for (const [preset, expectedCount] of Object.entries({ far: 6, mid: 5, near: 3 })) {
@@ -301,11 +304,13 @@ assert(trainingRadarOverlay.includes('mix-blend-mode') === false && css.includes
 assert(trainingRadarSequence.includes("document.visibilityState") && trainingRadarSequence.includes("IntersectionObserver") && trainingRadarSequence.includes("prefers-reduced-motion"), "Radar lifecycle must follow page, illustration, and motion visibility.");
 assert(!trainingRadarSequence.includes("requestAnimationFrame"), "Radar must not create a per-frame React loop.");
 assert(trainingRadarSequence.includes('targetIndex % 2 === 0 ? "ltr" : "rtl"') && trainingRadarSequence.includes("getTrainingRadarHitDelayMs(target, passDirection)"), "Radar passes must alternate direction and keep target hits synchronized.");
+assert(trainingRadarSequence.includes("for (const volumeTarget of trainingVolumeScanTargets)") && trainingRadarSequence.includes("for (const volumeTarget of trainingRadarTargets)") === false, "Systematic volume scans must include the volume-only Fennec target.");
 assert(trainingRadarSequence.includes("volumeHitDelayMs - TRAINING_VOLUME_SCAN_TIMING.leadMs") && trainingRadarSequence.includes("Math.max(") && trainingRadarSequence.includes("volumeStartDelayMs + TRAINING_VOLUME_SCAN_TIMING.activeDurationMs"), "Systematic volume scans must lead the theoretical hit while keeping their lifecycle synchronized.");
 assert(trainingRadarSequence.includes("activateTacticalTarget(target.id)") && trainingRadarSequence.includes("}, tacticalHitDelayMs);"), "Selective tactical activation must keep its original theoretical hit delay.");
-for (const target of ["left-car", "back-right-car", "front-right-car", "ball"]) {
+for (const target of ["left-car", "back-right-car", "front-right-car", "ball", "fennec"]) {
   assert(trainingRadarTargets.includes(`id: "${target}"`), `Missing training radar target: ${target}`);
 }
+assert(trainingRadarTargets.includes("trainingVolumeScanTargets") && trainingRadarTargets.includes("trainingFennecVolumeScanTarget") && trainingRadarTargets.includes("scanHitProgress: 0.79"), "The Fennec must join only the systematic volume target collection at its calibrated radar hit.");
 for (const timing of ["passDurationMs: 2900", "travelDurationMs: 2500", "contactDurationMs: 180", "wireframeDelayMs: 820", "fadeDelayMs: 1500", "targetLifetimeMs: 2300", "fadeDurationMs: 800", "activeDurationMs: 380", "contourDelayMs: 60", "fadeDurationMs: 210", "leadMs: 120", "totalDurationMs: 610"]) {
   assert(trainingRadarTargets.includes(timing), `Missing centralized radar timing: ${timing}`);
 }
@@ -404,7 +409,7 @@ assert(
   "Small screens must reduce horizontal travel instead of increasing zoom past the cap."
 );
 assert(trainingRadarSequence.includes("tacticalPhases") && trainingRadarSequence.includes("activeTacticalTargetId") && trainingRadarSequence.includes("...HIDDEN_TACTICAL_PHASES"), "Radar must clear the previous tactical object before activating exactly one deep-analysis target.");
-assert(trainingRadarSequence.includes("volumeScanPhases") && trainingRadarSequence.includes("for (const volumeTarget of trainingRadarTargets)") && trainingRadarSequence.includes("getTrainingRadarHitDelayMs(\n          volumeTarget"), "Every pass must independently schedule a hit-synchronous volume scan for all four 3D objects.");
+assert(trainingRadarSequence.includes("volumeScanPhases") && trainingRadarSequence.includes("for (const volumeTarget of trainingVolumeScanTargets)") && trainingRadarSequence.includes("getTrainingRadarHitDelayMs(\n          volumeTarget"), "Every pass must independently schedule a hit-synchronous volume scan for all five 3D objects.");
 assert(trainingRadarSequence.includes('setVolumeScan(volumeTarget.id, "active", passDirection)') && trainingRadarSequence.includes('setVolumeScan(volumeTarget.id, "fade")') && trainingRadarSequence.includes('setVolumeScan(volumeTarget.id, "hidden")'), "Volume scan delay must apply to disappearance, not initial reveal.");
 assert(trainingRadarSequence.includes("schedule(beginPass, TRAINING_RADAR_TIMING.passDurationMs)"), "Radar must reverse immediately when each traverse ends.");
 for (const phase of ['"contact"', '"wireframe"', '"fade"', '"active"']) {
@@ -467,7 +472,7 @@ for (const removedWormMarker of ["training-metal-shard-jitter", "training-neon-s
 }
 assert(css.includes("clip-path: polygon(0 42%, 67% 0") && css.includes('data-particle-kind="tactical-spark"'), "Radar particles must use compact tactical fragments instead of large soft circles.");
 assert(css.includes(".training-radar-core-line") && css.includes("stroke-width: 2.5px") && css.includes(".training-tactical-terrain-core"), "The radar core must stay thin, sharp and visibly linked to the saturated tactical mesh.");
-for (const layeredScanMarker of ["training-object-contact", "training-object-surface-scan-ltr", "training-object-surface-scan-rtl", "training-object-contour-scan-ltr", "training-object-contour-scan-rtl", "training-ball-volume-surface", "training-ball-volume-contour", "training-object-tactical-wireframe", "training-object-tactical-glow"]) {
+for (const layeredScanMarker of ["training-object-contact", "training-object-surface-scan-ltr", "training-object-surface-scan-rtl", "training-object-contour-scan-ltr", "training-object-contour-scan-rtl", "training-ball-volume-surface", "training-ball-volume-contour", "training-fennec-volume-surface-ltr", "training-fennec-volume-surface-rtl", "training-fennec-volume-detail-ltr", "training-fennec-volume-detail-rtl", "training-object-tactical-wireframe", "training-object-tactical-glow"]) {
   assert(css.includes(layeredScanMarker), `Layered Training object scan CSS missing: ${layeredScanMarker}.`);
 }
 assert(css.includes("opacity: 0.34") && css.includes("opacity: 0.3") && css.includes("mask-position: 130% 50%") && css.includes("mask-position: -30% 50%"), "Surface and contour scans must reveal progressively behind the aligned local line at restrained opacity.");
@@ -499,7 +504,11 @@ assert(css.includes("--training-ball-volume-translate-x: 0.48%") && css.includes
 assert(!css.includes("width: 8.6%") && !css.includes("translate(-50%, -88%)"), "The obsolete undersized and offset ball fallback must stay removed.");
 const ballVolumeKeyframes = css.slice(css.indexOf("@keyframes training-ball-volume-surface-ltr"), css.indexOf("@keyframes training-object-tactical-wireframe"));
 assert(!ballVolumeKeyframes.includes("scale(") && !ballVolumeKeyframes.includes("width:"), "The systematic ball volume scan must not resize or displace the ball.");
-assert(!trainingRadarTargets.includes('id: "fennec"'), "The Fennec must remain outside every radar target list.");
+const tacticalTargetCollection = trainingRadarTargets.slice(trainingRadarTargets.indexOf("export const trainingRadarTargets"), trainingRadarTargets.indexOf("export const trainingFennecVolumeScanTarget"));
+assert(!tacticalTargetCollection.includes('id: "fennec"') && trainingRadarTargets.includes('id: "fennec"'), "The Fennec must receive systematic volume scans without joining tactical target selection.");
+assert(/\.training-radar-fennec-surface\s*\{[\s\S]*?transparent 46\.5%,[\s\S]*?black 49\.2% 50\.8%,[\s\S]*?transparent 53\.5%/s.test(css), "The Fennec surface overlay must stay inside a local moving mask.");
+assert(/\.training-radar-fennec-contour\s*\{[\s\S]*?--training-fennec-detail-peak:\s*0\.28;[\s\S]*?black 49\.5% 50\.5%/s.test(css) && /\.training-radar-fennec-impact\s*\{[\s\S]*?--training-fennec-detail-peak:\s*0\.16;/s.test(css), "Fennec contour and im-light overlays must remain secondary and locally masked.");
+assert(!trainingScene.includes("fennecReflection") && !trainingRadarTargets.includes("wireframeAsset: assets.fennec") && !trainingRadarTargets.includes("glowAsset: assets.fennec"), "The Fennec volume scan must not restore reflection or tactical target overlays.");
 assert(/\.training-fennec-rear-accent\s*\{[\s\S]*?opacity:\s*0\.08;/s.test(css), "Fennec rear accent must remain very subtle.");
 assert(css.includes(".training-radar-ball-target::before") && css.includes("display: none"), "The ball must not render the full-canvas contact ring.");
 assert(css.includes('.mode-illustration[data-active="false"] .training-particle-core') && css.includes('.mode-illustration[data-motion-active="false"] .training-particle-core::after'), "Inactive and offscreen particle and fragment animations must pause.");
