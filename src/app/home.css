@@ -1068,15 +1068,21 @@
   filter: brightness(1.18) saturate(1.24);
   -webkit-mask-image: linear-gradient(
     var(--training-ball-volume-mask-angle),
-    black 0 46%,
-    rgb(0 0 0 / 0.82) 58%,
-    transparent 72%
+    transparent 44%,
+    rgb(0 0 0 / 0.12) 46%,
+    rgb(0 0 0 / 0.5) 48%,
+    black 49.5% 50.5%,
+    rgb(0 0 0 / 0.55) 51.5%,
+    transparent 53%
   );
   mask-image: linear-gradient(
     var(--training-ball-volume-mask-angle),
-    black 0 46%,
-    rgb(0 0 0 / 0.82) 58%,
-    transparent 72%
+    transparent 44%,
+    rgb(0 0 0 / 0.12) 46%,
+    rgb(0 0 0 / 0.5) 48%,
+    black 49.5% 50.5%,
+    rgb(0 0 0 / 0.55) 51.5%,
+    transparent 53%
   );
 }
 
@@ -1092,15 +1098,19 @@
     drop-shadow(0 0 3px rgb(244 188 78 / 0.34));
   -webkit-mask-image: linear-gradient(
     var(--training-ball-volume-mask-angle),
-    transparent 28%,
-    black 42% 66%,
-    transparent 82%
+    transparent 46%,
+    rgb(0 0 0 / 0.25) 48%,
+    black 49.6% 50.4%,
+    rgb(0 0 0 / 0.45) 51.2%,
+    transparent 52.5%
   );
   mask-image: linear-gradient(
     var(--training-ball-volume-mask-angle),
-    transparent 28%,
-    black 42% 66%,
-    transparent 82%
+    transparent 46%,
+    rgb(0 0 0 / 0.25) 48%,
+    black 49.6% 50.4%,
+    rgb(0 0 0 / 0.45) 51.2%,
+    transparent 52.5%
   );
 }
 
