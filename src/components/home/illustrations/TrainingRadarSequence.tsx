@@ -207,18 +207,22 @@ export function useTrainingRadarSequence({
           volumeTarget,
           passDirection,
         );
+        const volumeStartDelayMs = Math.max(
+          0,
+          volumeHitDelayMs - TRAINING_VOLUME_SCAN_TIMING.leadMs,
+        );
 
         schedule(() => {
           setVolumeScan(volumeTarget.id, "active", passDirection);
-        }, volumeHitDelayMs);
+        }, volumeStartDelayMs);
 
         schedule(() => {
           setVolumeScan(volumeTarget.id, "fade");
-        }, volumeHitDelayMs + TRAINING_VOLUME_SCAN_TIMING.activeDurationMs);
+        }, volumeStartDelayMs + TRAINING_VOLUME_SCAN_TIMING.activeDurationMs);
 
         schedule(() => {
           setVolumeScan(volumeTarget.id, "hidden");
-        }, volumeHitDelayMs + TRAINING_VOLUME_SCAN_TIMING.totalDurationMs);
+        }, volumeStartDelayMs + TRAINING_VOLUME_SCAN_TIMING.totalDurationMs);
       }
 
       const tacticalHitDelayMs = getTrainingRadarHitDelayMs(target, passDirection);
