@@ -899,15 +899,29 @@
 }
 
 .training-radar-fennec-surface,
-.training-radar-fennec-contour {
+.training-radar-fennec-contour,
+.training-radar-fennec-impact {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  object-position: center;
   opacity: 0;
   mix-blend-mode: screen;
   pointer-events: none;
+  transform-origin: 76.82% 64.61%;
+  user-select: none;
   transition: opacity var(--training-volume-fade-duration) ease-out;
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
   -webkit-mask-size: 220% 100%;
   mask-size: 220% 100%;
+}
+
+.training-radar-fennec-surface,
+.training-radar-fennec-contour {
+  transform: translate(0.69%, -1.54%) scale(0.807);
 }
 
 .training-radar-fennec-surface {
@@ -956,16 +970,42 @@
   );
 }
 
+.training-radar-fennec-impact {
+  --training-fennec-detail-start: 0;
+  --training-fennec-detail-peak: 0.14;
+  --training-fennec-detail-tail: 0.04;
+
+  z-index: 4;
+  filter: brightness(1.02) saturate(1.06);
+  transform: translate(6.56%, 7.55%) scale(0.57);
+  -webkit-mask-image: linear-gradient(
+    var(--training-fennec-volume-mask-angle),
+    transparent 40%,
+    rgb(0 0 0 / 0.12) 44%,
+    black 48% 54%,
+    rgb(0 0 0 / 0.18) 58%,
+    transparent 62%
+  );
+  mask-image: linear-gradient(
+    var(--training-fennec-volume-mask-angle),
+    transparent 40%,
+    rgb(0 0 0 / 0.12) 44%,
+    black 48% 54%,
+    rgb(0 0 0 / 0.18) 58%,
+    transparent 62%
+  );
+}
+
 .training-radar-fennec-target[data-radar-direction="ltr"]
-  :is(.training-radar-fennec-surface, .training-radar-fennec-contour) {
-  -webkit-mask-position: 17% 50%;
-  mask-position: 17% 50%;
+  :is(.training-radar-fennec-surface, .training-radar-fennec-contour, .training-radar-fennec-impact) {
+  -webkit-mask-position: 9% 50%;
+  mask-position: 9% 50%;
 }
 
 .training-radar-fennec-target[data-radar-direction="rtl"]
-  :is(.training-radar-fennec-surface, .training-radar-fennec-contour) {
-  -webkit-mask-position: 38% 50%;
-  mask-position: 38% 50%;
+  :is(.training-radar-fennec-surface, .training-radar-fennec-contour, .training-radar-fennec-impact) {
+  -webkit-mask-position: 43% 50%;
+  mask-position: 43% 50%;
 }
 
 .training-radar-fennec-target[data-volume-scan-phase="active"][data-radar-direction="ltr"]
@@ -992,8 +1032,22 @@
     linear var(--training-volume-contour-delay) both;
 }
 
+.training-radar-fennec-target[data-volume-scan-phase="active"][data-radar-direction="ltr"]
+  .training-radar-fennec-impact {
+  animation: training-fennec-volume-detail-ltr
+    calc(var(--training-volume-scan-duration) - var(--training-volume-contour-delay) - 90ms)
+    linear calc(var(--training-volume-contour-delay) + 90ms) both;
+}
+
+.training-radar-fennec-target[data-volume-scan-phase="active"][data-radar-direction="rtl"]
+  .training-radar-fennec-impact {
+  animation: training-fennec-volume-detail-rtl
+    calc(var(--training-volume-scan-duration) - var(--training-volume-contour-delay) - 90ms)
+    linear calc(var(--training-volume-contour-delay) + 90ms) both;
+}
+
 .training-radar-fennec-target[data-volume-scan-phase="fade"]
-  :is(.training-radar-fennec-surface, .training-radar-fennec-contour) {
+  :is(.training-radar-fennec-surface, .training-radar-fennec-contour, .training-radar-fennec-impact) {
   opacity: 0;
 }
 
@@ -1638,6 +1692,7 @@
 .mode-illustration[data-motion-active="false"] .training-radar-ball-volume-contour,
 .mode-illustration[data-motion-active="false"] .training-radar-fennec-surface,
 .mode-illustration[data-motion-active="false"] .training-radar-fennec-contour,
+.mode-illustration[data-motion-active="false"] .training-radar-fennec-impact,
 .mode-illustration[data-motion-active="false"] .training-radar-car-wireframe,
 .mode-illustration[data-motion-active="false"] .training-radar-car-glow,
 .mode-illustration[data-motion-active="false"] .training-radar-ball-energy {
@@ -2711,8 +2766,8 @@
 @keyframes training-fennec-volume-surface-ltr {
   0% {
     opacity: 0.24;
-    -webkit-mask-position: 34% 50%;
-    mask-position: 34% 50%;
+    -webkit-mask-position: 43% 50%;
+    mask-position: 43% 50%;
   }
 
   24% {
@@ -2725,16 +2780,16 @@
 
   100% {
     opacity: 0.14;
-    -webkit-mask-position: 17% 50%;
-    mask-position: 17% 50%;
+    -webkit-mask-position: 9% 50%;
+    mask-position: 9% 50%;
   }
 }
 
 @keyframes training-fennec-volume-surface-rtl {
   0% {
     opacity: 0.24;
-    -webkit-mask-position: 21% 50%;
-    mask-position: 21% 50%;
+    -webkit-mask-position: 9% 50%;
+    mask-position: 9% 50%;
   }
 
   24% {
@@ -2747,16 +2802,16 @@
 
   100% {
     opacity: 0.14;
-    -webkit-mask-position: 38% 50%;
-    mask-position: 38% 50%;
+    -webkit-mask-position: 43% 50%;
+    mask-position: 43% 50%;
   }
 }
 
 @keyframes training-fennec-volume-detail-ltr {
   0% {
     opacity: var(--training-fennec-detail-start);
-    -webkit-mask-position: 34% 50%;
-    mask-position: 34% 50%;
+    -webkit-mask-position: 43% 50%;
+    mask-position: 43% 50%;
   }
 
   28% {
@@ -2765,16 +2820,16 @@
 
   100% {
     opacity: var(--training-fennec-detail-tail);
-    -webkit-mask-position: 17% 50%;
-    mask-position: 17% 50%;
+    -webkit-mask-position: 9% 50%;
+    mask-position: 9% 50%;
   }
 }
 
 @keyframes training-fennec-volume-detail-rtl {
   0% {
     opacity: var(--training-fennec-detail-start);
-    -webkit-mask-position: 21% 50%;
-    mask-position: 21% 50%;
+    -webkit-mask-position: 9% 50%;
+    mask-position: 9% 50%;
   }
 
   28% {
@@ -2783,8 +2838,8 @@
 
   100% {
     opacity: var(--training-fennec-detail-tail);
-    -webkit-mask-position: 38% 50%;
-    mask-position: 38% 50%;
+    -webkit-mask-position: 43% 50%;
+    mask-position: 43% 50%;
   }
 }
 
@@ -3091,6 +3146,7 @@
   .training-radar-ball-volume-contour,
   .training-radar-fennec-surface,
   .training-radar-fennec-contour,
+  .training-radar-fennec-impact,
   .training-radar-car-wireframe,
   .training-radar-car-glow,
   .training-radar-ball-energy,
@@ -3138,6 +3194,7 @@
   .training-radar-ball-volume-contour,
   .training-radar-fennec-surface,
   .training-radar-fennec-contour,
+  .training-radar-fennec-impact,
   .training-radar-car-wireframe,
   .training-radar-car-glow,
   .training-radar-ball-energy {

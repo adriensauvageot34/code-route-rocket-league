@@ -188,10 +188,13 @@ for (const premiumFennecLayer of ["fennecHeadlightGlow", "fennecRearAccent"]) {
 }
 assert(!homeIllustrationAssets.includes("fennec-base reflection overlay.png") && !trainingScene.includes("assets.fennecReflection"), "The parasitic Fennec reflection overlay must never be registered or rendered.");
 assert(trainingScene.includes("assets.lightsVioletGlow") && trainingScene.indexOf('name="fennec"') < trainingScene.indexOf('name="fennec-lights-glow"'), "The violet screen asset must render in a separate group above the Fennec.");
-for (const fennecVolumeAsset of ["fennecSurfaceScan", "fennecContourScan"]) {
+for (const fennecVolumeAsset of ["fennecSurfaceScan", "fennecContourScan", "fennecRimLight"]) {
   assert(trainingRadarTargets.includes(fennecVolumeAsset), `Missing Fennec systematic volume asset: ${fennecVolumeAsset}.`);
 }
-assert(trainingScene.includes("training-radar-fennec-target") && trainingScene.includes("trainingFennecVolumeScanTarget.surfaceAsset") && trainingScene.includes("trainingFennecVolumeScanTarget.contourAsset") && trainingScene.includes("data-volume-scan-phase") && trainingScene.includes("data-radar-direction"), "The Fennec surface and contour overlays must share the live systematic volume state.");
+for (const fennecAssetPath of ["/ui/training-fennec-base.png", "/ui/fennec-base surface-scan overlay.png", "/ui/fennec-base contour-scan overlay.png", "/ui/fennec-base im light overlay.png"]) {
+  assert(homeIllustrationAssets.includes(fennecAssetPath), `Missing calibrated Fennec asset: ${fennecAssetPath}.`);
+}
+assert(trainingScene.includes("training-radar-fennec-target") && trainingScene.includes("trainingFennecVolumeScanTarget.surfaceAsset") && trainingScene.includes("trainingFennecVolumeScanTarget.contourAsset") && trainingScene.includes("trainingFennecVolumeScanTarget.impactAsset") && trainingScene.includes("data-volume-scan-phase") && trainingScene.includes("data-radar-direction"), "All three Fennec scan overlays must share the live systematic volume state.");
 assert(trainingScene.includes('className="training-transition-wave-local"'), "Prepared Training transition layer must remain.");
 
 for (const [preset, expectedCount] of Object.entries({ far: 6, mid: 5, near: 3 })) {
@@ -511,7 +514,10 @@ const fennecScanCss = css.slice(css.indexOf(".training-radar-fennec-target"), cs
 assert(!fennecScene.includes("training-object-local-scan-line") && !fennecScanCss.includes("::before") && !fennecScanCss.includes("::after"), "The Fennec volume scan must never render a local line or pseudo-line.");
 assert(/\.training-radar-fennec-surface\s*\{[\s\S]*?transparent 43%,[\s\S]*?black 48% 53%,[\s\S]*?transparent 57%/s.test(css), "The Fennec surface overlay must use a broad soft material reveal instead of a thin line.");
 assert(/\.training-radar-fennec-contour\s*\{[\s\S]*?--training-fennec-detail-peak:\s*0\.28;[\s\S]*?transparent 44%,[\s\S]*?black 49% 52%,[\s\S]*?transparent 56%/s.test(css), "The Fennec contour must accompany the broad surface reveal with a short delayed mask.");
-assert(!trainingScene.includes("training-radar-fennec-impact") && !trainingRadarTargets.includes("impactAsset") && !fennecScanCss.includes("training-radar-fennec-impact"), "The Fennec im-light laser-like layer must stay disabled.");
+assert(/\.training-radar-fennec-surface,[\s\S]*?\.training-radar-fennec-impact\s*\{[\s\S]*?position:\s*absolute;[\s\S]*?inset:\s*0;[\s\S]*?width:\s*100% !important;[\s\S]*?height:\s*100% !important;[\s\S]*?object-fit:\s*cover;[\s\S]*?object-position:\s*center;[\s\S]*?transform-origin:\s*76\.82% 64\.61%;/s.test(css), "Fennec scan overlays must share the base full-canvas rendering frame.");
+assert(fennecScanCss.includes("translate(0.69%, -1.54%) scale(0.807)") && fennecScanCss.includes("translate(6.56%, 7.55%) scale(0.57)"), "Surface, contour and im-light overlays must retain their measured calibration against the base Fennec.");
+assert(/@keyframes training-fennec-volume-surface-ltr\s*\{[\s\S]*?mask-position:\s*43% 50%;[\s\S]*?mask-position:\s*9% 50%;/s.test(css) && /@keyframes training-fennec-volume-surface-rtl\s*\{[\s\S]*?mask-position:\s*9% 50%;[\s\S]*?mask-position:\s*43% 50%;/s.test(css), "The Fennec material reveal must traverse the entire car in both directions.");
+assert(/\.training-radar-fennec-impact\s*\{[\s\S]*?--training-fennec-detail-peak:\s*0\.14;[\s\S]*?--training-fennec-detail-tail:\s*0\.04;[\s\S]*?transparent 40%,[\s\S]*?black 48% 54%,[\s\S]*?transparent 62%/s.test(css) && fennecScanCss.includes("var(--training-volume-contour-delay) + 90ms"), "The calibrated im-light must remain a delayed, broad and fading post-effect.");
 assert(!fennecScanCss.includes("49.2% 50.8%") && !fennecScanCss.includes("49.5% 50.5%") && !fennecScanCss.includes("49.7% 50.3%"), "Fennec masks must not regress to ultra-thin line cores.");
 assert(!trainingScene.includes("fennecReflection") && !trainingRadarTargets.includes("wireframeAsset: assets.fennec") && !trainingRadarTargets.includes("glowAsset: assets.fennec"), "The Fennec volume scan must not restore reflection or tactical target overlays.");
 assert(/\.training-fennec-rear-accent\s*\{[\s\S]*?opacity:\s*0\.08;/s.test(css), "Fennec rear accent must remain very subtle.");

@@ -208,6 +208,10 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
             asset={trainingFennecVolumeScanTarget.contourAsset}
             className="training-radar-fennec-contour"
           />
+          <SceneLayer
+            asset={trainingFennecVolumeScanTarget.impactAsset}
+            className="training-radar-fennec-impact"
+          />
         </div>
         <SceneLayer asset={assets.fennecHeadlightGlow} className="training-fennec-headlight-glow" />
         <SceneLayer asset={assets.fennecRearAccent} className="training-fennec-rear-accent" />
