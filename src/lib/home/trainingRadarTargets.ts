@@ -29,10 +29,11 @@ export type TrainingRadarDirection = "ltr" | "rtl";
 export const TRAINING_OBJECT_SCAN_TARGET_ID = "front-right-car" as const;
 
 export const TRAINING_OBJECT_SCAN_OCCLUSION = {
-  cx: 1338,
-  cy: 434,
-  rx: 82,
-  ry: 54,
+  x: 1188,
+  y: 350,
+  width: 300,
+  height: 170,
+  radius: 28,
 } as const;
 
 type TrainingTargetPlacement = {

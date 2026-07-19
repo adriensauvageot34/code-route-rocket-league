@@ -49,8 +49,13 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
   } = useTrainingRadarSequence({ active, launching });
   const getTargetPhase = (targetId: TrainingRadarTargetId) =>
     targetPhases[targetId];
+  const objectTransferPhase = getTargetPhase(TRAINING_OBJECT_SCAN_TARGET_ID);
   const objectTransferActive =
-    running && passTargetId === TRAINING_OBJECT_SCAN_TARGET_ID;
+    running &&
+    passTargetId === TRAINING_OBJECT_SCAN_TARGET_ID &&
+    (objectTransferPhase === "contact" ||
+      objectTransferPhase === "surface" ||
+      objectTransferPhase === "contour");
 
   return (
     <div

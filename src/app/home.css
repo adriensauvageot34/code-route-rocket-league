@@ -730,7 +730,7 @@
 
 .training-radar-object-notch {
   opacity: 0;
-  transition: opacity 70ms ease-out;
+  transition: opacity 24ms linear;
 }
 
 .training-radar-overlay.is-object-transfer-active
@@ -2372,117 +2372,117 @@
 
 @keyframes training-object-surface-scan-ltr {
   0% {
-    opacity: 0.22;
-    clip-path: inset(0 96% 0 0);
-    filter: brightness(1.5) saturate(1.48);
+    opacity: 0.38;
+    clip-path: inset(0 92% 0 0);
+    filter: brightness(1.7) saturate(1.58);
   }
 
   4% {
-    opacity: 0.32;
-    clip-path: inset(0 76% 0 20%);
+    opacity: 0.52;
+    clip-path: inset(0 70% 0 20%);
   }
 
   17% {
-    opacity: 0.32;
-    clip-path: inset(0 48% 0 48%);
+    opacity: 0.52;
+    clip-path: inset(0 45% 0 45%);
   }
 
   28% {
-    opacity: 0.16;
-    clip-path: inset(0 0 0 96%);
+    opacity: 0.28;
+    clip-path: inset(0 0 0 92%);
   }
 
   30%,
   100% {
     opacity: 0;
-    clip-path: inset(0 0 0 96%);
+    clip-path: inset(0 0 0 92%);
   }
 }
 
 @keyframes training-object-surface-scan-rtl {
   0% {
-    opacity: 0.22;
-    clip-path: inset(0 0 0 96%);
-    filter: brightness(1.5) saturate(1.48);
+    opacity: 0.38;
+    clip-path: inset(0 0 0 92%);
+    filter: brightness(1.7) saturate(1.58);
   }
 
   4% {
-    opacity: 0.32;
-    clip-path: inset(0 20% 0 76%);
+    opacity: 0.52;
+    clip-path: inset(0 20% 0 70%);
   }
 
   17% {
-    opacity: 0.32;
-    clip-path: inset(0 48% 0 48%);
+    opacity: 0.52;
+    clip-path: inset(0 45% 0 45%);
   }
 
   28% {
-    opacity: 0.16;
-    clip-path: inset(0 96% 0 0);
+    opacity: 0.28;
+    clip-path: inset(0 92% 0 0);
   }
 
   30%,
   100% {
     opacity: 0;
-    clip-path: inset(0 96% 0 0);
+    clip-path: inset(0 92% 0 0);
   }
 }
 
 @keyframes training-object-contour-scan-ltr {
   0%,
-  19% {
+  15% {
     opacity: 0;
-    clip-path: inset(0 96% 0 0);
+    clip-path: inset(0 92% 0 0);
   }
 
-  21% {
-    opacity: 0.12;
-    clip-path: inset(0 96% 0 0);
-  }
-
-  30% {
+  17% {
     opacity: 0.24;
-    clip-path: inset(0 48% 0 48%);
+    clip-path: inset(0 92% 0 0);
   }
 
-  40% {
-    opacity: 0.12;
-    clip-path: inset(0 0 0 96%);
+  24% {
+    opacity: 0.38;
+    clip-path: inset(0 45% 0 45%);
   }
 
-  42%,
+  34% {
+    opacity: 0.18;
+    clip-path: inset(0 0 0 92%);
+  }
+
+  38%,
   100% {
     opacity: 0;
-    clip-path: inset(0 0 0 96%);
+    clip-path: inset(0 0 0 92%);
   }
 }
 
 @keyframes training-object-contour-scan-rtl {
   0%,
-  19% {
+  15% {
     opacity: 0;
-    clip-path: inset(0 0 0 96%);
+    clip-path: inset(0 0 0 92%);
   }
 
-  21% {
-    opacity: 0.12;
-    clip-path: inset(0 0 0 96%);
-  }
-
-  30% {
+  17% {
     opacity: 0.24;
-    clip-path: inset(0 48% 0 48%);
+    clip-path: inset(0 0 0 92%);
   }
 
-  40% {
-    opacity: 0.12;
-    clip-path: inset(0 96% 0 0);
+  24% {
+    opacity: 0.38;
+    clip-path: inset(0 45% 0 45%);
   }
 
-  42%,
+  34% {
+    opacity: 0.18;
+    clip-path: inset(0 92% 0 0);
+  }
+
+  38%,
   100% {
     opacity: 0;
-    clip-path: inset(0 96% 0 0);
+    clip-path: inset(0 92% 0 0);
   }
 }
 
