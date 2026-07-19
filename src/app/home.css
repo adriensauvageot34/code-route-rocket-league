@@ -990,43 +990,34 @@
   filter: brightness(1.08) saturate(1.16);
 }
 
-.training-radar-object-target[data-radar-direction="ltr"][data-radar-phase="surface"]
-  .training-radar-object-surface,
-.training-radar-object-target[data-radar-direction="ltr"][data-radar-phase="contour"]
-  .training-radar-object-contour {
-  animation: training-object-reveal-ltr 520ms cubic-bezier(0.18, 0.72, 0.22, 1) both;
-}
-
-.training-radar-object-target[data-radar-direction="rtl"][data-radar-phase="surface"]
-  .training-radar-object-surface,
-.training-radar-object-target[data-radar-direction="rtl"][data-radar-phase="contour"]
-  .training-radar-object-contour {
-  animation: training-object-reveal-rtl 520ms cubic-bezier(0.18, 0.72, 0.22, 1) both;
-}
-
-.training-radar-object-target[data-radar-phase="contour"]
+.training-radar-car-target[data-object-scan-v1="true"][data-radar-active="true"][data-radar-direction="ltr"]
   .training-radar-object-surface {
-  opacity: 0.25;
+  animation: training-object-surface-scan-ltr var(--training-target-lifetime) linear both;
 }
 
-.training-radar-object-target[data-radar-phase="wireframe"]
+.training-radar-car-target[data-object-scan-v1="true"][data-radar-active="true"][data-radar-direction="rtl"]
   .training-radar-object-surface {
-  opacity: 0.1;
+  animation: training-object-surface-scan-rtl var(--training-target-lifetime) linear both;
 }
 
-.training-radar-object-target[data-radar-phase="wireframe"]
+.training-radar-car-target[data-object-scan-v1="true"][data-radar-active="true"][data-radar-direction="ltr"]
   .training-radar-object-contour {
-  opacity: 0.24;
+  animation: training-object-contour-scan-ltr var(--training-target-lifetime) linear both;
 }
 
-.training-radar-car-target[data-radar-phase="wireframe"]
+.training-radar-car-target[data-object-scan-v1="true"][data-radar-active="true"][data-radar-direction="rtl"]
+  .training-radar-object-contour {
+  animation: training-object-contour-scan-rtl var(--training-target-lifetime) linear both;
+}
+
+.training-radar-car-target[data-object-scan-v1="true"][data-radar-active="true"]
   .training-radar-car-wireframe {
-  opacity: 0.34;
+  animation: training-object-tactical-wireframe var(--training-target-lifetime) ease-out both;
 }
 
-.training-radar-car-target[data-radar-phase="wireframe"]
+.training-radar-car-target[data-object-scan-v1="true"][data-radar-active="true"]
   .training-radar-car-glow {
-  opacity: 0.12;
+  animation: training-object-tactical-glow var(--training-target-lifetime) ease-out both;
 }
 
 .training-radar-ball-target[data-radar-phase="contact"]
@@ -2369,37 +2360,167 @@
   }
 }
 
-@keyframes training-object-reveal-ltr {
-  0% {
+@keyframes training-object-surface-scan-ltr {
+  0%,
+  6% {
     opacity: 0;
-    clip-path: inset(0 100% 0 0);
+    clip-path: inset(0 96% 0 0);
     filter: brightness(1.5) saturate(1.48);
   }
 
-  38% {
-    opacity: 0.34;
+  8% {
+    opacity: 0.18;
+    clip-path: inset(0 96% 0 0);
   }
 
+  17% {
+    opacity: 0.32;
+    clip-path: inset(0 48% 0 48%);
+  }
+
+  29% {
+    opacity: 0.16;
+    clip-path: inset(0 0 0 96%);
+  }
+
+  31%,
   100% {
-    opacity: 0.3;
-    clip-path: inset(0);
+    opacity: 0;
+    clip-path: inset(0 0 0 96%);
   }
 }
 
-@keyframes training-object-reveal-rtl {
-  0% {
+@keyframes training-object-surface-scan-rtl {
+  0%,
+  6% {
     opacity: 0;
-    clip-path: inset(0 0 0 100%);
+    clip-path: inset(0 0 0 96%);
     filter: brightness(1.5) saturate(1.48);
   }
 
-  38% {
-    opacity: 0.34;
+  8% {
+    opacity: 0.18;
+    clip-path: inset(0 0 0 96%);
+  }
+
+  17% {
+    opacity: 0.32;
+    clip-path: inset(0 48% 0 48%);
+  }
+
+  29% {
+    opacity: 0.16;
+    clip-path: inset(0 96% 0 0);
+  }
+
+  31%,
+  100% {
+    opacity: 0;
+    clip-path: inset(0 96% 0 0);
+  }
+}
+
+@keyframes training-object-contour-scan-ltr {
+  0%,
+  19% {
+    opacity: 0;
+    clip-path: inset(0 96% 0 0);
+  }
+
+  21% {
+    opacity: 0.12;
+    clip-path: inset(0 96% 0 0);
+  }
+
+  30% {
+    opacity: 0.24;
+    clip-path: inset(0 48% 0 48%);
+  }
+
+  40% {
+    opacity: 0.12;
+    clip-path: inset(0 0 0 96%);
+  }
+
+  42%,
+  100% {
+    opacity: 0;
+    clip-path: inset(0 0 0 96%);
+  }
+}
+
+@keyframes training-object-contour-scan-rtl {
+  0%,
+  19% {
+    opacity: 0;
+    clip-path: inset(0 0 0 96%);
+  }
+
+  21% {
+    opacity: 0.12;
+    clip-path: inset(0 0 0 96%);
+  }
+
+  30% {
+    opacity: 0.24;
+    clip-path: inset(0 48% 0 48%);
+  }
+
+  40% {
+    opacity: 0.12;
+    clip-path: inset(0 96% 0 0);
+  }
+
+  42%,
+  100% {
+    opacity: 0;
+    clip-path: inset(0 96% 0 0);
+  }
+}
+
+@keyframes training-object-tactical-wireframe {
+  0%,
+  30% {
+    opacity: 0;
+  }
+
+  34% {
+    opacity: 0.3;
+  }
+
+  55% {
+    opacity: 0.24;
+  }
+
+  65% {
+    opacity: 0.12;
   }
 
   100% {
-    opacity: 0.3;
-    clip-path: inset(0);
+    opacity: 0;
+  }
+}
+
+@keyframes training-object-tactical-glow {
+  0%,
+  31% {
+    opacity: 0;
+  }
+
+  35% {
+    opacity: 0.09;
+  }
+
+  55% {
+    opacity: 0.07;
+  }
+
+  65% {
+    opacity: 0.03;
+  }
+
+  100% {
+    opacity: 0;
   }
 }
 

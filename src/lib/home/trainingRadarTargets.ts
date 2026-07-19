@@ -26,6 +26,8 @@ export const TRAINING_RADAR_SWEEP = {
 
 export type TrainingRadarDirection = "ltr" | "rtl";
 
+export const TRAINING_OBJECT_SCAN_TARGET_ID = "front-right-car" as const;
+
 type TrainingTargetPlacement = {
   aspectRatio: `${number} / ${number}`;
   left: `${number}%`;

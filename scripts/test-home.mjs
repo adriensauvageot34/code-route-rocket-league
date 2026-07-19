@@ -280,6 +280,8 @@ assert(trainingParticleOrder.every((position, index) => index === 0 || position 
 assert(trainingScene.includes('data-launching={launching ? "true" : "false"}'), "Training particle lifecycle must receive launch state.");
 assert(trainingGroundedActor.includes("training-grounded-actor-base") && trainingGroundedActor.includes("training-contact-shadow"), "Grounded actors must share one transformed base and contact shadow.");
 assert(trainingGroundedActor.includes("training-radar-car-surface") && trainingGroundedActor.includes("training-radar-car-contour") && trainingGroundedActor.includes("training-radar-car-wireframe") && trainingGroundedActor.includes("training-radar-car-glow"), "Cars must layer surface, contour, wireframe and glow inside their grounded container.");
+assert(trainingRadarTargets.includes('TRAINING_OBJECT_SCAN_TARGET_ID = "front-right-car"') && trainingGroundedActor.includes("target.id === TRAINING_OBJECT_SCAN_TARGET_ID"), "Object scan V1 must remain limited to the front-right car-03 target.");
+assert(trainingGroundedActor.includes('data-object-scan-v1="true"') && trainingGroundedActor.includes('data-radar-active={phase === "hidden" ? "false" : "true"}'), "Object scan V1 must expose one uninterrupted local lifecycle from contact through fade.");
 assert(trainingGroundedActor.includes("training-ball-contact-shadow") && trainingGroundedActor.includes("training-radar-ball-energy"), "Ball energy and contact treatment must share the grounded ball container.");
 assert(!trainingGroundedActor.includes("training-radar-ball-surface") && !trainingGroundedActor.includes("training-radar-ball-contour"), "Unaligned ball surface and contour scans must remain disabled.");
 assert(trainingRadarOverlay.includes('viewBox="0 0 1672 941"') && trainingRadarOverlay.includes("TRAINING_RADAR_FIELD_PATH"), "Training radar must share and clip to the logical field canvas.");
@@ -454,13 +456,15 @@ for (const removedWormMarker of ["training-metal-shard-jitter", "training-neon-s
 }
 assert(css.includes("clip-path: polygon(0 42%, 67% 0") && css.includes('data-particle-kind="tactical-spark"'), "Radar particles must use compact tactical fragments instead of large soft circles.");
 assert(css.includes(".training-radar-core-line") && css.includes("stroke-width: 2.5px") && css.includes(".training-tactical-terrain-core"), "The radar core must stay thin, sharp and visibly linked to the saturated tactical mesh.");
-for (const layeredScanMarker of ["training-object-contact", "training-object-reveal-ltr", "training-object-reveal-rtl", 'data-radar-phase="surface"', 'data-radar-phase="contour"', 'data-radar-phase="wireframe"']) {
+for (const layeredScanMarker of ["training-object-contact", "training-object-surface-scan-ltr", "training-object-surface-scan-rtl", "training-object-contour-scan-ltr", "training-object-contour-scan-rtl", "training-object-tactical-wireframe", "training-object-tactical-glow"]) {
   assert(css.includes(layeredScanMarker), `Layered Training object scan CSS missing: ${layeredScanMarker}.`);
 }
+assert(css.includes("clip-path: inset(0 48% 0 48%)") && css.includes("opacity: 0.32") && css.includes("opacity: 0.24"), "Surface and contour scans must remain narrow local bands with restrained opacity.");
+assert(css.includes("opacity: 0.3") && css.includes("opacity: 0.09") && css.includes("--training-target-lifetime"), "Tactical wireframe and glow must activate only after the local surface scan and fade within the target lifetime.");
 for (const premiumClass of ["training-fennec-reflection", "training-fennec-rim-light", "training-fennec-headlight-glow", "training-fennec-rear-accent"]) {
   assert(css.includes(premiumClass), `Premium Fennec treatment missing: ${premiumClass}.`);
 }
-for (const safeOpacity of ["opacity: 0.25", "opacity: 0.34", "opacity: 0.12"]) {
+for (const safeOpacity of ["opacity: 0.32", "opacity: 0.24", "opacity: 0.3", "opacity: 0.09"]) {
   assert(css.includes(safeOpacity), `Safe Training overlay opacity missing: ${safeOpacity}.`);
 }
 assert(/\.training-fennec-reflection\s*\{[\s\S]*?opacity:\s*0\.08;[\s\S]*?ellipse\(15% 8\.5% at 79% 79%\)[\s\S]*?scale\(0\.72\);/s.test(css), "Fennec reflection must stay tightly cropped, compact and discreet under the car.");

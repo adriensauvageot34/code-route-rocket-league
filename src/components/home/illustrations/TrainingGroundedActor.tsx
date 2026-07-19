@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import type { TrainingRadarPhase } from "@/components/home/illustrations/TrainingRadarSequence";
 import {
   TRAINING_RADAR_TIMING,
+  TRAINING_OBJECT_SCAN_TARGET_ID,
   type TrainingBallRadarTarget,
   type TrainingCarRadarTarget,
   type TrainingRadarDirection,
@@ -17,6 +18,7 @@ type GroundedActorStyle = CSSProperties & {
   "--training-contact-shadow-height": string;
   "--training-contact-shadow-width": string;
   "--training-target-fade-duration": string;
+  "--training-target-lifetime": string;
 };
 
 type TrainingGroundedCarProps = {
@@ -45,6 +47,7 @@ function getGroundedActorStyle(
     "--training-contact-shadow-height": `${shadow.height * 100}%`,
     "--training-contact-shadow-width": `${shadow.width * 100}%`,
     "--training-target-fade-duration": `${TRAINING_RADAR_TIMING.fadeDurationMs}ms`,
+    "--training-target-lifetime": `${TRAINING_RADAR_TIMING.targetLifetimeMs}ms`,
   };
 }
 
@@ -53,6 +56,7 @@ export function TrainingGroundedCar({
   phase,
   target,
 }: TrainingGroundedCarProps) {
+  const usesObjectScanV1 = target.id === TRAINING_OBJECT_SCAN_TARGET_ID;
   const placementStyle: CSSProperties = {
     aspectRatio: target.placement.aspectRatio,
     left: target.placement.left,
@@ -79,53 +83,57 @@ export function TrainingGroundedCar({
         src={target.baseAsset.path}
         unoptimized
       />
-      <div
-        className="training-radar-object-target training-radar-car-target"
-        data-radar-direction={direction}
-        data-radar-phase={phase}
-        style={placementStyle}
-      >
-        <Image
-          alt=""
-          aria-hidden="true"
-          className="training-radar-object-surface training-radar-car-surface"
-          draggable={false}
-          fill
-          sizes="12vw"
-          src={target.surfaceAsset.path}
-          unoptimized
-        />
-        <Image
-          alt=""
-          aria-hidden="true"
-          className="training-radar-object-contour training-radar-car-contour"
-          draggable={false}
-          fill
-          sizes="12vw"
-          src={target.contourAsset.path}
-          unoptimized
-        />
-        <Image
-          alt=""
-          aria-hidden="true"
-          className="training-radar-car-wireframe"
-          draggable={false}
-          fill
-          sizes="12vw"
-          src={target.wireframeAsset.path}
-          unoptimized
-        />
-        <Image
-          alt=""
-          aria-hidden="true"
-          className="training-radar-car-glow"
-          draggable={false}
-          fill
-          sizes="12vw"
-          src={target.glowAsset.path}
-          unoptimized
-        />
-      </div>
+      {usesObjectScanV1 ? (
+        <div
+          className="training-radar-object-target training-radar-car-target"
+          data-object-scan-v1="true"
+          data-radar-active={phase === "hidden" ? "false" : "true"}
+          data-radar-direction={direction}
+          data-radar-phase={phase}
+          style={placementStyle}
+        >
+          <Image
+            alt=""
+            aria-hidden="true"
+            className="training-radar-object-surface training-radar-car-surface"
+            draggable={false}
+            fill
+            sizes="12vw"
+            src={target.surfaceAsset.path}
+            unoptimized
+          />
+          <Image
+            alt=""
+            aria-hidden="true"
+            className="training-radar-object-contour training-radar-car-contour"
+            draggable={false}
+            fill
+            sizes="12vw"
+            src={target.contourAsset.path}
+            unoptimized
+          />
+          <Image
+            alt=""
+            aria-hidden="true"
+            className="training-radar-car-wireframe"
+            draggable={false}
+            fill
+            sizes="12vw"
+            src={target.wireframeAsset.path}
+            unoptimized
+          />
+          <Image
+            alt=""
+            aria-hidden="true"
+            className="training-radar-car-glow"
+            draggable={false}
+            fill
+            sizes="12vw"
+            src={target.glowAsset.path}
+            unoptimized
+          />
+        </div>
+      ) : null}
     </div>
   );
 }
