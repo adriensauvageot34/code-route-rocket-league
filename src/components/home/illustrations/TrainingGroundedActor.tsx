@@ -1,8 +1,12 @@
 import Image from "next/image";
 import type { CSSProperties } from "react";
-import type { TrainingRadarPhase } from "@/components/home/illustrations/TrainingRadarSequence";
+import type {
+  TrainingTacticalPhase,
+  TrainingVolumeScanPhase,
+} from "@/components/home/illustrations/TrainingRadarSequence";
 import {
   TRAINING_RADAR_TIMING,
+  TRAINING_VOLUME_SCAN_TIMING,
   type TrainingBallRadarTarget,
   type TrainingCarRadarTarget,
   type TrainingRadarDirection,
@@ -18,29 +22,29 @@ type GroundedActorStyle = CSSProperties & {
   "--training-contact-shadow-width": string;
   "--training-target-fade-duration": string;
   "--training-target-lifetime": string;
+  "--training-volume-contour-delay": string;
+  "--training-volume-fade-duration": string;
+  "--training-volume-scan-duration": string;
 };
 
 type TrainingCarScanStyle = CSSProperties & {
-  "--training-object-contour-delay": string;
   "--training-object-scan-angle": string;
-  "--training-object-scan-duration": string;
-  "--training-object-scan-end-x": string;
-  "--training-object-scan-end-y": string;
-  "--training-object-scan-start-x": string;
-  "--training-object-scan-start-y": string;
-  "--training-object-scan-width": string;
+  "--training-volume-contour-delay": string;
+  "--training-volume-scan-duration": string;
 };
 
 type TrainingGroundedCarProps = {
   direction: TrainingRadarDirection;
-  phase: TrainingRadarPhase;
   target: TrainingCarRadarTarget;
+  tacticalPhase: TrainingTacticalPhase;
+  volumeScanPhase: TrainingVolumeScanPhase;
 };
 
 type TrainingGroundedBallProps = {
   direction: TrainingRadarDirection;
-  phase: TrainingRadarPhase;
   target: TrainingBallRadarTarget;
+  tacticalPhase: TrainingTacticalPhase;
+  volumeScanPhase: TrainingVolumeScanPhase;
 };
 
 function getGroundedActorStyle(
@@ -58,13 +62,17 @@ function getGroundedActorStyle(
     "--training-contact-shadow-width": `${shadow.width * 100}%`,
     "--training-target-fade-duration": `${TRAINING_RADAR_TIMING.fadeDurationMs}ms`,
     "--training-target-lifetime": `${TRAINING_RADAR_TIMING.targetLifetimeMs}ms`,
+    "--training-volume-contour-delay": `${TRAINING_VOLUME_SCAN_TIMING.contourDelayMs}ms`,
+    "--training-volume-fade-duration": `${TRAINING_VOLUME_SCAN_TIMING.fadeDurationMs}ms`,
+    "--training-volume-scan-duration": `${TRAINING_VOLUME_SCAN_TIMING.activeDurationMs}ms`,
   };
 }
 
 export function TrainingGroundedCar({
   direction,
-  phase,
   target,
+  tacticalPhase,
+  volumeScanPhase,
 }: TrainingGroundedCarProps) {
   const scan = target.objectScan;
   const movesLeftToRight = direction === "ltr";
@@ -74,16 +82,11 @@ export function TrainingGroundedCar({
     top: target.placement.top,
     transformOrigin: target.placement.transformOrigin,
     width: target.placement.width,
-    "--training-object-contour-delay": `${scan.contourDelayMs}ms`,
     "--training-object-scan-angle": movesLeftToRight
       ? scan.angle
       : `${Number.parseFloat(scan.angle) * -1}deg`,
-    "--training-object-scan-duration": `${scan.durationMs}ms`,
-    "--training-object-scan-end-x": movesLeftToRight ? scan.endX : scan.startX,
-    "--training-object-scan-end-y": movesLeftToRight ? scan.endY : scan.startY,
-    "--training-object-scan-start-x": movesLeftToRight ? scan.startX : scan.endX,
-    "--training-object-scan-start-y": movesLeftToRight ? scan.startY : scan.endY,
-    "--training-object-scan-width": `${scan.widthPx}px`,
+    "--training-volume-contour-delay": `${scan.contourDelayMs}ms`,
+    "--training-volume-scan-duration": `${scan.durationMs}ms`,
   };
 
   return (
@@ -107,12 +110,12 @@ export function TrainingGroundedCar({
       <div
         className="training-radar-object-target training-radar-car-target"
         data-object-scan="aligned"
-        data-radar-active={phase === "hidden" ? "false" : "true"}
         data-radar-direction={direction}
-        data-radar-phase={phase}
+        data-tactical-active={tacticalPhase === "hidden" ? "false" : "true"}
+        data-tactical-phase={tacticalPhase}
+        data-volume-scan-phase={volumeScanPhase}
         style={placementStyle}
       >
-        <span className="training-object-local-scan-line" />
         <Image
           alt=""
           aria-hidden="true"
@@ -160,8 +163,9 @@ export function TrainingGroundedCar({
 
 export function TrainingGroundedBall({
   direction,
-  phase,
   target,
+  tacticalPhase,
+  volumeScanPhase,
 }: TrainingGroundedBallProps) {
   const sizes = "(max-width: 820px) 100vw, (max-width: 1180px) 66vw, 34vw";
 
@@ -186,8 +190,11 @@ export function TrainingGroundedBall({
       <div
         className="training-radar-object-target training-radar-ball-target"
         data-radar-direction={direction}
-        data-radar-phase={phase}
+        data-tactical-phase={tacticalPhase}
+        data-volume-scan-phase={volumeScanPhase}
       >
+        <span className="training-radar-ball-volume-surface" />
+        <span className="training-radar-ball-volume-contour" />
         <Image
           alt=""
           aria-hidden="true"

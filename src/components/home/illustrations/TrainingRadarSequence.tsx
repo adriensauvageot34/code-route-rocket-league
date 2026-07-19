@@ -9,25 +9,28 @@ import {
 import {
   getTrainingRadarHitDelayMs,
   TRAINING_RADAR_TIMING,
+  TRAINING_VOLUME_SCAN_TIMING,
   trainingRadarTargets,
   type TrainingRadarDirection,
   type TrainingRadarTargetId,
 } from "@/lib/home/trainingRadarTargets";
 
-export type TrainingRadarPhase =
+export type TrainingTacticalPhase =
   | "hidden"
   | "contact"
-  | "surface"
-  | "contour"
   | "wireframe"
   | "fade";
+
+export type TrainingVolumeScanPhase = "hidden" | "active" | "fade";
 
 type TrainingRadarSequenceState = {
   passDirection: TrainingRadarDirection;
   passKey: number;
   passTargetId: TrainingRadarTargetId | null;
   running: boolean;
-  targetPhases: Record<TrainingRadarTargetId, TrainingRadarPhase>;
+  tacticalPhases: Record<TrainingRadarTargetId, TrainingTacticalPhase>;
+  volumeScanDirections: Record<TrainingRadarTargetId, TrainingRadarDirection>;
+  volumeScanPhases: Record<TrainingRadarTargetId, TrainingVolumeScanPhase>;
 };
 
 type UseTrainingRadarSequenceOptions = {
@@ -35,11 +38,25 @@ type UseTrainingRadarSequenceOptions = {
   launching: boolean;
 };
 
-const HIDDEN_TARGET_PHASES: Record<TrainingRadarTargetId, TrainingRadarPhase> = {
+const HIDDEN_TACTICAL_PHASES: Record<TrainingRadarTargetId, TrainingTacticalPhase> = {
   "left-car": "hidden",
   "back-right-car": "hidden",
   "front-right-car": "hidden",
   ball: "hidden",
+};
+
+const HIDDEN_VOLUME_SCAN_PHASES: Record<TrainingRadarTargetId, TrainingVolumeScanPhase> = {
+  "left-car": "hidden",
+  "back-right-car": "hidden",
+  "front-right-car": "hidden",
+  ball: "hidden",
+};
+
+const INITIAL_VOLUME_SCAN_DIRECTIONS: Record<TrainingRadarTargetId, TrainingRadarDirection> = {
+  "left-car": "ltr",
+  "back-right-car": "ltr",
+  "front-right-car": "ltr",
+  ball: "ltr",
 };
 
 const INITIAL_SEQUENCE_STATE: TrainingRadarSequenceState = {
@@ -47,7 +64,9 @@ const INITIAL_SEQUENCE_STATE: TrainingRadarSequenceState = {
   passKey: 0,
   passTargetId: null,
   running: false,
-  targetPhases: HIDDEN_TARGET_PHASES,
+  tacticalPhases: HIDDEN_TACTICAL_PHASES,
+  volumeScanDirections: INITIAL_VOLUME_SCAN_DIRECTIONS,
+  volumeScanPhases: HIDDEN_VOLUME_SCAN_PHASES,
 };
 
 export function useTrainingRadarSequence({
@@ -116,7 +135,7 @@ export function useTrainingRadarSequence({
     const timers = new Set<number>();
     let cancelled = false;
     let targetIndex = 0;
-    let activeTargetId: TrainingRadarTargetId | null = null;
+    let activeTacticalTargetId: TrainingRadarTargetId | null = null;
 
     function schedule(callback: () => void, delayMs: number) {
       const timer = window.setTimeout(() => {
@@ -126,27 +145,44 @@ export function useTrainingRadarSequence({
       timers.add(timer);
     }
 
-    function activateTarget(targetId: TrainingRadarTargetId) {
-      activeTargetId = targetId;
+    function activateTacticalTarget(targetId: TrainingRadarTargetId) {
+      activeTacticalTargetId = targetId;
       setSequence((current) => ({
         ...current,
-        targetPhases: {
-          ...HIDDEN_TARGET_PHASES,
+        tacticalPhases: {
+          ...HIDDEN_TACTICAL_PHASES,
           [targetId]: "contact",
         },
       }));
     }
 
-    function setTargetPhaseIfActive(
+    function setTacticalPhaseIfActive(
       targetId: TrainingRadarTargetId,
-      phase: TrainingRadarPhase,
+      phase: TrainingTacticalPhase,
     ) {
-      if (activeTargetId !== targetId) return;
+      if (activeTacticalTargetId !== targetId) return;
 
       setSequence((current) => ({
         ...current,
-        targetPhases: {
-          ...current.targetPhases,
+        tacticalPhases: {
+          ...current.tacticalPhases,
+          [targetId]: phase,
+        },
+      }));
+    }
+
+    function setVolumeScan(
+      targetId: TrainingRadarTargetId,
+      phase: TrainingVolumeScanPhase,
+      direction?: TrainingRadarDirection,
+    ) {
+      setSequence((current) => ({
+        ...current,
+        volumeScanDirections: direction
+          ? { ...current.volumeScanDirections, [targetId]: direction }
+          : current.volumeScanDirections,
+        volumeScanPhases: {
+          ...current.volumeScanPhases,
           [targetId]: phase,
         },
       }));
@@ -166,32 +202,43 @@ export function useTrainingRadarSequence({
         running: true,
       }));
 
-      const hitDelayMs = getTrainingRadarHitDelayMs(target, passDirection);
+      for (const volumeTarget of trainingRadarTargets) {
+        const volumeHitDelayMs = getTrainingRadarHitDelayMs(
+          volumeTarget,
+          passDirection,
+        );
+
+        schedule(() => {
+          setVolumeScan(volumeTarget.id, "active", passDirection);
+        }, volumeHitDelayMs);
+
+        schedule(() => {
+          setVolumeScan(volumeTarget.id, "fade");
+        }, volumeHitDelayMs + TRAINING_VOLUME_SCAN_TIMING.activeDurationMs);
+
+        schedule(() => {
+          setVolumeScan(volumeTarget.id, "hidden");
+        }, volumeHitDelayMs + TRAINING_VOLUME_SCAN_TIMING.totalDurationMs);
+      }
+
+      const tacticalHitDelayMs = getTrainingRadarHitDelayMs(target, passDirection);
 
       schedule(() => {
-        activateTarget(target.id);
-      }, hitDelayMs);
+        activateTacticalTarget(target.id);
+      }, tacticalHitDelayMs);
 
       schedule(() => {
-        setTargetPhaseIfActive(target.id, "surface");
-      }, hitDelayMs + TRAINING_RADAR_TIMING.surfaceDelayMs);
+        setTacticalPhaseIfActive(target.id, "wireframe");
+      }, tacticalHitDelayMs + TRAINING_RADAR_TIMING.wireframeDelayMs);
 
       schedule(() => {
-        setTargetPhaseIfActive(target.id, "contour");
-      }, hitDelayMs + TRAINING_RADAR_TIMING.contourDelayMs);
+        setTacticalPhaseIfActive(target.id, "fade");
+      }, tacticalHitDelayMs + TRAINING_RADAR_TIMING.fadeDelayMs);
 
       schedule(() => {
-        setTargetPhaseIfActive(target.id, "wireframe");
-      }, hitDelayMs + TRAINING_RADAR_TIMING.wireframeDelayMs);
-
-      schedule(() => {
-        setTargetPhaseIfActive(target.id, "fade");
-      }, hitDelayMs + TRAINING_RADAR_TIMING.fadeDelayMs);
-
-      schedule(() => {
-        setTargetPhaseIfActive(target.id, "hidden");
-        if (activeTargetId === target.id) activeTargetId = null;
-      }, hitDelayMs + TRAINING_RADAR_TIMING.targetLifetimeMs);
+        setTacticalPhaseIfActive(target.id, "hidden");
+        if (activeTacticalTargetId === target.id) activeTacticalTargetId = null;
+      }, tacticalHitDelayMs + TRAINING_RADAR_TIMING.targetLifetimeMs);
 
       schedule(beginPass, TRAINING_RADAR_TIMING.passDurationMs);
     }
@@ -211,6 +258,14 @@ export function useTrainingRadarSequence({
     passTargetId: shouldRun ? sequence.passTargetId : null,
     running: shouldRun && sequence.running,
     sceneRef,
-    targetPhases: shouldRun ? sequence.targetPhases : HIDDEN_TARGET_PHASES,
+    tacticalPhases: shouldRun
+      ? sequence.tacticalPhases
+      : HIDDEN_TACTICAL_PHASES,
+    volumeScanDirections: shouldRun
+      ? sequence.volumeScanDirections
+      : INITIAL_VOLUME_SCAN_DIRECTIONS,
+    volumeScanPhases: shouldRun
+      ? sequence.volumeScanPhases
+      : HIDDEN_VOLUME_SCAN_PHASES,
   };
 }

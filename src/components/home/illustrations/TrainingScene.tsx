@@ -43,10 +43,16 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
     passKey,
     running,
     sceneRef,
-    targetPhases,
+    tacticalPhases,
+    volumeScanDirections,
+    volumeScanPhases,
   } = useTrainingRadarSequence({ active, launching });
-  const getTargetPhase = (targetId: TrainingRadarTargetId) =>
-    targetPhases[targetId];
+  const getTacticalPhase = (targetId: TrainingRadarTargetId) =>
+    tacticalPhases[targetId];
+  const getVolumeScanDirection = (targetId: TrainingRadarTargetId) =>
+    volumeScanDirections[targetId];
+  const getVolumeScanPhase = (targetId: TrainingRadarTargetId) =>
+    volumeScanPhases[targetId];
 
   return (
     <div
@@ -123,9 +129,10 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
 
       <SceneGroup depth={trainingFarCarTarget.depth} layer={10} name={`training-${trainingFarCarTarget.id}`}>
         <TrainingGroundedCar
-          direction={passDirection}
-          phase={getTargetPhase(trainingFarCarTarget.id)}
+          direction={getVolumeScanDirection(trainingFarCarTarget.id)}
           target={trainingFarCarTarget}
+          tacticalPhase={getTacticalPhase(trainingFarCarTarget.id)}
+          volumeScanPhase={getVolumeScanPhase(trainingFarCarTarget.id)}
         />
       </SceneGroup>
 
@@ -140,25 +147,28 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
 
       <SceneGroup depth={trainingMidCarTarget.depth} layer={12} name={`training-${trainingMidCarTarget.id}`}>
         <TrainingGroundedCar
-          direction={passDirection}
-          phase={getTargetPhase(trainingMidCarTarget.id)}
+          direction={getVolumeScanDirection(trainingMidCarTarget.id)}
           target={trainingMidCarTarget}
+          tacticalPhase={getTacticalPhase(trainingMidCarTarget.id)}
+          volumeScanPhase={getVolumeScanPhase(trainingMidCarTarget.id)}
         />
       </SceneGroup>
 
       <SceneGroup depth={trainingNearCarTarget.depth} layer={13} name={`training-${trainingNearCarTarget.id}`}>
         <TrainingGroundedCar
-          direction={passDirection}
-          phase={getTargetPhase(trainingNearCarTarget.id)}
+          direction={getVolumeScanDirection(trainingNearCarTarget.id)}
           target={trainingNearCarTarget}
+          tacticalPhase={getTacticalPhase(trainingNearCarTarget.id)}
+          volumeScanPhase={getVolumeScanPhase(trainingNearCarTarget.id)}
         />
       </SceneGroup>
 
       <SceneGroup depth={trainingBallRadarTarget.depth} layer={14} name="ball">
         <TrainingGroundedBall
-          direction={passDirection}
-          phase={getTargetPhase(trainingBallRadarTarget.id)}
+          direction={getVolumeScanDirection(trainingBallRadarTarget.id)}
           target={trainingBallRadarTarget}
+          tacticalPhase={getTacticalPhase(trainingBallRadarTarget.id)}
+          volumeScanPhase={getVolumeScanPhase(trainingBallRadarTarget.id)}
         />
       </SceneGroup>
 
