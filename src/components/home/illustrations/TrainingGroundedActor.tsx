@@ -193,8 +193,26 @@ export function TrainingGroundedBall({
         data-tactical-phase={tacticalPhase}
         data-volume-scan-phase={volumeScanPhase}
       >
-        <span className="training-radar-ball-volume-surface" />
-        <span className="training-radar-ball-volume-contour" />
+        <Image
+          alt=""
+          aria-hidden="true"
+          className="training-radar-ball-volume-surface"
+          draggable={false}
+          fill
+          sizes={sizes}
+          src={target.surfaceAsset.path}
+          unoptimized
+        />
+        <Image
+          alt=""
+          aria-hidden="true"
+          className="training-radar-ball-volume-contour"
+          draggable={false}
+          fill
+          sizes={sizes}
+          src={target.contourAsset.path}
+          unoptimized
+        />
         <Image
           alt=""
           aria-hidden="true"
