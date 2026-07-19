@@ -939,7 +939,7 @@
   transform: scale(0.72);
 }
 
-.training-radar-object-target[data-radar-phase="contact"]::before {
+.training-radar-car-target[data-object-scan-v1="true"][data-radar-phase="contact"]::before {
   animation: training-object-contact 180ms ease-out both;
 }
 
@@ -1000,6 +1000,39 @@
   filter: brightness(1.08) saturate(1.16);
 }
 
+.training-object-local-scan-line {
+  position: absolute;
+  z-index: 6;
+  top: 12%;
+  bottom: 12%;
+  left: -4%;
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    rgb(151 101 230 / 0.62),
+    rgb(255 224 151 / 0.98) 46%,
+    rgb(244 181 72 / 0.9)
+  );
+  box-shadow:
+    0 0 4px rgb(255 207 112 / 0.96),
+    0 0 10px rgb(140 88 226 / 0.72);
+  opacity: 0;
+  pointer-events: none;
+  transform: skewX(-10deg) scaleY(0.9);
+  transform-origin: center;
+}
+
+.training-radar-car-target[data-object-scan-v1="true"][data-radar-active="true"][data-radar-direction="ltr"]
+  .training-object-local-scan-line {
+  animation: training-object-local-scan-line-ltr 650ms ease-out both;
+}
+
+.training-radar-car-target[data-object-scan-v1="true"][data-radar-active="true"][data-radar-direction="rtl"]
+  .training-object-local-scan-line {
+  animation: training-object-local-scan-line-rtl 650ms ease-out both;
+}
+
 .training-radar-car-target[data-object-scan-v1="true"][data-radar-active="true"][data-radar-direction="ltr"]
   .training-radar-object-surface {
   animation: training-object-surface-scan-ltr var(--training-target-lifetime) linear both;
@@ -1020,12 +1053,12 @@
   animation: training-object-contour-scan-rtl var(--training-target-lifetime) linear both;
 }
 
-.training-radar-car-target[data-object-scan-v1="true"][data-radar-active="true"]
+.training-radar-car-target[data-radar-active="true"]
   .training-radar-car-wireframe {
   animation: training-object-tactical-wireframe var(--training-target-lifetime) ease-out both;
 }
 
-.training-radar-car-target[data-object-scan-v1="true"][data-radar-active="true"]
+.training-radar-car-target[data-radar-active="true"]
   .training-radar-car-glow {
   animation: training-object-tactical-glow var(--training-target-lifetime) ease-out both;
 }
@@ -2370,21 +2403,66 @@
   }
 }
 
+@keyframes training-object-local-scan-line-ltr {
+  0% {
+    left: -4%;
+    opacity: 0.82;
+    transform: skewX(-10deg) scaleY(0.86);
+  }
+
+  12%,
+  82% {
+    opacity: 1;
+    transform: skewX(-10deg) scaleY(1);
+  }
+
+  100% {
+    left: 104%;
+    opacity: 0;
+    transform: skewX(-10deg) scaleY(0.9);
+  }
+}
+
+@keyframes training-object-local-scan-line-rtl {
+  0% {
+    left: 104%;
+    opacity: 0.82;
+    transform: skewX(10deg) scaleY(0.86);
+  }
+
+  12%,
+  82% {
+    opacity: 1;
+    transform: skewX(10deg) scaleY(1);
+  }
+
+  100% {
+    left: -4%;
+    opacity: 0;
+    transform: skewX(10deg) scaleY(0.9);
+  }
+}
+
 @keyframes training-object-surface-scan-ltr {
   0% {
-    opacity: 0.38;
+    opacity: 0.48;
     clip-path: inset(0 92% 0 0);
     filter: brightness(1.7) saturate(1.58);
   }
 
-  4% {
-    opacity: 0.52;
-    clip-path: inset(0 70% 0 20%);
+  7% {
+    opacity: 0.66;
+    clip-path: inset(0 69% 0 21%);
   }
 
-  17% {
-    opacity: 0.52;
+  14% {
+    opacity: 0.66;
     clip-path: inset(0 45% 0 45%);
+  }
+
+  21% {
+    opacity: 0.58;
+    clip-path: inset(0 21% 0 69%);
   }
 
   28% {
@@ -2401,19 +2479,24 @@
 
 @keyframes training-object-surface-scan-rtl {
   0% {
-    opacity: 0.38;
+    opacity: 0.48;
     clip-path: inset(0 0 0 92%);
     filter: brightness(1.7) saturate(1.58);
   }
 
-  4% {
-    opacity: 0.52;
-    clip-path: inset(0 20% 0 70%);
+  7% {
+    opacity: 0.66;
+    clip-path: inset(0 21% 0 69%);
   }
 
-  17% {
-    opacity: 0.52;
+  14% {
+    opacity: 0.66;
     clip-path: inset(0 45% 0 45%);
+  }
+
+  21% {
+    opacity: 0.58;
+    clip-path: inset(0 69% 0 21%);
   }
 
   28% {
@@ -2436,17 +2519,17 @@
   }
 
   17% {
-    opacity: 0.24;
+    opacity: 0.28;
     clip-path: inset(0 92% 0 0);
   }
 
-  24% {
-    opacity: 0.38;
+  26% {
+    opacity: 0.46;
     clip-path: inset(0 45% 0 45%);
   }
 
   34% {
-    opacity: 0.18;
+    opacity: 0.22;
     clip-path: inset(0 0 0 92%);
   }
 
@@ -2465,17 +2548,17 @@
   }
 
   17% {
-    opacity: 0.24;
+    opacity: 0.28;
     clip-path: inset(0 0 0 92%);
   }
 
-  24% {
-    opacity: 0.38;
+  26% {
+    opacity: 0.46;
     clip-path: inset(0 45% 0 45%);
   }
 
   34% {
-    opacity: 0.18;
+    opacity: 0.22;
     clip-path: inset(0 92% 0 0);
   }
 
@@ -2676,6 +2759,7 @@
   .training-radar-overlay,
   .training-radar-motion,
   .training-radar-object-target::before,
+  .training-object-local-scan-line,
   .training-radar-object-surface,
   .training-radar-object-contour,
   .training-radar-car-wireframe,
