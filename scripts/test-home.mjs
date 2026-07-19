@@ -287,6 +287,9 @@ assert(!trainingGroundedActor.includes("training-radar-ball-surface") && !traini
 assert(trainingRadarOverlay.includes('viewBox="0 0 1672 941"') && trainingRadarOverlay.includes("TRAINING_RADAR_FIELD_PATH"), "Training radar must share and clip to the logical field canvas.");
 assert(trainingRadarOverlay.includes("data-radar-direction") && trainingScene.includes("direction={passDirection}"), "Training radar direction must drive both reveal layers.");
 assert(trainingRadarOverlay.includes('id="training-radar-field-surface-mask"') && trainingRadarOverlay.includes('id="training-radar-field-sweep-mask"'), "Every radar layer must use a field surface mask.");
+assert(trainingRadarTargets.includes("TRAINING_OBJECT_SCAN_OCCLUSION") && trainingRadarOverlay.match(/training-radar-object-notch/g)?.length === 2, "Surface and sweep radar masks must share one car-03 occlusion zone.");
+assert(trainingRadarOverlay.includes("training-radar-surface-notch-soften") && trainingRadarOverlay.includes("training-radar-sweep-notch-soften") && trainingRadarOverlay.includes('stdDeviation="8"'), "The global radar interruption must use a softly feathered local notch.");
+assert(trainingScene.includes("passTargetId === TRAINING_OBJECT_SCAN_TARGET_ID") && trainingScene.match(/objectTransferActive={objectTransferActive}/g)?.length === 2, "Both global radar layers must open their notch before the targeted car contact.");
 assert(!trainingRadarOverlay.includes('clipPath="url(#training-radar-field') && trainingRadarOverlay.includes('M -286 340 L 2 340'), "Training scan must keep the broad legacy reveal zone behind its strict field mask.");
 assert(trainingRadarOverlay.includes('stopColor="black"') && trainingRadarOverlay.includes('offset="0.16" stopColor="#060606"') && trainingRadarOverlay.includes('offset="0.84" stopColor="#d5d5d5"'), "Training radar depth must stay nearly invisible at the horizon and strong only in the foreground.");
 assert(trainingRadarTargets.includes('"M 0 414 C 360 423') && trainingScene.indexOf('name="training-radar-sweep"') < trainingScene.indexOf('name="training-barrier"'), "The radar must be tightly masked to the visible pitch below the stable barrier.");
@@ -460,6 +463,8 @@ for (const layeredScanMarker of ["training-object-contact", "training-object-sur
   assert(css.includes(layeredScanMarker), `Layered Training object scan CSS missing: ${layeredScanMarker}.`);
 }
 assert(css.includes("clip-path: inset(0 48% 0 48%)") && css.includes("opacity: 0.32") && css.includes("opacity: 0.24"), "Surface and contour scans must remain narrow local bands with restrained opacity.");
+assert(css.includes(".training-radar-object-notch") && css.includes(".is-object-transfer-active") && css.includes("transition: opacity 70ms ease-out"), "The global line, glow and band must be interrupted in the targeted car zone.");
+assert(css.includes("clip-path: inset(0 76% 0 20%)") && css.includes("clip-path: inset(0 20% 0 76%)"), "The local surface scan must begin immediately at contact in either radar direction.");
 assert(css.includes("opacity: 0.3") && css.includes("opacity: 0.09") && css.includes("--training-target-lifetime"), "Tactical wireframe and glow must activate only after the local surface scan and fade within the target lifetime.");
 for (const premiumClass of ["training-fennec-reflection", "training-fennec-rim-light", "training-fennec-headlight-glow", "training-fennec-rear-accent"]) {
   assert(css.includes(premiumClass), `Premium Fennec treatment missing: ${premiumClass}.`);
