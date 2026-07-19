@@ -866,16 +866,6 @@
   z-index: 1;
 }
 
-.scene-group[data-scene-group="fennec"] .training-fennec-reflection {
-  z-index: 0;
-  opacity: 0.03;
-  mix-blend-mode: screen;
-  clip-path: ellipse(12% 6.5% at 79% 79%);
-  filter: brightness(0.48) saturate(0.58);
-  transform: scale(0.72);
-  transform-origin: 79% 79%;
-}
-
 .scene-group[data-scene-group="fennec"] .training-fennec-rim-light {
   z-index: 2;
   opacity: 0;
