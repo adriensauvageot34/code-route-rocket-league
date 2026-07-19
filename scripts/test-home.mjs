@@ -218,7 +218,7 @@ for (const lifetimeTuning of [
   "durationMs: [1050, 1300]",
   "durationMs: [1150, 1400]",
   "rise: [12, 18]",
-  "driftX: [1.8, 4.2]",
+  "driftX: [5, 10]",
 ]) {
   assert(trainingParticlePresets.includes(lifetimeTuning), `Radar trail timing or lift missing: ${lifetimeTuning}.`);
 }
@@ -243,6 +243,8 @@ assert(
 );
 assert(trainingParticleField.includes("Math.max(") && trainingParticleField.includes("TRAINING_RADAR_CORE_BOTTOM_X"), "Particle timing must clamp safely and follow the radar perspective from horizon to foreground.");
 assert(trainingParticleField.includes('direction === "ltr"') && trainingParticleField.includes("TRAINING_RADAR_SWEEP.endX - logicalX"), "Particle delay must reverse with the radar direction.");
+assert(trainingParticleField.includes('const trailDirection = direction === "ltr" ? -1 : 1') && trainingParticleField.includes("directionalDriftX"), "Particles must drift behind the radar in the direction opposite its travel.");
+assert(trainingParticleField.includes("displayedPasses") && !trainingParticleField.includes("setTimeout"), "The current particle pass must render in the same commit as the radar instead of one task later.");
 assert(trainingParticleField.includes(".slice(-2)"), "The previous radar pass must remain long enough to finish disintegrating.");
 assert(trainingParticleField.includes("memo(function TrainingParticleField"), "Unrelated radar target phases must not restart the delayed particle trail.");
 assert(trainingParticleField.includes("memo(function TrainingParticleSprite"), "Each launched particle must finish without being restarted by later radar updates.");
@@ -436,7 +438,7 @@ assert(css.includes("3% 44.2%") && css.includes("82% 44.7%") && css.includes("97
 for (const preset of ["far", "mid", "near"]) {
   assert(css.includes(`data-particle-preset="${preset}"`), `Missing CSS depth band for ${preset} radar particles.`);
 }
-for (const keyframe of ["training-radar-particle-disintegrate", "training-radar-particle-fragment"]) {
+for (const keyframe of ["training-radar-particle-birth-flash", "training-radar-particle-disintegrate", "training-radar-particle-fragment"]) {
   assert(css.includes(`@keyframes ${keyframe}`), `Missing radar trail particle animation: ${keyframe}.`);
 }
 for (const kind of ["violet-dust", "gold-dot", "tactical-spark"]) {
@@ -444,6 +446,7 @@ for (const kind of ["violet-dust", "gold-dot", "tactical-spark"]) {
 }
 assert(css.includes("var(--particle-delay) 1 forwards") && !css.includes("var(--particle-delay) infinite"), "Radar particles must play once after each scan hit, never loop independently.");
 assert(css.includes("drop-shadow(0 0 var(--particle-glow) currentColor)") && css.includes("drop-shadow(0 0 0 transparent)"), "Particles must leave the radar glowing and end with no glow.");
+assert(trainingParticleField.includes('className="training-particle-birth-flash"') && css.includes("var(--particle-kick-x)") && css.includes("scale(1.22)"), "Each radar particle must receive a visible birth flash and directional ejection impulse.");
 assert(css.includes("var(--particle-rise-mid)") && css.includes("var(--particle-rise-soft)") && css.includes("var(--particle-rise-end)"), "Particles must rise progressively while disintegrating.");
 assert(css.includes("var(--particle-fragment-rise-mid)") && css.includes("var(--particle-fragment-rise-end)"), "Each radar particle must shed a secondary rising fragment.");
 for (const removedWormMarker of ["training-metal-shard-jitter", "training-neon-streak-flash", "hard-glint", "neon-streak"]) {
@@ -467,7 +470,7 @@ assert(css.includes(".training-radar-ball-target::before") && css.includes("disp
 assert(css.includes('.mode-illustration[data-active="false"] .training-particle-core') && css.includes('.mode-illustration[data-motion-active="false"] .training-particle-core::after'), "Inactive and offscreen particle and fragment animations must pause.");
 assert(css.includes('.training-scene[data-launching="true"] .training-particle-field') && css.includes("transition: opacity 240ms ease-out"), "Particles must fade and pause during launch.");
 assert(css.includes("transparent 44%") && css.includes("rgb(0 0 0 / 0.22) 47%") && css.includes("rgb(0 0 0 / 0.78) 73%") && css.includes("black 100%"), "Radar particles must be hidden at the horizon, readable in the middle and strongest in the foreground.");
-assert(css.includes("brightness(1.9)") && css.includes("var(--particle-delay) 1 forwards"), "Radar particles must flash immediately at emission while staying hidden before the scan line arrives.");
+assert(css.includes("brightness(2.2)") && css.includes("var(--particle-delay) 1 forwards"), "Radar particles must flash immediately at emission while staying hidden before the scan line arrives.");
 assert(/@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.training-particle-field\s*\{\s*display:\s*none;/s.test(css), "Reduced motion must hide the radar particle trail together with the radar.");
 
 assert(css.includes("@keyframes training-radar-traverse") && !css.includes("@keyframes training-analysis-scan"), "Training must use the clipped field radar instead of legacy circles.");
