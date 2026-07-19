@@ -3,7 +3,6 @@ import type { CSSProperties } from "react";
 import type { TrainingRadarPhase } from "@/components/home/illustrations/TrainingRadarSequence";
 import {
   TRAINING_RADAR_TIMING,
-  TRAINING_OBJECT_SCAN_TARGET_ID,
   type TrainingBallRadarTarget,
   type TrainingCarRadarTarget,
   type TrainingRadarDirection,
@@ -19,6 +18,17 @@ type GroundedActorStyle = CSSProperties & {
   "--training-contact-shadow-width": string;
   "--training-target-fade-duration": string;
   "--training-target-lifetime": string;
+};
+
+type TrainingCarScanStyle = CSSProperties & {
+  "--training-object-contour-delay": string;
+  "--training-object-scan-angle": string;
+  "--training-object-scan-duration": string;
+  "--training-object-scan-end-x": string;
+  "--training-object-scan-end-y": string;
+  "--training-object-scan-start-x": string;
+  "--training-object-scan-start-y": string;
+  "--training-object-scan-width": string;
 };
 
 type TrainingGroundedCarProps = {
@@ -56,13 +66,24 @@ export function TrainingGroundedCar({
   phase,
   target,
 }: TrainingGroundedCarProps) {
-  const usesObjectScanV1 = target.id === TRAINING_OBJECT_SCAN_TARGET_ID;
-  const placementStyle: CSSProperties = {
+  const scan = target.objectScan;
+  const movesLeftToRight = direction === "ltr";
+  const placementStyle: TrainingCarScanStyle = {
     aspectRatio: target.placement.aspectRatio,
     left: target.placement.left,
     top: target.placement.top,
     transformOrigin: target.placement.transformOrigin,
     width: target.placement.width,
+    "--training-object-contour-delay": `${scan.contourDelayMs}ms`,
+    "--training-object-scan-angle": movesLeftToRight
+      ? scan.angle
+      : `${Number.parseFloat(scan.angle) * -1}deg`,
+    "--training-object-scan-duration": `${scan.durationMs}ms`,
+    "--training-object-scan-end-x": movesLeftToRight ? scan.endX : scan.startX,
+    "--training-object-scan-end-y": movesLeftToRight ? scan.endY : scan.startY,
+    "--training-object-scan-start-x": movesLeftToRight ? scan.startX : scan.endX,
+    "--training-object-scan-start-y": movesLeftToRight ? scan.startY : scan.endY,
+    "--training-object-scan-width": `${scan.widthPx}px`,
   };
 
   return (
@@ -85,37 +106,33 @@ export function TrainingGroundedCar({
       />
       <div
         className="training-radar-object-target training-radar-car-target"
-        data-object-scan-v1={usesObjectScanV1 ? "true" : "false"}
+        data-object-scan="aligned"
         data-radar-active={phase === "hidden" ? "false" : "true"}
         data-radar-direction={direction}
         data-radar-phase={phase}
         style={placementStyle}
       >
-        {usesObjectScanV1 ? (
-          <>
-            <span className="training-object-local-scan-line" />
-            <Image
-              alt=""
-              aria-hidden="true"
-              className="training-radar-object-surface training-radar-car-surface"
-              draggable={false}
-              fill
-              sizes="12vw"
-              src={target.surfaceAsset.path}
-              unoptimized
-            />
-            <Image
-              alt=""
-              aria-hidden="true"
-              className="training-radar-object-contour training-radar-car-contour"
-              draggable={false}
-              fill
-              sizes="12vw"
-              src={target.contourAsset.path}
-              unoptimized
-            />
-          </>
-        ) : null}
+        <span className="training-object-local-scan-line" />
+        <Image
+          alt=""
+          aria-hidden="true"
+          className="training-radar-object-surface training-radar-car-surface"
+          draggable={false}
+          fill
+          sizes="12vw"
+          src={target.surfaceAsset.path}
+          unoptimized
+        />
+        <Image
+          alt=""
+          aria-hidden="true"
+          className="training-radar-object-contour training-radar-car-contour"
+          draggable={false}
+          fill
+          sizes="12vw"
+          src={target.contourAsset.path}
+          unoptimized
+        />
         <Image
           alt=""
           aria-hidden="true"

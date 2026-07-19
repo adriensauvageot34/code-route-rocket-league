@@ -1,7 +1,6 @@
 import type { CSSProperties } from "react";
 import { homeIllustrationAssets } from "@/lib/home/homeIllustrationAssets";
 import {
-  TRAINING_OBJECT_SCAN_OCCLUSION,
   TRAINING_RADAR_FIELD_PATH,
   TRAINING_RADAR_SWEEP,
   TRAINING_RADAR_TIMING,
@@ -11,7 +10,6 @@ import {
 type TrainingRadarOverlayProps = {
   active: boolean;
   direction: TrainingRadarDirection;
-  objectTransferActive: boolean;
   variant: "surface" | "sweep";
 };
 
@@ -47,7 +45,6 @@ const CORE_PATHS: Record<TrainingRadarDirection, string> = {
 export function TrainingRadarOverlay({
   active,
   direction,
-  objectTransferActive,
   variant,
 }: TrainingRadarOverlayProps) {
   const movesLeftToRight = direction === "ltr";
@@ -62,8 +59,7 @@ export function TrainingRadarOverlay({
     return (
       <svg
         aria-hidden="true"
-        className={`training-radar-overlay training-radar-surface${active ? " is-active" : ""}${objectTransferActive ? " is-object-transfer-active" : ""}`}
-        data-object-transfer={objectTransferActive ? "true" : "false"}
+        className={`training-radar-overlay training-radar-surface${active ? " is-active" : ""}`}
         data-radar-direction={direction}
         preserveAspectRatio="xMidYMid slice"
         style={style}
@@ -91,26 +87,7 @@ export function TrainingRadarOverlay({
               d={TRAINING_RADAR_FIELD_PATH}
               fill="url(#training-radar-surface-depth-gradient)"
             />
-            <rect
-              className="training-radar-object-notch"
-              fill="black"
-              filter="url(#training-radar-surface-notch-soften)"
-              height={TRAINING_OBJECT_SCAN_OCCLUSION.height}
-              rx={TRAINING_OBJECT_SCAN_OCCLUSION.radius}
-              width={TRAINING_OBJECT_SCAN_OCCLUSION.width}
-              x={TRAINING_OBJECT_SCAN_OCCLUSION.x}
-              y={TRAINING_OBJECT_SCAN_OCCLUSION.y}
-            />
           </mask>
-          <filter
-            id="training-radar-surface-notch-soften"
-            height="150%"
-            width="150%"
-            x="-25%"
-            y="-25%"
-          >
-            <feGaussianBlur stdDeviation="2" />
-          </filter>
           <linearGradient
             id="training-radar-terrain-mask-gradient"
             x1={movesLeftToRight ? "0" : "1"}
@@ -166,8 +143,7 @@ export function TrainingRadarOverlay({
   return (
     <svg
       aria-hidden="true"
-      className={`training-radar-overlay training-radar-sweep${active ? " is-active" : ""}${objectTransferActive ? " is-object-transfer-active" : ""}`}
-      data-object-transfer={objectTransferActive ? "true" : "false"}
+      className={`training-radar-overlay training-radar-sweep${active ? " is-active" : ""}`}
       data-radar-direction={direction}
       preserveAspectRatio="xMidYMid slice"
       style={style}
@@ -207,26 +183,7 @@ export function TrainingRadarOverlay({
             d={TRAINING_RADAR_FIELD_PATH}
             fill="url(#training-radar-depth-gradient)"
           />
-          <rect
-            className="training-radar-object-notch"
-            fill="black"
-            filter="url(#training-radar-sweep-notch-soften)"
-            height={TRAINING_OBJECT_SCAN_OCCLUSION.height}
-            rx={TRAINING_OBJECT_SCAN_OCCLUSION.radius}
-            width={TRAINING_OBJECT_SCAN_OCCLUSION.width}
-            x={TRAINING_OBJECT_SCAN_OCCLUSION.x}
-            y={TRAINING_OBJECT_SCAN_OCCLUSION.y}
-          />
         </mask>
-        <filter
-          id="training-radar-sweep-notch-soften"
-          height="150%"
-          width="150%"
-          x="-25%"
-          y="-25%"
-        >
-          <feGaussianBlur stdDeviation="2" />
-        </filter>
       </defs>
       <g mask="url(#training-radar-field-sweep-mask)">
         <g className="training-radar-motion">
