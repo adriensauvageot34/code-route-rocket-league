@@ -909,7 +909,13 @@
 }
 
 .training-radar-ball-target {
+  --training-ball-volume-mask-angle: 90deg;
+
   inset: 0;
+}
+
+.training-radar-ball-target[data-radar-direction="rtl"] {
+  --training-ball-volume-mask-angle: 270deg;
 }
 
 .training-radar-ball-target::before {
@@ -1061,13 +1067,13 @@
   z-index: 1;
   filter: brightness(1.18) saturate(1.24);
   -webkit-mask-image: linear-gradient(
-    90deg,
+    var(--training-ball-volume-mask-angle),
     black 0 46%,
     rgb(0 0 0 / 0.82) 58%,
     transparent 72%
   );
   mask-image: linear-gradient(
-    90deg,
+    var(--training-ball-volume-mask-angle),
     black 0 46%,
     rgb(0 0 0 / 0.82) 58%,
     transparent 72%
@@ -1085,13 +1091,13 @@
     saturate(1.3)
     drop-shadow(0 0 3px rgb(244 188 78 / 0.34));
   -webkit-mask-image: linear-gradient(
-    90deg,
+    var(--training-ball-volume-mask-angle),
     transparent 28%,
     black 42% 66%,
     transparent 82%
   );
   mask-image: linear-gradient(
-    90deg,
+    var(--training-ball-volume-mask-angle),
     transparent 28%,
     black 42% 66%,
     transparent 82%
