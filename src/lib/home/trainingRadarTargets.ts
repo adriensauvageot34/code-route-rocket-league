@@ -26,22 +26,23 @@ export const TRAINING_RADAR_SWEEP = {
 
 export type TrainingRadarDirection = "ltr" | "rtl";
 
-export const TRAINING_OBJECT_SCAN_TARGET_ID = "front-right-car" as const;
-
-export const TRAINING_OBJECT_SCAN_OCCLUSION = {
-  x: 1188,
-  y: 350,
-  width: 300,
-  height: 170,
-  radius: 28,
-} as const;
-
 type TrainingTargetPlacement = {
   aspectRatio: `${number} / ${number}`;
   left: `${number}%`;
   top: `${number}%`;
   transformOrigin: `${number}% ${number}%`;
   width: `${number}%`;
+};
+
+type TrainingObjectScan = {
+  angle: `${number}deg`;
+  contourDelayMs: number;
+  durationMs: number;
+  endX: `${number}%`;
+  endY: `${number}%`;
+  startX: `${number}%`;
+  startY: `${number}%`;
+  widthPx: number;
 };
 
 type TrainingActorGrounding = {
@@ -67,6 +68,7 @@ export type TrainingCarRadarTarget = {
   grounding: TrainingActorGrounding;
   glowAsset: HomeIllustrationAsset;
   id: "left-car" | "back-right-car" | "front-right-car";
+  objectScan: TrainingObjectScan;
   placement: TrainingTargetPlacement;
   scanHitProgress: number;
   surfaceAsset: HomeIllustrationAsset;
@@ -112,6 +114,16 @@ export const trainingCarRadarTargets = [
       target: { x: 0.375, groundY: 0.465, scale: 0.82 },
       shadow: { width: 0.045, height: 0.02 },
     },
+    objectScan: {
+      angle: "-19deg",
+      startX: "-16%",
+      endX: "116%",
+      startY: "82%",
+      endY: "24%",
+      widthPx: 3,
+      durationMs: 650,
+      contourDelayMs: 350,
+    },
     scanHitProgress: 0.45,
   },
   {
@@ -135,6 +147,16 @@ export const trainingCarRadarTargets = [
       target: { x: 0.72, groundY: 0.45, scale: 0.76 },
       shadow: { width: 0.035, height: 0.016 },
     },
+    objectScan: {
+      angle: "-20deg",
+      startX: "-20%",
+      endX: "120%",
+      startY: "82%",
+      endY: "26%",
+      widthPx: 3.2,
+      durationMs: 620,
+      contourDelayMs: 330,
+    },
     scanHitProgress: 0.743,
   },
   {
@@ -157,6 +179,16 @@ export const trainingCarRadarTargets = [
       sourceAnchor: { x: 0.7886, groundY: 0.407 },
       target: { x: 0.8, groundY: 0.49, scale: 0.86 },
       shadow: { width: 0.085, height: 0.026 },
+    },
+    objectScan: {
+      angle: "-18deg",
+      startX: "-18%",
+      endX: "118%",
+      startY: "80%",
+      endY: "22%",
+      widthPx: 3.4,
+      durationMs: 650,
+      contourDelayMs: 350,
     },
     scanHitProgress: 0.811,
   },
