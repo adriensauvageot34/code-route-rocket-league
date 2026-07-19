@@ -926,32 +926,32 @@
 
 .training-radar-fennec-surface {
   z-index: 2;
-  filter: brightness(1.08) saturate(1.14);
+  filter: brightness(1.18) contrast(1.14) saturate(1.2);
   -webkit-mask-image: linear-gradient(
     var(--training-fennec-volume-mask-angle),
-    transparent 43%,
-    rgb(0 0 0 / 0.18) 45.5%,
-    black 48% 53%,
-    rgb(0 0 0 / 0.3) 55.5%,
+    transparent 44%,
+    rgb(0 0 0 / 0.42) 46.5%,
+    black 48% 54%,
+    rgb(0 0 0 / 0.38) 55.5%,
     transparent 57%
   );
   mask-image: linear-gradient(
     var(--training-fennec-volume-mask-angle),
-    transparent 43%,
-    rgb(0 0 0 / 0.18) 45.5%,
-    black 48% 53%,
-    rgb(0 0 0 / 0.3) 55.5%,
+    transparent 44%,
+    rgb(0 0 0 / 0.42) 46.5%,
+    black 48% 54%,
+    rgb(0 0 0 / 0.38) 55.5%,
     transparent 57%
   );
 }
 
 .training-radar-fennec-contour {
-  --training-fennec-detail-start: 0.14;
-  --training-fennec-detail-peak: 0.28;
-  --training-fennec-detail-tail: 0.12;
+  --training-fennec-detail-start: 0.1;
+  --training-fennec-detail-peak: 0.22;
+  --training-fennec-detail-tail: 0.06;
 
   z-index: 3;
-  filter: brightness(1.06) saturate(1.12);
+  filter: brightness(1.1) contrast(1.08) saturate(1.12);
   -webkit-mask-image: linear-gradient(
     var(--training-fennec-volume-mask-angle),
     transparent 44%,
@@ -972,11 +972,12 @@
 
 .training-radar-fennec-impact {
   --training-fennec-detail-start: 0;
-  --training-fennec-detail-peak: 0.14;
-  --training-fennec-detail-tail: 0.04;
+  --training-fennec-detail-peak: 0.055;
+  --training-fennec-detail-tail: 0;
 
   z-index: 4;
-  filter: brightness(1.02) saturate(1.06);
+  clip-path: polygon(37% 31%, 53% 23%, 66% 19%, 77.5% 20%, 90% 28%, 94% 44%, 94% 77.5%, 71% 86%, 45% 70%, 36% 52%);
+  filter: brightness(0.92) saturate(1);
   transform: translate(6.56%, 7.55%) scale(0.57);
   -webkit-mask-image: linear-gradient(
     var(--training-fennec-volume-mask-angle),
@@ -1034,16 +1035,14 @@
 
 .training-radar-fennec-target[data-volume-scan-phase="active"][data-radar-direction="ltr"]
   .training-radar-fennec-impact {
-  animation: training-fennec-volume-detail-ltr
-    calc(var(--training-volume-scan-duration) - var(--training-volume-contour-delay) - 90ms)
-    linear calc(var(--training-volume-contour-delay) + 90ms) both;
+  animation: training-fennec-volume-impact-ltr 170ms ease-out
+    calc(var(--training-volume-contour-delay) + 120ms) both;
 }
 
 .training-radar-fennec-target[data-volume-scan-phase="active"][data-radar-direction="rtl"]
   .training-radar-fennec-impact {
-  animation: training-fennec-volume-detail-rtl
-    calc(var(--training-volume-scan-duration) - var(--training-volume-contour-delay) - 90ms)
-    linear calc(var(--training-volume-contour-delay) + 90ms) both;
+  animation: training-fennec-volume-impact-rtl 170ms ease-out
+    calc(var(--training-volume-contour-delay) + 120ms) both;
 }
 
 .training-radar-fennec-target[data-volume-scan-phase="fade"]
@@ -2765,21 +2764,21 @@
 
 @keyframes training-fennec-volume-surface-ltr {
   0% {
-    opacity: 0.24;
+    opacity: 0.3;
     -webkit-mask-position: 43% 50%;
     mask-position: 43% 50%;
   }
 
-  24% {
-    opacity: 0.4;
+  18% {
+    opacity: 0.56;
   }
 
-  72% {
-    opacity: 0.3;
+  64% {
+    opacity: 0.38;
   }
 
   100% {
-    opacity: 0.14;
+    opacity: 0.16;
     -webkit-mask-position: 9% 50%;
     mask-position: 9% 50%;
   }
@@ -2787,21 +2786,21 @@
 
 @keyframes training-fennec-volume-surface-rtl {
   0% {
-    opacity: 0.24;
+    opacity: 0.3;
     -webkit-mask-position: 9% 50%;
     mask-position: 9% 50%;
   }
 
-  24% {
-    opacity: 0.4;
+  18% {
+    opacity: 0.56;
   }
 
-  72% {
-    opacity: 0.3;
+  64% {
+    opacity: 0.38;
   }
 
   100% {
-    opacity: 0.14;
+    opacity: 0.16;
     -webkit-mask-position: 43% 50%;
     mask-position: 43% 50%;
   }
@@ -2838,6 +2837,42 @@
 
   100% {
     opacity: var(--training-fennec-detail-tail);
+    -webkit-mask-position: 43% 50%;
+    mask-position: 43% 50%;
+  }
+}
+
+@keyframes training-fennec-volume-impact-ltr {
+  0% {
+    opacity: 0;
+    -webkit-mask-position: 43% 50%;
+    mask-position: 43% 50%;
+  }
+
+  26% {
+    opacity: var(--training-fennec-detail-peak);
+  }
+
+  100% {
+    opacity: 0;
+    -webkit-mask-position: 9% 50%;
+    mask-position: 9% 50%;
+  }
+}
+
+@keyframes training-fennec-volume-impact-rtl {
+  0% {
+    opacity: 0;
+    -webkit-mask-position: 9% 50%;
+    mask-position: 9% 50%;
+  }
+
+  26% {
+    opacity: var(--training-fennec-detail-peak);
+  }
+
+  100% {
+    opacity: 0;
     -webkit-mask-position: 43% 50%;
     mask-position: 43% 50%;
   }
