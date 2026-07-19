@@ -885,10 +885,10 @@
 
 .scene-group[data-scene-group="fennec"] .training-fennec-headlight-glow {
   z-index: 3;
-  opacity: 0.26;
+  opacity: 0.05;
   mix-blend-mode: screen;
-  filter: brightness(1) saturate(1.1);
-  animation: training-fennec-headlight-breathe 3s ease-in-out infinite;
+  filter: brightness(0.92) saturate(1.04);
+  animation: none;
 }
 
 .scene-group[data-scene-group="fennec"] .training-fennec-rear-accent {
@@ -896,6 +896,14 @@
   opacity: 0.08;
   mix-blend-mode: screen;
   filter: brightness(0.98) saturate(1.1);
+}
+
+.scene-group[data-scene-group="fennec-lights-glow"] .training-lights-glow {
+  z-index: 4;
+  opacity: 0.16;
+  mix-blend-mode: screen;
+  filter: brightness(0.9) saturate(1.08);
+  animation: training-lights-breathe 3.6s ease-in-out infinite;
 }
 
 .training-radar-object-target {
@@ -1506,6 +1514,7 @@
 .mode-illustration[data-motion-active="false"] .scene-canvas,
 .mode-illustration[data-motion-active="false"] .scene-idle,
 .mode-illustration[data-motion-active="false"] .scene-launch,
+.mode-illustration[data-motion-active="false"] .training-lights-glow,
 .mode-illustration[data-motion-active="false"] .training-fennec-headlight-glow,
 .mode-illustration[data-motion-active="false"] .training-fennec-rear-accent,
 .mode-illustration[data-motion-active="false"] .competitive-cage-neon,
@@ -1794,13 +1803,13 @@
 @keyframes training-lights-breathe {
   0%,
   100% {
-    opacity: 0.48;
-    filter: brightness(0.86) saturate(1.02);
+    opacity: 0.16;
+    filter: brightness(0.9) saturate(1.08);
   }
 
   50% {
-    opacity: 0.76;
-    filter: brightness(1.12) saturate(1.18);
+    opacity: 0.3;
+    filter: brightness(1.08) saturate(1.16);
   }
 }
 
@@ -2902,6 +2911,7 @@
   .training-radar-car-wireframe,
   .training-radar-car-glow,
   .training-radar-ball-energy,
+  .training-lights-glow,
   .training-fennec-headlight-glow,
   .training-fennec-rear-accent,
   .training-particle-field,
@@ -2949,9 +2959,14 @@
     opacity: 0;
   }
 
+  .training-lights-glow {
+    opacity: 0.18;
+    filter: brightness(0.96) saturate(1.1);
+  }
+
   .training-fennec-headlight-glow {
-    opacity: 0.22;
-    filter: brightness(0.96) saturate(1.08);
+    opacity: 0.05;
+    filter: brightness(0.92) saturate(1.04);
   }
 
   .training-fennec-rear-accent {
