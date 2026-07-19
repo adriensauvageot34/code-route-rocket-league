@@ -78,10 +78,11 @@ export function TrainingRadarOverlay({
             y2="1"
           >
             <stop offset="0" stopColor="black" />
-            <stop offset="0.16" stopColor="#060606" />
-            <stop offset="0.42" stopColor="#3a3a3a" />
-            <stop offset="0.66" stopColor="#8c8c8c" />
-            <stop offset="0.84" stopColor="#d5d5d5" />
+            <stop offset="0.015" stopColor="#080808" />
+            <stop offset="0.04" stopColor="#707070" />
+            <stop offset="0.09" stopColor="#b0b0b0" />
+            <stop offset="0.28" stopColor="#d0d0d0" />
+            <stop offset="0.6" stopColor="#e8e8e8" />
             <stop offset="1" stopColor="white" />
           </linearGradient>
           <mask id="training-radar-field-surface-mask" maskUnits="userSpaceOnUse">
@@ -90,14 +91,15 @@ export function TrainingRadarOverlay({
               d={TRAINING_RADAR_FIELD_PATH}
               fill="url(#training-radar-surface-depth-gradient)"
             />
-            <ellipse
+            <rect
               className="training-radar-object-notch"
-              cx={TRAINING_OBJECT_SCAN_OCCLUSION.cx}
-              cy={TRAINING_OBJECT_SCAN_OCCLUSION.cy}
               fill="black"
               filter="url(#training-radar-surface-notch-soften)"
-              rx={TRAINING_OBJECT_SCAN_OCCLUSION.rx}
-              ry={TRAINING_OBJECT_SCAN_OCCLUSION.ry}
+              height={TRAINING_OBJECT_SCAN_OCCLUSION.height}
+              rx={TRAINING_OBJECT_SCAN_OCCLUSION.radius}
+              width={TRAINING_OBJECT_SCAN_OCCLUSION.width}
+              x={TRAINING_OBJECT_SCAN_OCCLUSION.x}
+              y={TRAINING_OBJECT_SCAN_OCCLUSION.y}
             />
           </mask>
           <filter
@@ -107,7 +109,7 @@ export function TrainingRadarOverlay({
             x="-25%"
             y="-25%"
           >
-            <feGaussianBlur stdDeviation="8" />
+            <feGaussianBlur stdDeviation="2" />
           </filter>
           <linearGradient
             id="training-radar-terrain-mask-gradient"
@@ -192,10 +194,11 @@ export function TrainingRadarOverlay({
           y2="1"
         >
           <stop offset="0" stopColor="black" />
-          <stop offset="0.16" stopColor="#060606" />
-          <stop offset="0.42" stopColor="#3a3a3a" />
-          <stop offset="0.66" stopColor="#8c8c8c" />
-          <stop offset="0.84" stopColor="#d5d5d5" />
+          <stop offset="0.015" stopColor="#080808" />
+          <stop offset="0.04" stopColor="#707070" />
+          <stop offset="0.09" stopColor="#b0b0b0" />
+          <stop offset="0.28" stopColor="#d0d0d0" />
+          <stop offset="0.6" stopColor="#e8e8e8" />
           <stop offset="1" stopColor="white" />
         </linearGradient>
         <mask id="training-radar-field-sweep-mask" maskUnits="userSpaceOnUse">
@@ -204,14 +207,15 @@ export function TrainingRadarOverlay({
             d={TRAINING_RADAR_FIELD_PATH}
             fill="url(#training-radar-depth-gradient)"
           />
-          <ellipse
+          <rect
             className="training-radar-object-notch"
-            cx={TRAINING_OBJECT_SCAN_OCCLUSION.cx}
-            cy={TRAINING_OBJECT_SCAN_OCCLUSION.cy}
             fill="black"
             filter="url(#training-radar-sweep-notch-soften)"
-            rx={TRAINING_OBJECT_SCAN_OCCLUSION.rx}
-            ry={TRAINING_OBJECT_SCAN_OCCLUSION.ry}
+            height={TRAINING_OBJECT_SCAN_OCCLUSION.height}
+            rx={TRAINING_OBJECT_SCAN_OCCLUSION.radius}
+            width={TRAINING_OBJECT_SCAN_OCCLUSION.width}
+            x={TRAINING_OBJECT_SCAN_OCCLUSION.x}
+            y={TRAINING_OBJECT_SCAN_OCCLUSION.y}
           />
         </mask>
         <filter
@@ -221,7 +225,7 @@ export function TrainingRadarOverlay({
           x="-25%"
           y="-25%"
         >
-          <feGaussianBlur stdDeviation="8" />
+          <feGaussianBlur stdDeviation="2" />
         </filter>
       </defs>
       <g mask="url(#training-radar-field-sweep-mask)">
