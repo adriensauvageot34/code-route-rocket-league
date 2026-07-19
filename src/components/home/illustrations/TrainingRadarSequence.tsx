@@ -11,8 +11,10 @@ import {
   TRAINING_RADAR_TIMING,
   TRAINING_VOLUME_SCAN_TIMING,
   trainingRadarTargets,
+  trainingVolumeScanTargets,
   type TrainingRadarDirection,
   type TrainingRadarTargetId,
+  type TrainingVolumeScanTargetId,
 } from "@/lib/home/trainingRadarTargets";
 
 export type TrainingTacticalPhase =
@@ -29,8 +31,8 @@ type TrainingRadarSequenceState = {
   passTargetId: TrainingRadarTargetId | null;
   running: boolean;
   tacticalPhases: Record<TrainingRadarTargetId, TrainingTacticalPhase>;
-  volumeScanDirections: Record<TrainingRadarTargetId, TrainingRadarDirection>;
-  volumeScanPhases: Record<TrainingRadarTargetId, TrainingVolumeScanPhase>;
+  volumeScanDirections: Record<TrainingVolumeScanTargetId, TrainingRadarDirection>;
+  volumeScanPhases: Record<TrainingVolumeScanTargetId, TrainingVolumeScanPhase>;
 };
 
 type UseTrainingRadarSequenceOptions = {
@@ -45,18 +47,20 @@ const HIDDEN_TACTICAL_PHASES: Record<TrainingRadarTargetId, TrainingTacticalPhas
   ball: "hidden",
 };
 
-const HIDDEN_VOLUME_SCAN_PHASES: Record<TrainingRadarTargetId, TrainingVolumeScanPhase> = {
+const HIDDEN_VOLUME_SCAN_PHASES: Record<TrainingVolumeScanTargetId, TrainingVolumeScanPhase> = {
   "left-car": "hidden",
   "back-right-car": "hidden",
   "front-right-car": "hidden",
   ball: "hidden",
+  fennec: "hidden",
 };
 
-const INITIAL_VOLUME_SCAN_DIRECTIONS: Record<TrainingRadarTargetId, TrainingRadarDirection> = {
+const INITIAL_VOLUME_SCAN_DIRECTIONS: Record<TrainingVolumeScanTargetId, TrainingRadarDirection> = {
   "left-car": "ltr",
   "back-right-car": "ltr",
   "front-right-car": "ltr",
   ball: "ltr",
+  fennec: "ltr",
 };
 
 const INITIAL_SEQUENCE_STATE: TrainingRadarSequenceState = {
@@ -172,7 +176,7 @@ export function useTrainingRadarSequence({
     }
 
     function setVolumeScan(
-      targetId: TrainingRadarTargetId,
+      targetId: TrainingVolumeScanTargetId,
       phase: TrainingVolumeScanPhase,
       direction?: TrainingRadarDirection,
     ) {
@@ -202,7 +206,7 @@ export function useTrainingRadarSequence({
         running: true,
       }));
 
-      for (const volumeTarget of trainingRadarTargets) {
+      for (const volumeTarget of trainingVolumeScanTargets) {
         const volumeHitDelayMs = getTrainingRadarHitDelayMs(
           volumeTarget,
           passDirection,
