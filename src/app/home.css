@@ -899,8 +899,7 @@
 }
 
 .training-radar-fennec-surface,
-.training-radar-fennec-contour,
-.training-radar-fennec-impact {
+.training-radar-fennec-contour {
   opacity: 0;
   mix-blend-mode: screen;
   pointer-events: none;
@@ -916,19 +915,19 @@
   filter: brightness(1.08) saturate(1.14);
   -webkit-mask-image: linear-gradient(
     var(--training-fennec-volume-mask-angle),
-    transparent 46.5%,
-    rgb(0 0 0 / 0.28) 48%,
-    black 49.2% 50.8%,
-    rgb(0 0 0 / 0.34) 52%,
-    transparent 53.5%
+    transparent 43%,
+    rgb(0 0 0 / 0.18) 45.5%,
+    black 48% 53%,
+    rgb(0 0 0 / 0.3) 55.5%,
+    transparent 57%
   );
   mask-image: linear-gradient(
     var(--training-fennec-volume-mask-angle),
-    transparent 46.5%,
-    rgb(0 0 0 / 0.28) 48%,
-    black 49.2% 50.8%,
-    rgb(0 0 0 / 0.34) 52%,
-    transparent 53.5%
+    transparent 43%,
+    rgb(0 0 0 / 0.18) 45.5%,
+    black 48% 53%,
+    rgb(0 0 0 / 0.3) 55.5%,
+    transparent 57%
   );
 }
 
@@ -941,47 +940,30 @@
   filter: brightness(1.06) saturate(1.12);
   -webkit-mask-image: linear-gradient(
     var(--training-fennec-volume-mask-angle),
-    transparent 47.5%,
-    black 49.5% 50.5%,
-    transparent 52.5%
+    transparent 44%,
+    rgb(0 0 0 / 0.18) 46.5%,
+    black 49% 52%,
+    rgb(0 0 0 / 0.26) 54%,
+    transparent 56%
   );
   mask-image: linear-gradient(
     var(--training-fennec-volume-mask-angle),
-    transparent 47.5%,
-    black 49.5% 50.5%,
-    transparent 52.5%
-  );
-}
-
-.training-radar-fennec-impact {
-  --training-fennec-detail-start: 0.08;
-  --training-fennec-detail-peak: 0.16;
-  --training-fennec-detail-tail: 0.05;
-
-  z-index: 4;
-  filter: brightness(1.04) saturate(1.08);
-  -webkit-mask-image: linear-gradient(
-    var(--training-fennec-volume-mask-angle),
-    transparent 48%,
-    black 49.7% 50.3%,
-    transparent 52%
-  );
-  mask-image: linear-gradient(
-    var(--training-fennec-volume-mask-angle),
-    transparent 48%,
-    black 49.7% 50.3%,
-    transparent 52%
+    transparent 44%,
+    rgb(0 0 0 / 0.18) 46.5%,
+    black 49% 52%,
+    rgb(0 0 0 / 0.26) 54%,
+    transparent 56%
   );
 }
 
 .training-radar-fennec-target[data-radar-direction="ltr"]
-  :is(.training-radar-fennec-surface, .training-radar-fennec-contour, .training-radar-fennec-impact) {
+  :is(.training-radar-fennec-surface, .training-radar-fennec-contour) {
   -webkit-mask-position: 17% 50%;
   mask-position: 17% 50%;
 }
 
 .training-radar-fennec-target[data-radar-direction="rtl"]
-  :is(.training-radar-fennec-surface, .training-radar-fennec-contour, .training-radar-fennec-impact) {
+  :is(.training-radar-fennec-surface, .training-radar-fennec-contour) {
   -webkit-mask-position: 38% 50%;
   mask-position: 38% 50%;
 }
@@ -997,25 +979,21 @@
 }
 
 .training-radar-fennec-target[data-volume-scan-phase="active"][data-radar-direction="ltr"]
-  .training-radar-fennec-contour,
-.training-radar-fennec-target[data-volume-scan-phase="active"][data-radar-direction="ltr"]
-  .training-radar-fennec-impact {
+  .training-radar-fennec-contour {
   animation: training-fennec-volume-detail-ltr
     calc(var(--training-volume-scan-duration) - var(--training-volume-contour-delay))
     linear var(--training-volume-contour-delay) both;
 }
 
 .training-radar-fennec-target[data-volume-scan-phase="active"][data-radar-direction="rtl"]
-  .training-radar-fennec-contour,
-.training-radar-fennec-target[data-volume-scan-phase="active"][data-radar-direction="rtl"]
-  .training-radar-fennec-impact {
+  .training-radar-fennec-contour {
   animation: training-fennec-volume-detail-rtl
     calc(var(--training-volume-scan-duration) - var(--training-volume-contour-delay))
     linear var(--training-volume-contour-delay) both;
 }
 
 .training-radar-fennec-target[data-volume-scan-phase="fade"]
-  :is(.training-radar-fennec-surface, .training-radar-fennec-contour, .training-radar-fennec-impact) {
+  :is(.training-radar-fennec-surface, .training-radar-fennec-contour) {
   opacity: 0;
 }
 
@@ -1660,7 +1638,6 @@
 .mode-illustration[data-motion-active="false"] .training-radar-ball-volume-contour,
 .mode-illustration[data-motion-active="false"] .training-radar-fennec-surface,
 .mode-illustration[data-motion-active="false"] .training-radar-fennec-contour,
-.mode-illustration[data-motion-active="false"] .training-radar-fennec-impact,
 .mode-illustration[data-motion-active="false"] .training-radar-car-wireframe,
 .mode-illustration[data-motion-active="false"] .training-radar-car-glow,
 .mode-illustration[data-motion-active="false"] .training-radar-ball-energy {
@@ -3114,7 +3091,6 @@
   .training-radar-ball-volume-contour,
   .training-radar-fennec-surface,
   .training-radar-fennec-contour,
-  .training-radar-fennec-impact,
   .training-radar-car-wireframe,
   .training-radar-car-glow,
   .training-radar-ball-energy,
@@ -3162,7 +3138,6 @@
   .training-radar-ball-volume-contour,
   .training-radar-fennec-surface,
   .training-radar-fennec-contour,
-  .training-radar-fennec-impact,
   .training-radar-car-wireframe,
   .training-radar-car-glow,
   .training-radar-ball-energy {

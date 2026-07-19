@@ -93,7 +93,6 @@ export type TrainingFennecVolumeScanTarget = {
   contourAsset: HomeIllustrationAsset;
   depth: "trainingFennec";
   id: "fennec";
-  impactAsset: HomeIllustrationAsset;
   scanHitProgress: number;
   surfaceAsset: HomeIllustrationAsset;
   type: "fennec";
@@ -219,7 +218,6 @@ export const trainingFennecVolumeScanTarget = {
   type: "fennec",
   surfaceAsset: assets.fennecSurfaceScan,
   contourAsset: assets.fennecContourScan,
-  impactAsset: assets.fennecRimLight,
   depth: "trainingFennec",
   scanHitProgress: 0.79,
 } as const satisfies TrainingFennecVolumeScanTarget;
