@@ -929,7 +929,7 @@
   transform: scale(0.72);
 }
 
-.training-radar-car-target[data-radar-phase="contact"]::before {
+.training-radar-car-target[data-tactical-phase="contact"]::before {
   animation: training-object-contact 180ms ease-out both;
 }
 
@@ -944,9 +944,7 @@
   user-select: none;
 }
 
-.training-radar-ball-energy,
-.training-radar-ball-surface,
-.training-radar-ball-contour {
+.training-radar-ball-energy {
   width: 100% !important;
   height: 100% !important;
   object-fit: cover;
@@ -956,6 +954,13 @@
 
 .training-radar-object-surface,
 .training-radar-object-contour,
+.training-radar-ball-volume-surface,
+.training-radar-ball-volume-contour {
+  opacity: 0;
+  mix-blend-mode: screen;
+  transition: opacity var(--training-volume-fade-duration) ease-out;
+}
+
 .training-radar-car-wireframe,
 .training-radar-car-glow,
 .training-radar-ball-energy {
@@ -1022,100 +1027,104 @@
   filter: brightness(1.08) saturate(1.16);
 }
 
-.training-object-local-scan-line {
+.training-radar-ball-volume-surface,
+.training-radar-ball-volume-contour {
   position: absolute;
-  z-index: 6;
-  top: var(--training-object-scan-start-y);
-  left: var(--training-object-scan-start-x);
-  width: var(--training-object-scan-width);
-  height: 74%;
-  border-radius: 999px;
-  background: linear-gradient(
-    180deg,
-    rgb(151 101 230 / 0.62),
-    rgb(255 224 151 / 0.98) 46%,
-    rgb(244 181 72 / 0.9)
-  );
-  box-shadow:
-    0 0 4px rgb(255 207 112 / 0.96),
-    0 0 10px rgb(140 88 226 / 0.72);
-  opacity: 0;
+  top: var(--training-actor-source-ground-y);
+  left: var(--training-actor-source-x);
+  width: 8.6%;
+  aspect-ratio: 1;
+  border-radius: 50%;
   pointer-events: none;
-  transform: translate(-50%, -50%) rotate(var(--training-object-scan-angle))
-    scaleY(0.9);
-  transform-origin: center;
+  transform: translate(-50%, -88%);
 }
 
-.training-radar-car-target[data-radar-active="true"]
-  .training-object-local-scan-line {
-  animation: training-object-local-scan-line var(--training-object-scan-duration)
-    linear both;
+.training-radar-ball-volume-surface {
+  z-index: 1;
+  background: radial-gradient(
+    circle at 38% 34%,
+    rgb(255 225 154 / 0.34),
+    rgb(174 112 229 / 0.18) 48%,
+    transparent 72%
+  );
+  box-shadow: inset 0 0 8px rgb(244 188 78 / 0.32);
 }
 
-.training-radar-car-target[data-radar-active="true"][data-radar-direction="ltr"]
+.training-radar-ball-volume-contour {
+  z-index: 2;
+  border: 1px solid rgb(255 211 120 / 0.52);
+  box-shadow:
+    0 0 4px rgb(244 188 78 / 0.28),
+    inset 0 0 4px rgb(139 88 222 / 0.2);
+}
+
+.training-radar-car-target[data-volume-scan-phase="active"][data-radar-direction="ltr"]
   .training-radar-object-surface {
-  animation: training-object-surface-scan-ltr var(--training-object-scan-duration)
+  animation: training-object-surface-scan-ltr var(--training-volume-scan-duration)
     linear both;
 }
 
-.training-radar-car-target[data-radar-active="true"][data-radar-direction="rtl"]
+.training-radar-car-target[data-volume-scan-phase="active"][data-radar-direction="rtl"]
   .training-radar-object-surface {
-  animation: training-object-surface-scan-rtl var(--training-object-scan-duration)
+  animation: training-object-surface-scan-rtl var(--training-volume-scan-duration)
     linear both;
 }
 
-.training-radar-car-target[data-radar-active="true"][data-radar-direction="ltr"]
+.training-radar-car-target[data-volume-scan-phase="active"][data-radar-direction="ltr"]
   .training-radar-object-contour {
   animation: training-object-contour-scan-ltr
-    var(--training-object-scan-duration) linear
-    var(--training-object-contour-delay) both;
+    calc(var(--training-volume-scan-duration) - var(--training-volume-contour-delay))
+    linear var(--training-volume-contour-delay) both;
 }
 
-.training-radar-car-target[data-radar-active="true"][data-radar-direction="rtl"]
+.training-radar-car-target[data-volume-scan-phase="active"][data-radar-direction="rtl"]
   .training-radar-object-contour {
   animation: training-object-contour-scan-rtl
-    var(--training-object-scan-duration) linear
-    var(--training-object-contour-delay) both;
+    calc(var(--training-volume-scan-duration) - var(--training-volume-contour-delay))
+    linear var(--training-volume-contour-delay) both;
 }
 
-.training-radar-car-target[data-radar-active="true"]
+.training-radar-ball-target[data-volume-scan-phase="active"]
+  .training-radar-ball-volume-surface {
+  animation: training-ball-volume-surface var(--training-volume-scan-duration)
+    ease-out both;
+}
+
+.training-radar-ball-target[data-volume-scan-phase="active"]
+  .training-radar-ball-volume-contour {
+  animation: training-ball-volume-contour
+    calc(var(--training-volume-scan-duration) - var(--training-volume-contour-delay))
+    ease-out var(--training-volume-contour-delay) both;
+}
+
+.training-radar-car-target[data-tactical-active="true"]
   .training-radar-car-wireframe {
   animation: training-object-tactical-wireframe var(--training-target-lifetime) ease-out both;
 }
 
-.training-radar-car-target[data-radar-active="true"]
+.training-radar-car-target[data-tactical-active="true"]
   .training-radar-car-glow {
   animation: training-object-tactical-glow var(--training-target-lifetime) ease-out both;
 }
 
-.training-radar-ball-target[data-radar-phase="contact"]
+.training-radar-ball-target[data-tactical-phase="contact"]
   .training-radar-ball-energy {
   opacity: 0.74;
   filter: brightness(1.4) saturate(1.22);
 }
 
-.training-radar-ball-target[data-radar-phase="surface"]
+.training-radar-ball-target[data-tactical-phase="wireframe"]
   .training-radar-ball-energy {
   opacity: 0.12;
   filter: brightness(1.08) saturate(1.08);
 }
 
-.training-radar-ball-target[data-radar-phase="contour"]
-  .training-radar-ball-energy,
-.training-radar-ball-target[data-radar-phase="wireframe"]
-  .training-radar-ball-energy {
-  opacity: 0;
-  filter: brightness(1) saturate(1);
-}
-
-.training-radar-object-target[data-radar-phase="fade"]
-  :is(
-    .training-radar-object-surface,
-    .training-radar-object-contour,
-    .training-radar-car-wireframe,
-    .training-radar-car-glow,
-    .training-radar-ball-energy
-  ) {
+.training-radar-object-target[data-volume-scan-phase="fade"]
+  :is(.training-radar-object-surface, .training-radar-object-contour),
+.training-radar-ball-target[data-volume-scan-phase="fade"]
+  :is(.training-radar-ball-volume-surface, .training-radar-ball-volume-contour),
+.training-radar-object-target[data-tactical-phase="fade"]
+  :is(.training-radar-car-wireframe, .training-radar-car-glow, .training-radar-ball-energy) {
   opacity: 0;
 }
 
@@ -1446,6 +1455,8 @@
 .mode-illustration[data-motion-active="false"] .training-radar-overlay,
 .mode-illustration[data-motion-active="false"] .training-radar-object-surface,
 .mode-illustration[data-motion-active="false"] .training-radar-object-contour,
+.mode-illustration[data-motion-active="false"] .training-radar-ball-volume-surface,
+.mode-illustration[data-motion-active="false"] .training-radar-ball-volume-contour,
 .mode-illustration[data-motion-active="false"] .training-radar-car-wireframe,
 .mode-illustration[data-motion-active="false"] .training-radar-car-glow,
 .mode-illustration[data-motion-active="false"] .training-radar-ball-energy {
@@ -2428,34 +2439,9 @@
   }
 }
 
-@keyframes training-object-local-scan-line {
-  0% {
-    top: var(--training-object-scan-start-y);
-    left: var(--training-object-scan-start-x);
-    opacity: 0.72;
-    transform: translate(-50%, -50%) rotate(var(--training-object-scan-angle))
-      scaleY(0.88);
-  }
-
-  12%,
-  84% {
-    opacity: 1;
-    transform: translate(-50%, -50%) rotate(var(--training-object-scan-angle))
-      scaleY(1);
-  }
-
-  100% {
-    top: var(--training-object-scan-end-y);
-    left: var(--training-object-scan-end-x);
-    opacity: 0;
-    transform: translate(-50%, -50%) rotate(var(--training-object-scan-angle))
-      scaleY(0.9);
-  }
-}
-
 @keyframes training-object-surface-scan-ltr {
   0% {
-    opacity: 0;
+    opacity: 0.18;
     -webkit-mask-position: 130% 50%;
     mask-position: 130% 50%;
   }
@@ -2477,7 +2463,7 @@
 
 @keyframes training-object-surface-scan-rtl {
   0% {
-    opacity: 0;
+    opacity: 0.18;
     -webkit-mask-position: -30% 50%;
     mask-position: -30% 50%;
   }
@@ -2499,7 +2485,7 @@
 
 @keyframes training-object-contour-scan-ltr {
   0% {
-    opacity: 0;
+    opacity: 0.12;
     -webkit-mask-position: 130% 50%;
     mask-position: 130% 50%;
   }
@@ -2521,7 +2507,7 @@
 
 @keyframes training-object-contour-scan-rtl {
   0% {
-    opacity: 0;
+    opacity: 0.12;
     -webkit-mask-position: -30% 50%;
     mask-position: -30% 50%;
   }
@@ -2538,6 +2524,45 @@
     opacity: 0;
     -webkit-mask-position: 130% 50%;
     mask-position: 130% 50%;
+  }
+}
+
+@keyframes training-ball-volume-surface {
+  0% {
+    opacity: 0.14;
+    filter: brightness(1) saturate(1);
+  }
+
+  18% {
+    opacity: 0.28;
+    filter: brightness(1.24) saturate(1.18);
+  }
+
+  72% {
+    opacity: 0.24;
+  }
+
+  100% {
+    opacity: 0;
+    filter: brightness(1.04) saturate(1.04);
+  }
+}
+
+@keyframes training-ball-volume-contour {
+  0% {
+    opacity: 0.1;
+  }
+
+  20% {
+    opacity: 0.3;
+  }
+
+  66% {
+    opacity: 0.24;
+  }
+
+  100% {
+    opacity: 0;
   }
 }
 
@@ -2731,9 +2756,10 @@
   .training-radar-overlay,
   .training-radar-motion,
   .training-radar-object-target::before,
-  .training-object-local-scan-line,
   .training-radar-object-surface,
   .training-radar-object-contour,
+  .training-radar-ball-volume-surface,
+  .training-radar-ball-volume-contour,
   .training-radar-car-wireframe,
   .training-radar-car-glow,
   .training-radar-ball-energy,
@@ -2776,6 +2802,8 @@
   .training-radar-overlay,
   .training-radar-object-surface,
   .training-radar-object-contour,
+  .training-radar-ball-volume-surface,
+  .training-radar-ball-volume-contour,
   .training-radar-car-wireframe,
   .training-radar-car-glow,
   .training-radar-ball-energy {

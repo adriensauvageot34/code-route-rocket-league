@@ -5,12 +5,17 @@ export const TRAINING_RADAR_TIMING = {
   entryDurationMs: 250,
   travelDurationMs: 2000,
   contactDurationMs: 180,
-  surfaceDelayMs: 180,
-  contourDelayMs: 520,
   wireframeDelayMs: 820,
   fadeDelayMs: 1500,
   targetLifetimeMs: 2300,
   fadeDurationMs: 800,
+} as const;
+
+export const TRAINING_VOLUME_SCAN_TIMING = {
+  activeDurationMs: 320,
+  contourDelayMs: 60,
+  fadeDurationMs: 180,
+  totalDurationMs: 520,
 } as const;
 
 export const TRAINING_RADAR_CYCLE_MS =
@@ -38,11 +43,6 @@ type TrainingObjectScan = {
   angle: `${number}deg`;
   contourDelayMs: number;
   durationMs: number;
-  endX: `${number}%`;
-  endY: `${number}%`;
-  startX: `${number}%`;
-  startY: `${number}%`;
-  widthPx: number;
 };
 
 type TrainingActorGrounding = {
@@ -116,13 +116,8 @@ export const trainingCarRadarTargets = [
     },
     objectScan: {
       angle: "-19deg",
-      startX: "-16%",
-      endX: "116%",
-      startY: "82%",
-      endY: "24%",
-      widthPx: 3,
-      durationMs: 650,
-      contourDelayMs: 350,
+      durationMs: 320,
+      contourDelayMs: 40,
     },
     scanHitProgress: 0.45,
   },
@@ -149,13 +144,8 @@ export const trainingCarRadarTargets = [
     },
     objectScan: {
       angle: "-20deg",
-      startX: "-20%",
-      endX: "120%",
-      startY: "82%",
-      endY: "26%",
-      widthPx: 3.2,
-      durationMs: 620,
-      contourDelayMs: 330,
+      durationMs: 320,
+      contourDelayMs: 50,
     },
     scanHitProgress: 0.743,
   },
@@ -182,13 +172,8 @@ export const trainingCarRadarTargets = [
     },
     objectScan: {
       angle: "-18deg",
-      startX: "-18%",
-      endX: "118%",
-      startY: "80%",
-      endY: "22%",
-      widthPx: 3.4,
-      durationMs: 650,
-      contourDelayMs: 350,
+      durationMs: 320,
+      contourDelayMs: 60,
     },
     scanHitProgress: 0.811,
   },

@@ -282,9 +282,9 @@ assert(trainingGroundedActor.includes("training-grounded-actor-base") && trainin
 assert(trainingGroundedActor.includes("training-radar-car-surface") && trainingGroundedActor.includes("training-radar-car-contour") && trainingGroundedActor.includes("training-radar-car-wireframe") && trainingGroundedActor.includes("training-radar-car-glow"), "Cars must layer surface, contour, wireframe and glow inside their grounded container.");
 assert(!trainingRadarTargets.includes("TRAINING_OBJECT_SCAN_TARGET_ID") && !trainingGroundedActor.includes("usesObjectScanV1"), "No adversary car may remain locked behind the retired car-03 prototype gate.");
 assert(trainingRadarTargets.match(/objectScan: \{/g)?.length === 3 && trainingGroundedActor.includes('data-object-scan="aligned"'), "All three adversary cars must carry their own radar-aligned scan configuration.");
-assert(trainingGroundedActor.includes('className="training-object-local-scan-line"') && trainingGroundedActor.includes("training-radar-object-surface") && trainingGroundedActor.includes("training-radar-object-contour"), "Every adversary car must render line, surface and contour scan layers.");
+assert(!trainingGroundedActor.includes("training-object-local-scan-line") && trainingGroundedActor.includes("training-radar-object-surface") && trainingGroundedActor.includes("training-radar-object-contour"), "Every adversary car must render surface and contour volume layers without a decorative local line.");
 assert(trainingGroundedActor.includes("training-ball-contact-shadow") && trainingGroundedActor.includes("training-radar-ball-energy"), "Ball energy and contact treatment must share the grounded ball container.");
-assert(!trainingGroundedActor.includes("training-radar-ball-surface") && !trainingGroundedActor.includes("training-radar-ball-contour"), "Unaligned ball surface and contour scans must remain disabled.");
+assert(trainingGroundedActor.includes("training-radar-ball-volume-surface") && trainingGroundedActor.includes("training-radar-ball-volume-contour") && !trainingGroundedActor.includes("training-radar-ball-surface"), "The ball must use a safe local volume fallback without risky full-canvas surface assets.");
 assert(trainingRadarOverlay.includes('viewBox="0 0 1672 941"') && trainingRadarOverlay.includes("TRAINING_RADAR_FIELD_PATH"), "Training radar must share and clip to the logical field canvas.");
 assert(trainingRadarOverlay.includes("data-radar-direction") && trainingScene.includes("direction={passDirection}"), "Training radar direction must drive both reveal layers.");
 assert(trainingRadarOverlay.includes('id="training-radar-field-surface-mask"') && trainingRadarOverlay.includes('id="training-radar-field-sweep-mask"'), "Every radar layer must use a field surface mask.");
@@ -299,7 +299,7 @@ assert(trainingRadarSequence.includes('targetIndex % 2 === 0 ? "ltr" : "rtl"') &
 for (const target of ["left-car", "back-right-car", "front-right-car", "ball"]) {
   assert(trainingRadarTargets.includes(`id: "${target}"`), `Missing training radar target: ${target}`);
 }
-for (const timing of ["passDurationMs: 2400", "travelDurationMs: 2000", "contactDurationMs: 180", "surfaceDelayMs: 180", "contourDelayMs: 520", "wireframeDelayMs: 820", "fadeDelayMs: 1500", "targetLifetimeMs: 2300", "fadeDurationMs: 800"]) {
+for (const timing of ["passDurationMs: 2400", "travelDurationMs: 2000", "contactDurationMs: 180", "wireframeDelayMs: 820", "fadeDelayMs: 1500", "targetLifetimeMs: 2300", "fadeDurationMs: 800", "activeDurationMs: 320", "contourDelayMs: 60", "totalDurationMs: 520"]) {
   assert(trainingRadarTargets.includes(timing), `Missing centralized radar timing: ${timing}`);
 }
 for (const placement of ['left: "34.76%"', 'left: "69.28%"', 'left: "73.84%"']) {
@@ -396,10 +396,12 @@ assert(
       calculateExpectedTrainingSafety(820, 34).translationX,
   "Small screens must reduce horizontal travel instead of increasing zoom past the cap."
 );
-assert(trainingRadarSequence.includes("targetPhases") && trainingRadarSequence.includes("activeTargetId") && trainingRadarSequence.includes("...HIDDEN_TARGET_PHASES"), "Radar must clear the previous object before activating exactly one layered target.");
+assert(trainingRadarSequence.includes("tacticalPhases") && trainingRadarSequence.includes("activeTacticalTargetId") && trainingRadarSequence.includes("...HIDDEN_TACTICAL_PHASES"), "Radar must clear the previous tactical object before activating exactly one deep-analysis target.");
+assert(trainingRadarSequence.includes("volumeScanPhases") && trainingRadarSequence.includes("for (const volumeTarget of trainingRadarTargets)") && trainingRadarSequence.includes("getTrainingRadarHitDelayMs(\n          volumeTarget"), "Every pass must independently schedule a hit-synchronous volume scan for all four 3D objects.");
+assert(trainingRadarSequence.includes('setVolumeScan(volumeTarget.id, "active", passDirection)') && trainingRadarSequence.includes('setVolumeScan(volumeTarget.id, "fade")') && trainingRadarSequence.includes('setVolumeScan(volumeTarget.id, "hidden")'), "Volume scan delay must apply to disappearance, not initial reveal.");
 assert(trainingRadarSequence.includes("schedule(beginPass, TRAINING_RADAR_TIMING.passDurationMs)"), "Radar must reverse immediately when each traverse ends.");
-for (const phase of ['"contact"', '"surface"', '"contour"', '"wireframe"', '"fade"']) {
-  assert(trainingRadarSequence.includes(phase), `Layered radar target phase missing: ${phase}.`);
+for (const phase of ['"contact"', '"wireframe"', '"fade"', '"active"']) {
+  assert(trainingRadarSequence.includes(phase), `Separated radar phase missing: ${phase}.`);
 }
 assert(
   css.includes("translate3d(0, -8%, 0) scaleY(1)") &&
@@ -458,14 +460,14 @@ for (const removedWormMarker of ["training-metal-shard-jitter", "training-neon-s
 }
 assert(css.includes("clip-path: polygon(0 42%, 67% 0") && css.includes('data-particle-kind="tactical-spark"'), "Radar particles must use compact tactical fragments instead of large soft circles.");
 assert(css.includes(".training-radar-core-line") && css.includes("stroke-width: 2.5px") && css.includes(".training-tactical-terrain-core"), "The radar core must stay thin, sharp and visibly linked to the saturated tactical mesh.");
-for (const layeredScanMarker of ["training-object-contact", "training-object-local-scan-line", "training-object-surface-scan-ltr", "training-object-surface-scan-rtl", "training-object-contour-scan-ltr", "training-object-contour-scan-rtl", "training-object-tactical-wireframe", "training-object-tactical-glow"]) {
+for (const layeredScanMarker of ["training-object-contact", "training-object-surface-scan-ltr", "training-object-surface-scan-rtl", "training-object-contour-scan-ltr", "training-object-contour-scan-rtl", "training-ball-volume-surface", "training-ball-volume-contour", "training-object-tactical-wireframe", "training-object-tactical-glow"]) {
   assert(css.includes(layeredScanMarker), `Layered Training object scan CSS missing: ${layeredScanMarker}.`);
 }
 assert(css.includes("opacity: 0.34") && css.includes("opacity: 0.3") && css.includes("mask-position: 130% 50%") && css.includes("mask-position: -30% 50%"), "Surface and contour scans must reveal progressively behind the aligned local line at restrained opacity.");
-assert(trainingRadarTargets.includes('angle: "-19deg"') && trainingRadarTargets.includes("widthPx: 3.2") && trainingGroundedActor.includes("--training-object-scan-start-y") && trainingGroundedActor.includes("--training-object-scan-end-y"), "Each car scan must expose its own angle, entry, exit, width and timing variables.");
-assert(css.includes("calc(90deg + var(--training-object-scan-angle))") && css.includes("var(--training-object-scan-duration)") && css.includes("var(--training-object-contour-delay)"), "Line, directional surface mask and delayed contour must share the per-car scan axis and timing.");
-assert(css.includes('.training-radar-car-target[data-radar-active="true"]') && !css.includes("data-object-scan-v1"), "Every adversary car must receive surface, contour, wireframe and glow activation.");
-assert(css.includes("opacity: 0.3") && css.includes("opacity: 0.09") && css.includes("--training-target-lifetime"), "Tactical wireframe and glow must activate only after the local surface scan and fade within the target lifetime.");
+assert(trainingRadarTargets.includes('angle: "-19deg"') && trainingRadarTargets.includes("durationMs: 320") && trainingGroundedActor.includes("--training-volume-scan-duration") && trainingGroundedActor.includes("--training-volume-contour-delay"), "Each car volume scan must expose its own mask axis and short persistence timing.");
+assert(css.includes("calc(90deg + var(--training-object-scan-angle))") && css.includes("var(--training-volume-scan-duration)") && css.includes("var(--training-volume-contour-delay)"), "Directional surface mask and near-immediate contour must share the short volume-scan timing.");
+assert(css.includes('[data-volume-scan-phase="active"]') && css.includes('[data-tactical-active="true"]') && !css.includes("data-radar-active"), "Systematic volume reveal and selective tactical activation must use separate CSS state channels.");
+assert(css.includes("opacity: 0.3") && css.includes("opacity: 0.09") && css.includes("--training-target-lifetime"), "Selective tactical wireframe and glow must keep their longer restrained lifecycle.");
 for (const premiumClass of ["training-fennec-reflection", "training-fennec-rim-light", "training-fennec-headlight-glow", "training-fennec-rear-accent"]) {
   assert(css.includes(premiumClass), `Premium Fennec treatment missing: ${premiumClass}.`);
 }
