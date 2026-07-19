@@ -728,6 +728,16 @@
   opacity: 1;
 }
 
+.training-radar-object-notch {
+  opacity: 0;
+  transition: opacity 70ms ease-out;
+}
+
+.training-radar-overlay.is-object-transfer-active
+  .training-radar-object-notch {
+  opacity: 1;
+}
+
 .training-radar-motion {
   opacity: 0;
   transform: translate3d(var(--radar-start-x), 0, 0);
@@ -2361,16 +2371,15 @@
 }
 
 @keyframes training-object-surface-scan-ltr {
-  0%,
-  6% {
-    opacity: 0;
+  0% {
+    opacity: 0.22;
     clip-path: inset(0 96% 0 0);
     filter: brightness(1.5) saturate(1.48);
   }
 
-  8% {
-    opacity: 0.18;
-    clip-path: inset(0 96% 0 0);
+  4% {
+    opacity: 0.32;
+    clip-path: inset(0 76% 0 20%);
   }
 
   17% {
@@ -2378,12 +2387,12 @@
     clip-path: inset(0 48% 0 48%);
   }
 
-  29% {
+  28% {
     opacity: 0.16;
     clip-path: inset(0 0 0 96%);
   }
 
-  31%,
+  30%,
   100% {
     opacity: 0;
     clip-path: inset(0 0 0 96%);
@@ -2391,16 +2400,15 @@
 }
 
 @keyframes training-object-surface-scan-rtl {
-  0%,
-  6% {
-    opacity: 0;
+  0% {
+    opacity: 0.22;
     clip-path: inset(0 0 0 96%);
     filter: brightness(1.5) saturate(1.48);
   }
 
-  8% {
-    opacity: 0.18;
-    clip-path: inset(0 0 0 96%);
+  4% {
+    opacity: 0.32;
+    clip-path: inset(0 20% 0 76%);
   }
 
   17% {
@@ -2408,12 +2416,12 @@
     clip-path: inset(0 48% 0 48%);
   }
 
-  29% {
+  28% {
     opacity: 0.16;
     clip-path: inset(0 96% 0 0);
   }
 
-  31%,
+  30%,
   100% {
     opacity: 0;
     clip-path: inset(0 96% 0 0);

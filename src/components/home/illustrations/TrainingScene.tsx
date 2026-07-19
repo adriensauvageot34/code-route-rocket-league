@@ -10,6 +10,7 @@ import { useTrainingRadarSequence } from "@/components/home/illustrations/Traini
 import { TrainingParticleField } from "@/components/home/illustrations/TrainingParticleField";
 import { homeIllustrationAssets } from "@/lib/home/homeIllustrationAssets";
 import {
+  TRAINING_OBJECT_SCAN_TARGET_ID,
   trainingBallRadarTarget,
   trainingCarRadarTargets,
   type TrainingCarRadarTarget,
@@ -41,12 +42,15 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
   const {
     passDirection,
     passKey,
+    passTargetId,
     running,
     sceneRef,
     targetPhases,
   } = useTrainingRadarSequence({ active, launching });
   const getTargetPhase = (targetId: TrainingRadarTargetId) =>
     targetPhases[targetId];
+  const objectTransferActive =
+    running && passTargetId === TRAINING_OBJECT_SCAN_TARGET_ID;
 
   return (
     <div
@@ -95,6 +99,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
           active={running}
           direction={passDirection}
           key={`training-radar-surface-${passKey}`}
+          objectTransferActive={objectTransferActive}
           variant="surface"
         />
       </SceneGroup>
@@ -104,6 +109,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
           active={running}
           direction={passDirection}
           key={`training-radar-sweep-${passKey}`}
+          objectTransferActive={objectTransferActive}
           variant="sweep"
         />
       </SceneGroup>
