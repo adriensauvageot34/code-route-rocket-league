@@ -869,6 +869,23 @@
   z-index: 1;
 }
 
+.training-fennec-base-frame {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.training-fennec-base {
+  opacity: 1;
+}
+
+.training-fennec-base-frame[data-surface-scan-mode="reveal"]
+  .training-fennec-base {
+  animation: training-fennec-base-scan-emphasis var(--training-volume-scan-duration)
+    var(--training-volume-scan-easing) both;
+}
+
 .scene-group[data-scene-group="fennec"] .training-fennec-rim-light {
   z-index: 2;
   opacity: 0;
@@ -1007,7 +1024,7 @@
 
 .training-radar-fennec-impact {
   --training-fennec-detail-start: 0;
-  --training-fennec-detail-peak: 0.025;
+  --training-fennec-detail-peak: 0.3;
   --training-fennec-detail-tail: 0;
 
   z-index: 4;
@@ -1081,16 +1098,16 @@
     linear var(--training-volume-contour-delay) both;
 }
 
-.training-radar-fennec-target[data-volume-scan-phase="active"][data-radar-direction="ltr"]
+.training-radar-fennec-target[data-surface-scan-mode="reveal"]
   .training-radar-fennec-impact {
-  animation: training-fennec-volume-impact-ltr 170ms ease-out
-    calc(var(--training-volume-contour-delay) + 120ms) both;
+  animation: training-fennec-volume-impact-ltr var(--training-volume-scan-duration)
+    var(--training-volume-scan-easing) both;
 }
 
 .training-radar-fennec-target[data-volume-scan-phase="active"][data-radar-direction="rtl"]
   .training-radar-fennec-impact {
-  animation: training-fennec-volume-impact-rtl 170ms ease-out
-    calc(var(--training-volume-contour-delay) + 120ms) both;
+  opacity: 0;
+  animation: none;
 }
 
 .training-radar-fennec-target[data-volume-scan-phase="fade"]
@@ -1100,9 +1117,8 @@
 
 .training-radar-fennec-target[data-volume-scan-phase="fade"]
   .training-radar-fennec-impact {
-  animation: training-fennec-volume-impact-persist 2000ms ease-out both;
-  -webkit-mask-image: none;
-  mask-image: none;
+  opacity: 0;
+  animation: none;
 }
 
 .scene-group[data-scene-group="fennec-lights-glow"] .training-lights-glow {
@@ -2885,6 +2901,28 @@
   }
 }
 
+@keyframes training-fennec-base-scan-emphasis {
+  0% {
+    opacity: 1;
+  }
+
+  18% {
+    opacity: 0.68;
+  }
+
+  62% {
+    opacity: 0.72;
+  }
+
+  86% {
+    opacity: 0.92;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
 @keyframes training-fennec-volume-impact-ltr {
   0% {
     opacity: 0;
@@ -2892,8 +2930,16 @@
     mask-position: 43% 50%;
   }
 
-  26% {
+  18% {
     opacity: var(--training-fennec-detail-peak);
+  }
+
+  58% {
+    opacity: 0.22;
+  }
+
+  84% {
+    opacity: 0.06;
   }
 
   100% {
@@ -3243,6 +3289,7 @@
   .training-radar-fennec-surface,
   .training-radar-fennec-contour,
   .training-radar-fennec-impact,
+  .training-fennec-base,
   .training-radar-car-wireframe,
   .training-radar-car-glow,
   .training-radar-ball-energy,
