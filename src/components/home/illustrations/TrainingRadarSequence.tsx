@@ -8,6 +8,7 @@ import {
 } from "react";
 import {
   getTrainingRadarHitDelayMs,
+  getTrainingRadarRangeTiming,
   TRAINING_RADAR_TIMING,
   TRAINING_VOLUME_SCAN_TIMING,
   trainingRadarTargets,
@@ -223,21 +224,29 @@ export function useTrainingRadarSequence({
           volumeTarget,
           passDirection,
         );
-        const volumeStartDelayMs = Math.max(
-          0,
-          volumeHitDelayMs - TRAINING_VOLUME_SCAN_TIMING.leadMs,
-        );
+        const fennecRangeTiming =
+          volumeTarget.type === "fennec"
+            ? getTrainingRadarRangeTiming(
+                volumeTarget.scanRange,
+                passDirection,
+              )
+            : null;
+        const volumeStartDelayMs =
+          fennecRangeTiming?.startDelayMs ??
+          Math.max(
+            0,
+            volumeHitDelayMs - TRAINING_VOLUME_SCAN_TIMING.leadMs,
+          );
         const volumeScanGeneration =
           volumeTarget.id === "fennec" ? ++fennecVolumeScanGeneration : 0;
         const isCurrentVolumeScan = () =>
           volumeTarget.id !== "fennec" ||
           volumeScanGeneration === fennecVolumeScanGeneration;
         const volumeActiveDurationMs =
-          volumeTarget.type === "ball"
+          fennecRangeTiming?.durationMs ??
+          (volumeTarget.type === "ball"
             ? TRAINING_VOLUME_SCAN_TIMING.ballActiveDurationMs
-            : volumeTarget.type === "fennec"
-              ? TRAINING_VOLUME_SCAN_TIMING.fennecActiveDurationMs
-              : TRAINING_VOLUME_SCAN_TIMING.activeDurationMs;
+            : TRAINING_VOLUME_SCAN_TIMING.activeDurationMs);
         const volumeTotalDurationMs =
           volumeActiveDurationMs +
           (TRAINING_VOLUME_SCAN_TIMING.totalDurationMs -
