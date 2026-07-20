@@ -26,6 +26,7 @@ export type TrainingTacticalPhase =
 export type TrainingVolumeScanPhase = "hidden" | "active" | "fade";
 
 type TrainingRadarSequenceState = {
+  fennecSurfacePersistent: boolean;
   passDirection: TrainingRadarDirection;
   passKey: number;
   passTargetId: TrainingRadarTargetId | null;
@@ -66,6 +67,7 @@ const INITIAL_VOLUME_SCAN_DIRECTIONS: Record<TrainingVolumeScanTargetId, Trainin
 const TRAINING_FENNEC_IM_LIGHT_PERSISTENCE_MS = 2000;
 
 const INITIAL_SEQUENCE_STATE: TrainingRadarSequenceState = {
+  fennecSurfacePersistent: false,
   passDirection: "ltr",
   passKey: 0,
   passTargetId: null,
@@ -195,6 +197,13 @@ export function useTrainingRadarSequence({
       }));
     }
 
+    function setFennecSurfacePersistent(persistent: boolean) {
+      setSequence((current) => ({
+        ...current,
+        fennecSurfacePersistent: persistent,
+      }));
+    }
+
     function beginPass() {
       const target = trainingRadarTargets[targetIndex];
       const passDirection: TrainingRadarDirection =
@@ -246,6 +255,9 @@ export function useTrainingRadarSequence({
 
         schedule(() => {
           if (!isCurrentVolumeScan()) return;
+          if (volumeTarget.id === "fennec") {
+            setFennecSurfacePersistent(passDirection === "ltr");
+          }
           setVolumeScan(volumeTarget.id, "fade");
         }, volumeStartDelayMs + volumeActiveDurationMs);
 
@@ -287,6 +299,8 @@ export function useTrainingRadarSequence({
   }, [shouldRun]);
 
   return {
+    fennecSurfacePersistent:
+      shouldRun && sequence.fennecSurfacePersistent,
     passDirection: shouldRun ? sequence.passDirection : "ltr",
     passKey: shouldRun ? sequence.passKey : 0,
     passTargetId: shouldRun ? sequence.passTargetId : null,

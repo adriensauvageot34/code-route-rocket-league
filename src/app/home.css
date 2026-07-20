@@ -929,20 +929,18 @@
   filter: brightness(1.12) contrast(1.26) saturate(1.18);
   -webkit-mask-image: linear-gradient(
     var(--training-fennec-volume-mask-angle),
-    transparent 44%,
-    rgb(0 0 0 / 0.42) 46.5%,
-    black 48% 54%,
-    rgb(0 0 0 / 0.38) 55.5%,
-    transparent 57%
+    black 0 50%,
+    rgb(0 0 0 / 0.72) 51%,
+    transparent 53%
   );
   mask-image: linear-gradient(
     var(--training-fennec-volume-mask-angle),
-    transparent 44%,
-    rgb(0 0 0 / 0.42) 46.5%,
-    black 48% 54%,
-    rgb(0 0 0 / 0.38) 55.5%,
-    transparent 57%
+    black 0 50%,
+    rgb(0 0 0 / 0.72) 51%,
+    transparent 53%
   );
+  -webkit-mask-size: 200% 100%;
+  mask-size: 200% 100%;
 }
 
 .training-radar-fennec-contour {
@@ -1017,6 +1015,15 @@
   animation: training-fennec-volume-surface-rtl var(--training-volume-scan-duration) linear both;
 }
 
+.training-radar-fennec-target[data-surface-scan-persistent="true"]:not(
+    [data-volume-scan-phase="active"]
+  )
+  .training-radar-fennec-surface {
+  opacity: 0.4;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
 .training-radar-fennec-target[data-volume-scan-phase="active"][data-radar-direction="ltr"]
   .training-radar-fennec-contour {
   animation: training-fennec-volume-detail-ltr
@@ -1044,7 +1051,7 @@
 }
 
 .training-radar-fennec-target[data-volume-scan-phase="fade"]
-  :is(.training-radar-fennec-surface, .training-radar-fennec-contour) {
+  .training-radar-fennec-contour {
   opacity: 0;
 }
 
@@ -2777,9 +2784,9 @@
 
 @keyframes training-fennec-volume-surface-ltr {
   0% {
-    opacity: 0;
-    -webkit-mask-position: 43% 50%;
-    mask-position: 43% 50%;
+    opacity: 0.52;
+    -webkit-mask-position: 100% 50%;
+    mask-position: 100% 50%;
   }
 
   16% {
@@ -2787,35 +2794,35 @@
   }
 
   58% {
-    opacity: 0.42;
+    opacity: 0.5;
   }
 
   100% {
-    opacity: 0;
-    -webkit-mask-position: 9% 50%;
-    mask-position: 9% 50%;
+    opacity: 0.4;
+    -webkit-mask-position: 0% 50%;
+    mask-position: 0% 50%;
   }
 }
 
 @keyframes training-fennec-volume-surface-rtl {
   0% {
-    opacity: 0;
-    -webkit-mask-position: 9% 50%;
-    mask-position: 9% 50%;
+    opacity: 0.4;
+    -webkit-mask-position: 0% 50%;
+    mask-position: 0% 50%;
   }
 
   16% {
-    opacity: 0.62;
+    opacity: 0.54;
   }
 
   58% {
-    opacity: 0.42;
+    opacity: 0.38;
   }
 
   100% {
     opacity: 0;
-    -webkit-mask-position: 43% 50%;
-    mask-position: 43% 50%;
+    -webkit-mask-position: 100% 50%;
+    mask-position: 100% 50%;
   }
 }
 
