@@ -190,9 +190,12 @@ export function useTrainingRadarSequence({
       targetId: TrainingVolumeScanTargetId,
       phase: TrainingVolumeScanPhase,
       direction?: TrainingRadarDirection,
+      surfaceMode?: TrainingFennecSurfaceMode,
     ) {
       setSequence((current) => ({
         ...current,
+        fennecSurfaceMode:
+          surfaceMode ?? current.fennecSurfaceMode,
         volumeScanDirections: direction
           ? { ...current.volumeScanDirections, [targetId]: direction }
           : current.volumeScanDirections,
@@ -200,13 +203,6 @@ export function useTrainingRadarSequence({
           ...current.volumeScanPhases,
           [targetId]: phase,
         },
-      }));
-    }
-
-    function setFennecSurfaceMode(mode: TrainingFennecSurfaceMode) {
-      setSequence((current) => ({
-        ...current,
-        fennecSurfaceMode: mode,
       }));
     }
 
@@ -264,22 +260,30 @@ export function useTrainingRadarSequence({
 
         schedule(() => {
           if (!isCurrentVolumeScan()) return;
-          if (volumeTarget.id === "fennec") {
-            setFennecSurfaceMode(
-              passDirection === "ltr" ? "reveal" : "erase",
-            );
-          }
-          setVolumeScan(volumeTarget.id, "active", passDirection);
+          setVolumeScan(
+            volumeTarget.id,
+            "active",
+            passDirection,
+            volumeTarget.id === "fennec"
+              ? passDirection === "ltr"
+                ? "reveal"
+                : "erase"
+              : undefined,
+          );
         }, volumeStartDelayMs);
 
         schedule(() => {
           if (!isCurrentVolumeScan()) return;
-          if (volumeTarget.id === "fennec") {
-            setFennecSurfaceMode(
-              passDirection === "ltr" ? "persisted" : "hidden",
-            );
-          }
-          setVolumeScan(volumeTarget.id, "fade");
+          setVolumeScan(
+            volumeTarget.id,
+            "fade",
+            undefined,
+            volumeTarget.id === "fennec"
+              ? passDirection === "ltr"
+                ? "persisted"
+                : "hidden"
+              : undefined,
+          );
         }, volumeStartDelayMs + volumeActiveDurationMs);
 
         schedule(() => {
