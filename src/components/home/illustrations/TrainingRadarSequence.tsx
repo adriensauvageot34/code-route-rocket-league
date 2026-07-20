@@ -223,11 +223,21 @@ export function useTrainingRadarSequence({
         const isCurrentVolumeScan = () =>
           volumeTarget.id !== "fennec" ||
           volumeScanGeneration === fennecVolumeScanGeneration;
+        const volumeActiveDurationMs =
+          volumeTarget.type === "ball"
+            ? TRAINING_VOLUME_SCAN_TIMING.ballActiveDurationMs
+            : volumeTarget.type === "fennec"
+              ? TRAINING_VOLUME_SCAN_TIMING.fennecActiveDurationMs
+              : TRAINING_VOLUME_SCAN_TIMING.activeDurationMs;
+        const volumeTotalDurationMs =
+          volumeActiveDurationMs +
+          (TRAINING_VOLUME_SCAN_TIMING.totalDurationMs -
+            TRAINING_VOLUME_SCAN_TIMING.activeDurationMs);
         const volumeHiddenDelayMs =
           volumeTarget.id === "fennec"
-            ? TRAINING_VOLUME_SCAN_TIMING.activeDurationMs +
+            ? volumeActiveDurationMs +
               TRAINING_FENNEC_IM_LIGHT_PERSISTENCE_MS
-            : TRAINING_VOLUME_SCAN_TIMING.totalDurationMs;
+            : volumeTotalDurationMs;
 
         schedule(() => {
           if (!isCurrentVolumeScan()) return;
@@ -237,7 +247,7 @@ export function useTrainingRadarSequence({
         schedule(() => {
           if (!isCurrentVolumeScan()) return;
           setVolumeScan(volumeTarget.id, "fade");
-        }, volumeStartDelayMs + TRAINING_VOLUME_SCAN_TIMING.activeDurationMs);
+        }, volumeStartDelayMs + volumeActiveDurationMs);
 
         schedule(() => {
           if (!isCurrentVolumeScan()) return;

@@ -735,8 +735,11 @@
 }
 
 .training-radar-overlay.is-active .training-radar-motion {
-  animation: training-radar-traverse var(--radar-travel-duration) linear
-    var(--radar-entry-duration) both;
+  animation:
+    training-radar-traverse var(--radar-travel-duration)
+      var(--radar-travel-easing) var(--radar-entry-duration) both,
+    training-radar-visibility var(--radar-travel-duration) linear
+      var(--radar-entry-duration) both;
 }
 
 .training-tactical-terrain {
@@ -1939,8 +1942,17 @@
 
 @keyframes training-radar-traverse {
   0% {
-    opacity: 0;
     transform: translate3d(var(--radar-start-x), 0, 0);
+  }
+
+  100% {
+    transform: translate3d(var(--radar-end-x), 0, 0);
+  }
+}
+
+@keyframes training-radar-visibility {
+  0% {
+    opacity: 0;
   }
 
   8% {
@@ -1953,7 +1965,6 @@
 
   100% {
     opacity: 0;
-    transform: translate3d(var(--radar-end-x), 0, 0);
   }
 }
 

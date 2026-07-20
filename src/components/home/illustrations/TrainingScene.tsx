@@ -44,7 +44,7 @@ const trainingNearCarTarget = getTrainingCarTarget("trainingCarNear");
 const trainingFennecScanStyle = {
   "--training-volume-contour-delay": `${TRAINING_VOLUME_SCAN_TIMING.contourDelayMs}ms`,
   "--training-volume-fade-duration": `${TRAINING_VOLUME_SCAN_TIMING.fadeDurationMs}ms`,
-  "--training-volume-scan-duration": `${TRAINING_VOLUME_SCAN_TIMING.activeDurationMs}ms`,
+  "--training-volume-scan-duration": `${TRAINING_VOLUME_SCAN_TIMING.fennecActiveDurationMs}ms`,
 } as CSSProperties;
 
 export function TrainingScene({ active, launching }: TrainingSceneProps) {
