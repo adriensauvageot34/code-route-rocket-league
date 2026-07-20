@@ -907,10 +907,12 @@
   height: 100% !important;
   object-fit: cover;
   object-position: center;
+  clip-path: inset(47% 7.6% 15% 61.3%);
   opacity: 0;
   mix-blend-mode: screen;
   pointer-events: none;
-  transform-origin: 76.82% 64.61%;
+  transform: none;
+  transform-origin: center;
   user-select: none;
   transition: opacity var(--training-volume-fade-duration) ease-out;
   -webkit-mask-repeat: no-repeat;
@@ -919,14 +921,9 @@
   mask-size: 220% 100%;
 }
 
-.training-radar-fennec-surface,
-.training-radar-fennec-contour {
-  transform: translate(0.69%, -1.54%) scale(0.807);
-}
-
 .training-radar-fennec-surface {
   z-index: 2;
-  filter: brightness(1.18) contrast(1.14) saturate(1.2);
+  filter: brightness(1.12) contrast(1.26) saturate(1.18);
   -webkit-mask-image: linear-gradient(
     var(--training-fennec-volume-mask-angle),
     transparent 44%,
@@ -946,12 +943,12 @@
 }
 
 .training-radar-fennec-contour {
-  --training-fennec-detail-start: 0.1;
-  --training-fennec-detail-peak: 0.22;
-  --training-fennec-detail-tail: 0.06;
+  --training-fennec-detail-start: 0.06;
+  --training-fennec-detail-peak: 0.18;
+  --training-fennec-detail-tail: 0;
 
   z-index: 3;
-  filter: brightness(1.1) contrast(1.08) saturate(1.12);
+  filter: brightness(1.06) contrast(1.12) saturate(1.08);
   -webkit-mask-image: linear-gradient(
     var(--training-fennec-volume-mask-angle),
     transparent 44%,
@@ -972,13 +969,11 @@
 
 .training-radar-fennec-impact {
   --training-fennec-detail-start: 0;
-  --training-fennec-detail-peak: 0.055;
+  --training-fennec-detail-peak: 0.025;
   --training-fennec-detail-tail: 0;
 
   z-index: 4;
-  clip-path: polygon(37% 31%, 53% 23%, 66% 19%, 77.5% 20%, 90% 28%, 94% 44%, 94% 77.5%, 71% 86%, 45% 70%, 36% 52%);
-  filter: brightness(0.92) saturate(1);
-  transform: translate(6.56%, 7.55%) scale(0.57);
+  filter: none;
   -webkit-mask-image: linear-gradient(
     var(--training-fennec-volume-mask-angle),
     transparent 40%,
@@ -1046,8 +1041,15 @@
 }
 
 .training-radar-fennec-target[data-volume-scan-phase="fade"]
-  :is(.training-radar-fennec-surface, .training-radar-fennec-contour, .training-radar-fennec-impact) {
+  :is(.training-radar-fennec-surface, .training-radar-fennec-contour) {
   opacity: 0;
+}
+
+.training-radar-fennec-target[data-volume-scan-phase="fade"]
+  .training-radar-fennec-impact {
+  animation: training-fennec-volume-impact-persist 2000ms ease-out both;
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 
 .scene-group[data-scene-group="fennec-lights-glow"] .training-lights-glow {
@@ -2764,21 +2766,21 @@
 
 @keyframes training-fennec-volume-surface-ltr {
   0% {
-    opacity: 0.3;
+    opacity: 0;
     -webkit-mask-position: 43% 50%;
     mask-position: 43% 50%;
   }
 
-  18% {
-    opacity: 0.56;
+  16% {
+    opacity: 0.62;
   }
 
-  64% {
-    opacity: 0.38;
+  58% {
+    opacity: 0.42;
   }
 
   100% {
-    opacity: 0.16;
+    opacity: 0;
     -webkit-mask-position: 9% 50%;
     mask-position: 9% 50%;
   }
@@ -2786,21 +2788,21 @@
 
 @keyframes training-fennec-volume-surface-rtl {
   0% {
-    opacity: 0.3;
+    opacity: 0;
     -webkit-mask-position: 9% 50%;
     mask-position: 9% 50%;
   }
 
-  18% {
-    opacity: 0.56;
+  16% {
+    opacity: 0.62;
   }
 
-  64% {
-    opacity: 0.38;
+  58% {
+    opacity: 0.42;
   }
 
   100% {
-    opacity: 0.16;
+    opacity: 0;
     -webkit-mask-position: 43% 50%;
     mask-position: 43% 50%;
   }
@@ -2875,6 +2877,24 @@
     opacity: 0;
     -webkit-mask-position: 43% 50%;
     mask-position: 43% 50%;
+  }
+}
+
+@keyframes training-fennec-volume-impact-persist {
+  0% {
+    opacity: 0.025;
+  }
+
+  18% {
+    opacity: 0.02;
+  }
+
+  64% {
+    opacity: 0.008;
+  }
+
+  100% {
+    opacity: 0;
   }
 }
 

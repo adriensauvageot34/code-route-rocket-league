@@ -63,6 +63,8 @@ const INITIAL_VOLUME_SCAN_DIRECTIONS: Record<TrainingVolumeScanTargetId, Trainin
   fennec: "ltr",
 };
 
+const TRAINING_FENNEC_IM_LIGHT_PERSISTENCE_MS = 2000;
+
 const INITIAL_SEQUENCE_STATE: TrainingRadarSequenceState = {
   passDirection: "ltr",
   passKey: 0,
@@ -140,6 +142,7 @@ export function useTrainingRadarSequence({
     let cancelled = false;
     let targetIndex = 0;
     let activeTacticalTargetId: TrainingRadarTargetId | null = null;
+    let fennecVolumeScanGeneration = 0;
 
     function schedule(callback: () => void, delayMs: number) {
       const timer = window.setTimeout(() => {
@@ -215,18 +218,31 @@ export function useTrainingRadarSequence({
           0,
           volumeHitDelayMs - TRAINING_VOLUME_SCAN_TIMING.leadMs,
         );
+        const volumeScanGeneration =
+          volumeTarget.id === "fennec" ? ++fennecVolumeScanGeneration : 0;
+        const isCurrentVolumeScan = () =>
+          volumeTarget.id !== "fennec" ||
+          volumeScanGeneration === fennecVolumeScanGeneration;
+        const volumeHiddenDelayMs =
+          volumeTarget.id === "fennec"
+            ? TRAINING_VOLUME_SCAN_TIMING.activeDurationMs +
+              TRAINING_FENNEC_IM_LIGHT_PERSISTENCE_MS
+            : TRAINING_VOLUME_SCAN_TIMING.totalDurationMs;
 
         schedule(() => {
+          if (!isCurrentVolumeScan()) return;
           setVolumeScan(volumeTarget.id, "active", passDirection);
         }, volumeStartDelayMs);
 
         schedule(() => {
+          if (!isCurrentVolumeScan()) return;
           setVolumeScan(volumeTarget.id, "fade");
         }, volumeStartDelayMs + TRAINING_VOLUME_SCAN_TIMING.activeDurationMs);
 
         schedule(() => {
+          if (!isCurrentVolumeScan()) return;
           setVolumeScan(volumeTarget.id, "hidden");
-        }, volumeStartDelayMs + TRAINING_VOLUME_SCAN_TIMING.totalDurationMs);
+        }, volumeStartDelayMs + volumeHiddenDelayMs);
       }
 
       const tacticalHitDelayMs = getTrainingRadarHitDelayMs(target, passDirection);
