@@ -78,7 +78,7 @@ function getTrainingFennecScanStyle(
 
 export function TrainingScene({ active, launching }: TrainingSceneProps) {
   const {
-    fennecSurfacePersistent,
+    fennecSurfaceMode,
     passDirection,
     passKey,
     running,
@@ -233,7 +233,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         <div
           className="training-radar-fennec-target"
           data-radar-direction={trainingFennecScanDirection}
-          data-surface-scan-persistent={fennecSurfacePersistent ? "true" : "false"}
+          data-surface-scan-mode={fennecSurfaceMode}
           data-volume-scan-phase={getVolumeScanPhase(trainingFennecVolumeScanTarget.id)}
           style={trainingFennecScanStyle}
         >
