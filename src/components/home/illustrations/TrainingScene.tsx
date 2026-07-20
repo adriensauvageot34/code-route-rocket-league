@@ -229,7 +229,13 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
 
       <SceneGroup depth="trainingFennec" layer={16} name="fennec">
         <div aria-hidden="true" className="training-fennec-contact-shadow" />
-        <SceneLayer asset={assets.fennecBase} />
+        <div
+          className="training-fennec-base-frame"
+          data-surface-scan-mode={fennecSurfaceMode}
+          style={trainingFennecScanStyle}
+        >
+          <SceneLayer asset={assets.fennecBase} className="training-fennec-base" />
+        </div>
         <div
           className="training-radar-fennec-target"
           data-radar-direction={trainingFennecScanDirection}
