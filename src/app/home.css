@@ -873,6 +873,7 @@
   position: absolute;
   inset: 0;
   z-index: 1;
+  opacity: 1;
   pointer-events: none;
 }
 
@@ -880,9 +881,14 @@
   opacity: 1;
 }
 
-.training-fennec-base-frame[data-surface-scan-mode="reveal"] {
-  animation: training-fennec-base-scan-emphasis var(--training-volume-scan-duration)
-    var(--training-volume-scan-easing) both;
+.training-fennec-base-frame[data-surface-scan-mode="persisted"] {
+  animation: training-fennec-base-persisted-crossfade
+    var(--training-fennec-persisted-duration) cubic-bezier(0.45, 0, 0.55, 1) both;
+}
+
+.training-fennec-base-frame[data-surface-scan-mode="erase"] {
+  opacity: 1;
+  animation: none;
 }
 
 .scene-group[data-scene-group="fennec"] .training-fennec-rim-light {
@@ -1121,13 +1127,19 @@
     linear var(--training-volume-contour-delay) both;
 }
 
-.training-radar-fennec-target[data-surface-scan-mode="reveal"]
+.training-radar-fennec-target[data-surface-scan-mode="persisted"]
   .training-radar-fennec-impact {
-  animation: training-fennec-volume-impact-ltr var(--training-volume-scan-duration)
-    var(--training-volume-scan-easing) both;
+  animation: training-fennec-impact-persisted-crossfade
+    var(--training-fennec-persisted-duration) cubic-bezier(0.45, 0, 0.55, 1) both;
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 
-.training-radar-fennec-target[data-volume-scan-phase="active"][data-radar-direction="rtl"]
+.training-radar-fennec-target:is(
+    [data-surface-scan-mode="hidden"],
+    [data-surface-scan-mode="reveal"],
+    [data-surface-scan-mode="erase"]
+  )
   .training-radar-fennec-impact {
   opacity: 0;
   animation: none;
@@ -1136,12 +1148,6 @@
 .training-radar-fennec-target[data-volume-scan-phase="fade"]
   .training-radar-fennec-contour {
   opacity: 0;
-}
-
-.training-radar-fennec-target[data-volume-scan-phase="fade"]
-  .training-radar-fennec-impact {
-  opacity: 0;
-  animation: none;
 }
 
 .scene-group[data-scene-group="fennec-lights-glow"] .training-lights-glow {
@@ -2924,21 +2930,13 @@
   }
 }
 
-@keyframes training-fennec-base-scan-emphasis {
+@keyframes training-fennec-base-persisted-crossfade {
   0% {
     opacity: 1;
   }
 
-  15% {
-    opacity: 0.42;
-  }
-
-  65% {
-    opacity: 0.42;
-  }
-
-  88% {
-    opacity: 0.82;
+  50% {
+    opacity: 0;
   }
 
   100% {
@@ -2946,29 +2944,17 @@
   }
 }
 
-@keyframes training-fennec-volume-impact-ltr {
+@keyframes training-fennec-impact-persisted-crossfade {
   0% {
     opacity: 0;
-    -webkit-mask-position: 43% 50%;
-    mask-position: 43% 50%;
   }
 
-  18% {
-    opacity: var(--training-fennec-detail-peak);
-  }
-
-  58% {
-    opacity: 0.22;
-  }
-
-  84% {
-    opacity: 0.06;
+  50% {
+    opacity: 1;
   }
 
   100% {
     opacity: 0;
-    -webkit-mask-position: 9% 50%;
-    mask-position: 9% 50%;
   }
 }
 
@@ -3312,6 +3298,7 @@
   .training-radar-fennec-surface,
   .training-radar-fennec-contour,
   .training-radar-fennec-impact,
+  .training-fennec-base-frame,
   .training-fennec-base-frame,
   .training-fennec-base,
   .training-radar-car-wireframe,

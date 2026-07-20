@@ -12,6 +12,7 @@ import { TrainingParticleField } from "@/components/home/illustrations/TrainingP
 import { homeIllustrationAssets } from "@/lib/home/homeIllustrationAssets";
 import {
   getTrainingRadarRangeTiming,
+  TRAINING_RADAR_TIMING,
   TRAINING_VOLUME_SCAN_TIMING,
   trainingBallRadarTarget,
   trainingCarRadarTargets,
@@ -46,11 +47,26 @@ const trainingNearCarTarget = getTrainingCarTarget("trainingCarNear");
 type TrainingFennecScanStyle = CSSProperties & {
   "--training-fennec-mask-end-position": string;
   "--training-fennec-mask-start-position": string;
+  "--training-fennec-persisted-duration": string;
   "--training-volume-contour-delay": string;
   "--training-volume-fade-duration": string;
   "--training-volume-scan-duration": string;
   "--training-volume-scan-easing": string;
 };
+
+const trainingFennecLtrRangeTiming = getTrainingRadarRangeTiming(
+  trainingFennecVolumeScanTarget.scanRange,
+  "ltr",
+);
+const trainingFennecRtlRangeTiming = getTrainingRadarRangeTiming(
+  trainingFennecVolumeScanTarget.scanRange,
+  "rtl",
+);
+const trainingFennecPersistedDurationMs =
+  TRAINING_RADAR_TIMING.passDurationMs -
+  (trainingFennecLtrRangeTiming.startDelayMs +
+    trainingFennecLtrRangeTiming.durationMs) +
+  trainingFennecRtlRangeTiming.startDelayMs;
 
 function getTrainingFennecScanStyle(
   direction: TrainingRadarDirection,
@@ -69,6 +85,7 @@ function getTrainingFennecScanStyle(
       (1 - trainingFennecVolumeScanTarget.scanRange.startProgress) *
       100
     ).toFixed(1)}%`,
+    "--training-fennec-persisted-duration": `${trainingFennecPersistedDurationMs}ms`,
     "--training-volume-contour-delay": `${TRAINING_VOLUME_SCAN_TIMING.contourDelayMs}ms`,
     "--training-volume-fade-duration": `${TRAINING_VOLUME_SCAN_TIMING.fadeDurationMs}ms`,
     "--training-volume-scan-duration": `${rangeTiming.durationMs}ms`,
