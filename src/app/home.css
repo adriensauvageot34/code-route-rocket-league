@@ -902,6 +902,8 @@
 }
 
 .training-radar-fennec-surface-mask {
+  --training-fennec-surface-mask-angle: 90deg;
+
   position: absolute;
   inset: 0;
   z-index: 2;
@@ -913,13 +915,13 @@
   user-select: none;
   transition: none;
   -webkit-mask-image: linear-gradient(
-    var(--training-fennec-volume-mask-angle),
+    var(--training-fennec-surface-mask-angle),
     black 0 50%,
     rgb(0 0 0 / 0.72) 51%,
     transparent 53%
   );
   mask-image: linear-gradient(
-    var(--training-fennec-volume-mask-angle),
+    var(--training-fennec-surface-mask-angle),
     black 0 50%,
     rgb(0 0 0 / 0.72) 51%,
     transparent 53%
@@ -946,7 +948,7 @@
   inset: 0;
   width: 100% !important;
   height: 100% !important;
-  object-fit: cover;
+  object-fit: fill;
   object-position: center;
   opacity: 1;
   mix-blend-mode: normal;
