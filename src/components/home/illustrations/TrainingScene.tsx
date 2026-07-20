@@ -237,10 +237,14 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
           data-volume-scan-phase={getVolumeScanPhase(trainingFennecVolumeScanTarget.id)}
           style={trainingFennecScanStyle}
         >
-          <SceneLayer
-            asset={trainingFennecVolumeScanTarget.surfaceAsset}
-            className="training-radar-fennec-surface"
-          />
+          <div className="training-radar-fennec-surface-mask">
+            <div className="training-radar-fennec-surface-frame">
+              <SceneLayer
+                asset={trainingFennecVolumeScanTarget.surfaceAsset}
+                className="training-radar-fennec-surface"
+              />
+            </div>
+          </div>
           <SceneLayer
             asset={trainingFennecVolumeScanTarget.contourAsset}
             className="training-radar-fennec-contour"
