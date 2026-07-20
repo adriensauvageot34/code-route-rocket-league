@@ -128,6 +128,10 @@ export type TrainingFennecVolumeScanTarget = {
   id: "fennec";
   impactAsset: HomeIllustrationAsset;
   scanHitProgress: number;
+  scanRange: {
+    endProgress: number;
+    startProgress: number;
+  };
   surfaceAsset: HomeIllustrationAsset;
   type: "fennec";
 };
@@ -255,6 +259,10 @@ export const trainingFennecVolumeScanTarget = {
   impactAsset: assets.fennecRimLight,
   depth: "trainingFennec",
   scanHitProgress: TRAINING_FENNEC_SCAN_PROGRESS,
+  scanRange: {
+    startProgress: 0.613,
+    endProgress: 0.924,
+  },
 } as const satisfies TrainingFennecVolumeScanTarget;
 
 export const trainingVolumeScanTargets = [
@@ -349,6 +357,53 @@ export const TRAINING_RADAR_TRAVEL_EASING = {
   ltr: getTrainingRadarTravelEasing("ltr"),
   rtl: getTrainingRadarTravelEasing("rtl"),
 } as const;
+
+export function getTrainingRadarRangeTiming(
+  scanRange: { endProgress: number; startProgress: number },
+  direction: TrainingRadarDirection,
+) {
+  const sceneStartProgress =
+    direction === "ltr" ? scanRange.startProgress : scanRange.endProgress;
+  const sceneEndProgress =
+    direction === "ltr" ? scanRange.endProgress : scanRange.startProgress;
+  const movementStartProgress = getTrainingRadarMovementProgress(
+    sceneStartProgress,
+    direction,
+  );
+  const movementEndProgress = getTrainingRadarMovementProgress(
+    sceneEndProgress,
+    direction,
+  );
+  const startElapsedMs = getTrainingRadarElapsedTravelMs(
+    movementStartProgress,
+    direction,
+  );
+  const endElapsedMs = getTrainingRadarElapsedTravelMs(
+    movementEndProgress,
+    direction,
+  );
+  const durationMs = endElapsedMs - startElapsedMs;
+  const sampleCount = 16;
+  const easingPoints = Array.from({ length: sampleCount + 1 }, (_, index) => {
+    const localProgress = index / sampleCount;
+    const movementProgress =
+      movementStartProgress +
+      (movementEndProgress - movementStartProgress) * localProgress;
+    const elapsedProgress =
+      (getTrainingRadarElapsedTravelMs(movementProgress, direction) -
+        startElapsedMs) /
+      durationMs;
+
+    return `${localProgress.toFixed(3)} ${(elapsedProgress * 100).toFixed(3)}%`;
+  });
+
+  return {
+    durationMs: Math.round(durationMs),
+    easing: `linear(${easingPoints.join(", ")})`,
+    startDelayMs:
+      TRAINING_RADAR_TIMING.entryDurationMs + Math.round(startElapsedMs),
+  };
+}
 
 export function getTrainingRadarHitDelayMs(
   target: TrainingVolumeScanTarget,
