@@ -12,8 +12,8 @@ import {
   type TrainingParticlePresetName,
 } from "@/lib/home/trainingParticlePresets";
 import {
+  getTrainingRadarDelayForProgress,
   TRAINING_RADAR_SWEEP,
-  TRAINING_RADAR_TIMING,
   type TrainingRadarDirection,
 } from "@/lib/home/trainingRadarTargets";
 
@@ -90,18 +90,16 @@ function getParticleScanDelayMs(
   const sweepDistance =
     TRAINING_RADAR_SWEEP.endX - TRAINING_RADAR_SWEEP.startX;
   const coreOffsetX = getRadarCoreOffsetX(particle);
-  const rawProgress =
+  const sceneProgress =
     direction === "ltr"
       ? (logicalX - TRAINING_RADAR_SWEEP.startX - coreOffsetX) /
         sweepDistance
-      : (TRAINING_RADAR_SWEEP.endX - logicalX - coreOffsetX) /
+      : (logicalX - TRAINING_RADAR_SWEEP.startX + coreOffsetX) /
         sweepDistance;
-  const progress = Math.min(1, Math.max(0, rawProgress));
-  const scanHitMs =
-    TRAINING_RADAR_TIMING.entryDurationMs +
-    TRAINING_RADAR_TIMING.travelDurationMs * progress;
+  const progress = Math.min(1, Math.max(0, sceneProgress));
+  const scanHitMs = getTrainingRadarDelayForProgress(progress, direction);
 
-  return Math.max(0, Math.round(scanHitMs));
+  return Math.max(0, scanHitMs);
 }
 
 function createParticleStyle(

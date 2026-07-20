@@ -51,6 +51,10 @@ function getGroundedActorStyle(
   target: TrainingCarRadarTarget | TrainingBallRadarTarget,
 ): GroundedActorStyle {
   const { sourceAnchor, target: destination, shadow } = target.grounding;
+  const volumeScanDurationMs =
+    target.type === "ball"
+      ? TRAINING_VOLUME_SCAN_TIMING.ballActiveDurationMs
+      : TRAINING_VOLUME_SCAN_TIMING.activeDurationMs;
 
   return {
     "--training-actor-scale": destination.scale,
@@ -64,7 +68,7 @@ function getGroundedActorStyle(
     "--training-target-lifetime": `${TRAINING_RADAR_TIMING.targetLifetimeMs}ms`,
     "--training-volume-contour-delay": `${TRAINING_VOLUME_SCAN_TIMING.contourDelayMs}ms`,
     "--training-volume-fade-duration": `${TRAINING_VOLUME_SCAN_TIMING.fadeDurationMs}ms`,
-    "--training-volume-scan-duration": `${TRAINING_VOLUME_SCAN_TIMING.activeDurationMs}ms`,
+    "--training-volume-scan-duration": `${volumeScanDurationMs}ms`,
   };
 }
 

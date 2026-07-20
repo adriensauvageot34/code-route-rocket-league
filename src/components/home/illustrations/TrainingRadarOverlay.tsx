@@ -4,6 +4,7 @@ import {
   TRAINING_RADAR_FIELD_PATH,
   TRAINING_RADAR_SWEEP,
   TRAINING_RADAR_TIMING,
+  TRAINING_RADAR_TRAVEL_EASING,
   type TrainingRadarDirection,
 } from "@/lib/home/trainingRadarTargets";
 
@@ -18,6 +19,7 @@ type TrainingRadarStyle = CSSProperties & {
   "--radar-end-x": string;
   "--radar-start-x": string;
   "--radar-travel-duration": string;
+  "--radar-travel-easing": string;
 };
 
 const terrainAsset = homeIllustrationAssets.training.tacticalTerrain;
@@ -51,6 +53,7 @@ export function TrainingRadarOverlay({
   const style: TrainingRadarStyle = {
     "--radar-entry-duration": `${TRAINING_RADAR_TIMING.entryDurationMs}ms`,
     "--radar-travel-duration": `${TRAINING_RADAR_TIMING.travelDurationMs}ms`,
+    "--radar-travel-easing": TRAINING_RADAR_TRAVEL_EASING[direction],
     "--radar-start-x": `${movesLeftToRight ? TRAINING_RADAR_SWEEP.startX : TRAINING_RADAR_SWEEP.endX}px`,
     "--radar-end-x": `${movesLeftToRight ? TRAINING_RADAR_SWEEP.endX : TRAINING_RADAR_SWEEP.startX}px`,
   };

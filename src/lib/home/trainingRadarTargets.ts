@@ -1,9 +1,40 @@
 import { homeIllustrationAssets, type HomeIllustrationAsset } from "@/lib/home/homeIllustrationAssets";
 
+const TRAINING_BALL_SCAN_PROGRESS = 0.56;
+const TRAINING_FENNEC_SCAN_PROGRESS = 0.79;
+const TRAINING_RADAR_ENTRY_DURATION_MS = 250;
+const TRAINING_RADAR_BASE_TRAVEL_DURATION_MS = 2500;
+const TRAINING_RADAR_PASS_BUFFER_MS = 200;
+
+export const TRAINING_RADAR_SLOW_ZONES = [
+  {
+    id: "ball",
+    centerProgress: TRAINING_BALL_SCAN_PROGRESS,
+    width: 0.1,
+    extraDurationMs: 220,
+  },
+  {
+    id: "fennec",
+    centerProgress: TRAINING_FENNEC_SCAN_PROGRESS,
+    width: 0.16,
+    extraDurationMs: 380,
+  },
+] as const;
+
+const TRAINING_RADAR_TRAVEL_DURATION_MS =
+  TRAINING_RADAR_BASE_TRAVEL_DURATION_MS +
+  TRAINING_RADAR_SLOW_ZONES.reduce(
+    (total, zone) => total + zone.extraDurationMs,
+    0,
+  );
+
 export const TRAINING_RADAR_TIMING = {
-  passDurationMs: 2900,
-  entryDurationMs: 250,
-  travelDurationMs: 2500,
+  passDurationMs:
+    TRAINING_RADAR_ENTRY_DURATION_MS +
+    TRAINING_RADAR_TRAVEL_DURATION_MS +
+    TRAINING_RADAR_PASS_BUFFER_MS,
+  entryDurationMs: TRAINING_RADAR_ENTRY_DURATION_MS,
+  travelDurationMs: TRAINING_RADAR_TRAVEL_DURATION_MS,
   contactDurationMs: 180,
   wireframeDelayMs: 820,
   fadeDelayMs: 1500,
@@ -13,6 +44,8 @@ export const TRAINING_RADAR_TIMING = {
 
 export const TRAINING_VOLUME_SCAN_TIMING = {
   activeDurationMs: 380,
+  ballActiveDurationMs: 540,
+  fennecActiveDurationMs: 720,
   contourDelayMs: 60,
   fadeDurationMs: 210,
   leadMs: 120,
@@ -206,7 +239,7 @@ export const trainingBallRadarTarget = {
     target: { x: 0.5062, groundY: 0.5615, scale: 0.97 },
     shadow: { width: 0.075, height: 0.024 },
   },
-  scanHitProgress: 0.56,
+  scanHitProgress: TRAINING_BALL_SCAN_PROGRESS,
 } as const satisfies TrainingBallRadarTarget;
 
 export const trainingRadarTargets = [
@@ -221,7 +254,7 @@ export const trainingFennecVolumeScanTarget = {
   contourAsset: assets.fennecContourScan,
   impactAsset: assets.fennecRimLight,
   depth: "trainingFennec",
-  scanHitProgress: 0.79,
+  scanHitProgress: TRAINING_FENNEC_SCAN_PROGRESS,
 } as const satisfies TrainingFennecVolumeScanTarget;
 
 export const trainingVolumeScanTargets = [
@@ -233,15 +266,96 @@ export type TrainingRadarTargetId = (typeof trainingRadarTargets)[number]["id"];
 export type TrainingVolumeScanTargetId =
   (typeof trainingVolumeScanTargets)[number]["id"];
 
+function clampTrainingRadarProgress(progress: number) {
+  return Math.min(1, Math.max(0, progress));
+}
+
+function smoothTrainingRadarStep(progress: number) {
+  const clampedProgress = clampTrainingRadarProgress(progress);
+  return clampedProgress * clampedProgress * (3 - 2 * clampedProgress);
+}
+
+function getTrainingRadarMovementProgress(
+  progress: number,
+  direction: TrainingRadarDirection,
+) {
+  const sceneProgress = clampTrainingRadarProgress(progress);
+  return direction === "rtl" ? 1 - sceneProgress : sceneProgress;
+}
+
+function getTrainingRadarElapsedTravelMs(
+  movementProgress: number,
+  direction: TrainingRadarDirection,
+) {
+  const baseElapsedMs =
+    TRAINING_RADAR_BASE_TRAVEL_DURATION_MS * movementProgress;
+  const slowdownElapsedMs = TRAINING_RADAR_SLOW_ZONES.reduce(
+    (total, zone) => {
+      const centerProgress =
+        direction === "rtl" ? 1 - zone.centerProgress : zone.centerProgress;
+      const zoneStart = centerProgress - zone.width / 2;
+      const zoneProgress = (movementProgress - zoneStart) / zone.width;
+
+      return (
+        total +
+        zone.extraDurationMs * smoothTrainingRadarStep(zoneProgress)
+      );
+    },
+    0,
+  );
+
+  return baseElapsedMs + slowdownElapsedMs;
+}
+
+export function getTrainingRadarTravelDelayForProgress(
+  progress: number,
+  direction: TrainingRadarDirection,
+) {
+  const movementProgress = getTrainingRadarMovementProgress(
+    progress,
+    direction,
+  );
+
+  return Math.round(
+    getTrainingRadarElapsedTravelMs(movementProgress, direction),
+  );
+}
+
+export function getTrainingRadarDelayForProgress(
+  progress: number,
+  direction: TrainingRadarDirection,
+) {
+  return (
+    TRAINING_RADAR_TIMING.entryDurationMs +
+    getTrainingRadarTravelDelayForProgress(progress, direction)
+  );
+}
+
+function getTrainingRadarTravelEasing(direction: TrainingRadarDirection) {
+  const sampleCount = 50;
+  const points = Array.from({ length: sampleCount + 1 }, (_, index) => {
+    const movementProgress = index / sampleCount;
+    const elapsedProgress =
+      getTrainingRadarElapsedTravelMs(movementProgress, direction) /
+      TRAINING_RADAR_TIMING.travelDurationMs;
+
+    return `${movementProgress.toFixed(3)} ${(elapsedProgress * 100).toFixed(3)}%`;
+  });
+
+  return `linear(${points.join(", ")})`;
+}
+
+export const TRAINING_RADAR_TRAVEL_EASING = {
+  ltr: getTrainingRadarTravelEasing("ltr"),
+  rtl: getTrainingRadarTravelEasing("rtl"),
+} as const;
+
 export function getTrainingRadarHitDelayMs(
   target: TrainingVolumeScanTarget,
   direction: TrainingRadarDirection,
 ) {
-  const hitProgress =
-    direction === "rtl" ? 1 - target.scanHitProgress : target.scanHitProgress;
-
-  return Math.round(
-    TRAINING_RADAR_TIMING.entryDurationMs +
-      TRAINING_RADAR_TIMING.travelDurationMs * hitProgress,
+  return getTrainingRadarDelayForProgress(
+    target.scanHitProgress,
+    direction,
   );
 }

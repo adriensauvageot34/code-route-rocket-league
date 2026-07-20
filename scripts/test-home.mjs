@@ -186,384 +186,4 @@ assert(trainingScene.includes('name="ball"') && trainingScene.includes('name="fe
 for (const premiumFennecLayer of ["fennecHeadlightGlow", "fennecRearAccent"]) {
   assert(trainingScene.includes(`assets.${premiumFennecLayer}`), `Missing permanent premium Fennec layer: ${premiumFennecLayer}.`);
 }
-assert(!homeIllustrationAssets.includes("fennec-base reflection overlay.png") && !trainingScene.includes("assets.fennecReflection"), "The parasitic Fennec reflection overlay must never be registered or rendered.");
-assert(trainingScene.includes("assets.lightsVioletGlow") && trainingScene.indexOf('name="fennec"') < trainingScene.indexOf('name="fennec-lights-glow"'), "The violet screen asset must render in a separate group above the Fennec.");
-for (const fennecVolumeAsset of ["fennecSurfaceScan", "fennecContourScan", "fennecRimLight"]) {
-  assert(trainingRadarTargets.includes(fennecVolumeAsset), `Missing Fennec systematic volume asset: ${fennecVolumeAsset}.`);
-}
-for (const fennecAssetPath of ["/ui/training-fennec-base.png", "/ui/fennec-base surface-scan overlay.png", "/ui/fennec-base contour-scan overlay.png", "/ui/fennec-base im light overlay.png"]) {
-  assert(homeIllustrationAssets.includes(fennecAssetPath), `Missing calibrated Fennec asset: ${fennecAssetPath}.`);
-}
-assert(trainingScene.includes("training-radar-fennec-target") && trainingScene.includes("trainingFennecVolumeScanTarget.surfaceAsset") && trainingScene.includes("trainingFennecVolumeScanTarget.contourAsset") && trainingScene.includes("trainingFennecVolumeScanTarget.impactAsset") && trainingScene.includes("data-volume-scan-phase") && trainingScene.includes("data-radar-direction"), "All three Fennec scan overlays must share the live systematic volume state.");
-assert(trainingScene.includes('className="training-transition-wave-local"'), "Prepared Training transition layer must remain.");
-
-for (const [preset, expectedCount] of Object.entries({ far: 6, mid: 5, near: 3 })) {
-  assert(
-    trainingParticlePresets.includes(`${preset}: ${expectedCount},`),
-    `Training particle count must stay deterministic for ${preset}: ${expectedCount}.`
-  );
-  assert(
-    trainingScene.includes(`depth="trainingParticles${preset[0].toUpperCase()}${preset.slice(1)}"`) &&
-      trainingScene.includes(`preset="${preset}"`),
-    `Training particle trail missing from the ${preset} parallax depth.`
-  );
-}
-assert(trainingParticlePresets.includes("far: 1107") && trainingParticlePresets.includes("mid: 2284") && trainingParticlePresets.includes("near: 3916"), "Training particles must use fixed per-depth seeds.");
-assert(!trainingParticlePresets.includes("Math.random"), "Training particles must not use nondeterministic randomness.");
-for (const visibilityTuning of [
-  "size: [2.2, 3.4]",
-  "opacity: [0.78, 0.94]",
-  "size: [2.8, 4.5]",
-  "opacity: [0.82, 1]",
-  "size: [3.6, 5.4]",
-  "opacity: [0.86, 1]",
-  "glow: [18, 25]",
-]) {
-  assert(trainingParticlePresets.includes(visibilityTuning), `Radar-linked tactical particles lost their calibrated tuning: ${visibilityTuning}.`);
-}
-for (const lifetimeTuning of [
-  "durationMs: [950, 1150]",
-  "durationMs: [1050, 1300]",
-  "durationMs: [1150, 1400]",
-  "rise: [12, 18]",
-  "driftX: [5, 10]",
-]) {
-  assert(trainingParticlePresets.includes(lifetimeTuning), `Radar trail timing or lift missing: ${lifetimeTuning}.`);
-}
-const radarTrailParticleCounts = { "violet-dust": 5, "gold-dot": 2, "tactical-spark": 7 };
-for (const [kind, expectedCount] of Object.entries(radarTrailParticleCounts)) {
-  assert(trainingParticlePresets.includes(`"${kind}": ${expectedCount}`), `Radar trail particle count missing for ${kind}: ${expectedCount}.`);
-}
-assert(Object.values(radarTrailParticleCounts).reduce((total, count) => total + count, 0) === 14, "Training radar trail must render exactly 14 readable particles per pass.");
-assert(trainingParticlePresets.includes("(index + 0.5 + (random() - 0.5) * 0.44) / expectedCount"), "Radar particles must span the sweep from left to right instead of clustering.");
-assert(trainingParticlePresets.includes("exclusionZones") && trainingParticlePresets.includes("isTooClose"), "Particle generation must keep actor exclusions and anti-cluster spacing.");
-assert(trainingParticlePresets.includes("normalizedX ** 2 + normalizedY ** 2 < 1"), "Actor exclusions must use precise elliptical masks.");
-assert(trainingParticleField.includes('aria-hidden="true"') && trainingParticleField.includes('data-particle-kind={particle.kind}'), "Particles must remain decorative and expose their deterministic visual kind.");
-for (const radarProp of ["active: boolean", "direction: TrainingRadarDirection", "passKey: number"]) {
-  assert(trainingParticleField.includes(radarProp), `Radar particle field missing synchronization prop: ${radarProp}.`);
-}
-assert(trainingParticleField.includes("TRAINING_RADAR_SWEEP") && trainingParticleField.includes("TRAINING_RADAR_TIMING"), "Particle delays must derive from the same sweep geometry and timing as the radar.");
-assert(
-  trainingParticleField.includes("getParticleScanDelayMs") &&
-    trainingParticleField.includes("getRadarCoreOffsetX") &&
-    trainingParticleField.includes("Math.round(scanHitMs)"),
-  "Particles must start exactly on the slanted radar core without an appearance delay.",
-);
-assert(trainingParticleField.includes("Math.max(") && trainingParticleField.includes("TRAINING_RADAR_CORE_BOTTOM_X"), "Particle timing must clamp safely and follow the radar perspective from horizon to foreground.");
-assert(trainingParticleField.includes('direction === "ltr"') && trainingParticleField.includes("TRAINING_RADAR_SWEEP.endX - logicalX"), "Particle delay must reverse with the radar direction.");
-assert(trainingParticleField.includes('const trailDirection = direction === "ltr" ? -1 : 1') && trainingParticleField.includes("directionalDriftX"), "Particles must drift behind the radar in the direction opposite its travel.");
-assert(trainingParticleField.includes("displayedPasses") && !trainingParticleField.includes("setTimeout"), "The current particle pass must render in the same commit as the radar instead of one task later.");
-assert(trainingParticleField.includes(".slice(-2)"), "The previous radar pass must remain long enough to finish disintegrating.");
-assert(trainingParticleField.includes("memo(function TrainingParticleField"), "Unrelated radar target phases must not restart the delayed particle trail.");
-assert(trainingParticleField.includes("memo(function TrainingParticleSprite"), "Each launched particle must finish without being restarted by later radar updates.");
-assert(trainingParticleField.includes("--particle-rise-end") && trainingParticleField.includes("--particle-glow-soft") && trainingParticleField.includes("--particle-fragment-rise-end"), "Particle trail must expose lift, glow decay and disintegration fragments.");
-assert(trainingScene.includes("active={running}") && trainingScene.includes("direction={passDirection}") && trainingScene.includes("passKey={passKey}"), "All particle depths must receive the live radar pass.");
-assert(!/(<img|<video|<canvas|\.png|\.gif|requestAnimationFrame)/.test(trainingParticleField + trainingParticlePresets), "Particle rendering must stay HTML/CSS-only without a per-frame React loop.");
-assert(trainingRadarOverlay.includes('id="training-radar-terrain-core-mask"') && trainingRadarOverlay.includes('className="training-tactical-terrain-core"'), "The tactical mesh must receive a dedicated high-intensity reveal under the radar core.");
-assert(trainingRadarOverlay.includes('className="training-radar-core-glow"') && trainingRadarOverlay.includes('className="training-radar-core-line"'), "The radar must separate its soft halo from its sharp central scan line.");
-
-for (const orderedName of [
-  'name="training-radar-sweep"',
-  'name="training-barrier"',
-  'name="training-particles-far"',
-  `name={\`training-${'${trainingFarCarTarget.id}'}\`}`,
-  'name="training-particles-mid"',
-  `name={\`training-${'${trainingMidCarTarget.id}'}\`}`,
-  'name="training-particles-near"',
-  'name="fennec"',
-  'name="fennec-lights-glow"',
-]) {
-  assert(trainingScene.includes(orderedName), `Missing particle depth-order marker: ${orderedName}`);
-}
-const trainingParticleOrder = [
-  'name="training-radar-sweep"',
-  'name="training-barrier"',
-  'name="training-particles-far"',
-  `name={\`training-${'${trainingFarCarTarget.id}'}\`}`,
-  'name="training-particles-mid"',
-  `name={\`training-${'${trainingMidCarTarget.id}'}\`}`,
-  'name="training-particles-near"',
-  'name="fennec"',
-  'name="fennec-lights-glow"',
-].map((marker) => trainingScene.indexOf(marker));
-assert(trainingParticleOrder.every((position, index) => index === 0 || position > trainingParticleOrder[index - 1]), "Particle groups must keep their intended actor occlusion order.");
-assert(trainingScene.includes('data-launching={launching ? "true" : "false"}'), "Training particle lifecycle must receive launch state.");
-assert(trainingGroundedActor.includes("training-grounded-actor-base") && trainingGroundedActor.includes("training-contact-shadow"), "Grounded actors must share one transformed base and contact shadow.");
-assert(trainingGroundedActor.includes("training-radar-car-surface") && trainingGroundedActor.includes("training-radar-car-contour") && trainingGroundedActor.includes("training-radar-car-wireframe") && trainingGroundedActor.includes("training-radar-car-glow"), "Cars must layer surface, contour, wireframe and glow inside their grounded container.");
-assert(!trainingRadarTargets.includes("TRAINING_OBJECT_SCAN_TARGET_ID") && !trainingGroundedActor.includes("usesObjectScanV1"), "No adversary car may remain locked behind the retired car-03 prototype gate.");
-assert(trainingRadarTargets.match(/objectScan: \{/g)?.length === 3 && trainingGroundedActor.includes('data-object-scan="aligned"'), "All three adversary cars must carry their own radar-aligned scan configuration.");
-assert(!trainingGroundedActor.includes("training-object-local-scan-line") && trainingGroundedActor.includes("training-radar-object-surface") && trainingGroundedActor.includes("training-radar-object-contour"), "Every adversary car must render surface and contour volume layers without a decorative local line.");
-assert(trainingGroundedActor.includes("training-ball-contact-shadow") && trainingGroundedActor.includes("training-radar-ball-energy"), "Ball energy and contact treatment must share the grounded ball container.");
-assert(trainingGroundedActor.includes('src={target.surfaceAsset.path}') && trainingGroundedActor.includes('src={target.contourAsset.path}') && !trainingGroundedActor.includes('<span className="training-radar-ball-volume'), "The ball volume scan must render its aligned surface and contour image assets, not CSS spans.");
-assert(homeIllustrationAssets.includes('/ui/training-ball Overlay surface-scan.png') && homeIllustrationAssets.includes('/ui/training-ball overlay contour-scan.png') && homeIllustrationAssets.includes('/ui/training-ball-energy-gold.png'), "Ball volume and tactical energy assets must remain explicitly separate.");
-assert(trainingRadarOverlay.includes('viewBox="0 0 1672 941"') && trainingRadarOverlay.includes("TRAINING_RADAR_FIELD_PATH"), "Training radar must share and clip to the logical field canvas.");
-assert(trainingRadarOverlay.includes("data-radar-direction") && trainingScene.includes("direction={passDirection}"), "Training radar direction must drive both reveal layers.");
-assert(trainingRadarOverlay.includes('id="training-radar-field-surface-mask"') && trainingRadarOverlay.includes('id="training-radar-field-sweep-mask"'), "Every radar layer must use a field surface mask.");
-assert(!trainingRadarTargets.includes("TRAINING_OBJECT_SCAN_OCCLUSION") && !trainingRadarOverlay.includes("training-radar-object-notch") && !trainingScene.includes("objectTransferActive"), "The fixed car-03 capsule prototype must stay removed from the stable ground radar.");
-assert(!trainingRadarOverlay.includes('clipPath="url(#training-radar-field') && trainingRadarOverlay.includes('M -286 340 L 2 340'), "Training scan must keep the broad legacy reveal zone behind its strict field mask.");
-assert(trainingRadarOverlay.includes('stopColor="black"') && trainingRadarOverlay.includes('offset="0.04" stopColor="#707070"') && trainingRadarOverlay.includes('offset="0.6" stopColor="#e8e8e8"'), "Training radar depth must stay weak at the horizon but remain readable through the car zone.");
-assert(trainingRadarTargets.includes('"M 0 414 C 360 423') && trainingScene.indexOf('name="training-radar-sweep"') < trainingScene.indexOf('name="training-barrier"'), "The radar must be tightly masked to the visible pitch below the stable barrier.");
-assert(trainingRadarOverlay.includes('mix-blend-mode') === false && css.includes("mix-blend-mode: screen"), "Black tactical terrain must be screen blended in CSS.");
-assert(trainingRadarSequence.includes("document.visibilityState") && trainingRadarSequence.includes("IntersectionObserver") && trainingRadarSequence.includes("prefers-reduced-motion"), "Radar lifecycle must follow page, illustration, and motion visibility.");
-assert(!trainingRadarSequence.includes("requestAnimationFrame"), "Radar must not create a per-frame React loop.");
-assert(trainingRadarSequence.includes('targetIndex % 2 === 0 ? "ltr" : "rtl"') && trainingRadarSequence.includes("getTrainingRadarHitDelayMs(target, passDirection)"), "Radar passes must alternate direction and keep target hits synchronized.");
-assert(trainingRadarSequence.includes("for (const volumeTarget of trainingVolumeScanTargets)") && trainingRadarSequence.includes("for (const volumeTarget of trainingRadarTargets)") === false, "Systematic volume scans must include the volume-only Fennec target.");
-assert(trainingRadarSequence.includes("volumeHitDelayMs - TRAINING_VOLUME_SCAN_TIMING.leadMs") && trainingRadarSequence.includes("Math.max(") && trainingRadarSequence.includes("volumeStartDelayMs + TRAINING_VOLUME_SCAN_TIMING.activeDurationMs"), "Systematic volume scans must lead the theoretical hit while keeping their lifecycle synchronized.");
-assert(trainingRadarSequence.includes("activateTacticalTarget(target.id)") && trainingRadarSequence.includes("}, tacticalHitDelayMs);"), "Selective tactical activation must keep its original theoretical hit delay.");
-for (const target of ["left-car", "back-right-car", "front-right-car", "ball", "fennec"]) {
-  assert(trainingRadarTargets.includes(`id: "${target}"`), `Missing training radar target: ${target}`);
-}
-assert(trainingRadarTargets.includes("trainingVolumeScanTargets") && trainingRadarTargets.includes("trainingFennecVolumeScanTarget") && trainingRadarTargets.includes("scanHitProgress: 0.79"), "The Fennec must join only the systematic volume target collection at its calibrated radar hit.");
-for (const timing of ["passDurationMs: 2900", "travelDurationMs: 2500", "contactDurationMs: 180", "wireframeDelayMs: 820", "fadeDelayMs: 1500", "targetLifetimeMs: 2300", "fadeDurationMs: 800", "activeDurationMs: 380", "contourDelayMs: 60", "fadeDurationMs: 210", "leadMs: 120", "totalDurationMs: 610"]) {
-  assert(trainingRadarTargets.includes(timing), `Missing centralized radar timing: ${timing}`);
-}
-for (const placement of ['left: "34.76%"', 'left: "69.28%"', 'left: "73.84%"']) {
-  assert(trainingRadarTargets.includes(placement), `Missing calibrated wireframe placement: ${placement}`);
-}
-for (const grounding of ["groundY: 0.465", "groundY: 0.45", "groundY: 0.49", "groundY: 0.5615"]) {
-  assert(trainingRadarTargets.includes(grounding), `Missing grounded actor contact: ${grounding}`);
-}
-assert(competitiveScene.includes('name="cage"') && competitiveScene.includes('name="ground-reflection"'), "Competitive cage composition must remain.");
-assert(competitiveScene.includes('name="motion-trail"') && competitiveScene.includes('name="fennec"'), "Competitive car composition must remain.");
-for (const depth of ["3", "5", "7", "11", "14"]) {
-  assert(sceneDepths.includes(`translationX: ${depth}`), `Missing legacy parallax depth: ${depth}px`);
-}
-assert(sceneDepths.includes("rotation: 0.2"), "Parallax rotation must remain capped at 0.2deg.");
-for (const trainingDepth of ["trainingSky", "trainingSkyline", "trainingMid", "trainingNear", "trainingGround", "trainingParticlesFar", "trainingParticlesMid", "trainingParticlesNear", "trainingCarFar", "trainingCarMid", "trainingCarNear", "trainingBall", "trainingFennec"]) {
-  assert(sceneDepths.includes(`${trainingDepth}:`), `Missing Training parallax depth: ${trainingDepth}`);
-}
-for (const amplitude of [3, 7, 22, 27, 23, 25, 28, 34]) {
-  assert(sceneDepths.includes(`translationX: ${amplitude}`), `Missing Training horizontal amplitude: ${amplitude}px`);
-}
-assert(sceneDepths.includes("trainingParticlesFar: { translationX: 10, translationY: 0.8") && sceneDepths.includes("trainingParticlesMid: { translationX: 31, translationY: 2.6") && sceneDepths.includes("trainingParticlesNear: { translationX: 50, translationY: 4.4"), "Particle parallax must increase distinctly from far to near.");
-assert(parallaxController.includes("requestAnimationFrame") && parallaxController.includes("cancelAnimationFrame"), "Parallax must create and cancel its frame.");
-assert(
-  parallaxController.includes("new ResizeObserver") &&
-    parallaxController.includes("entry.contentRect.width") &&
-    parallaxController.includes("resizeObserver.disconnect()"),
-  "Training safety scale must be calculated at mount and recalculated by ResizeObserver."
-);
-const parallaxFrameBody =
-  parallaxController.match(/function animate\(timestamp: number\)([\s\S]*?)function stopAnimation/)?.[1] ?? "";
-assert(
-  !parallaxFrameBody.includes("clientWidth") &&
-    !parallaxFrameBody.includes("contentRect") &&
-    !parallaxFrameBody.includes("getBoundingClientRect"),
-  "Parallax animation frames must not measure layout."
-);
-assert(
-  sceneDepths.includes("calculateTrainingParallaxSafety") &&
-    sceneDepths.includes("(2 * (translationX + safetyMargin)) / renderedContainerWidth"),
-  "Training horizontal overscan must use the documented safety formula."
-);
-assert(
-  sceneDepths.includes("TRAINING_PARALLAX_SAFETY_MARGIN_PX = 10") &&
-    sceneDepths.includes("TRAINING_PARALLAX_MAX_SCALE_X = 1.1"),
-  "Training overscan must keep a ten-pixel margin and cap horizontal zoom."
-);
-for (const safetyDepth of ["trainingSkyline", "trainingMid", "trainingNear", "trainingGround"]) {
-  assert(
-    sceneDepths.includes(`  "${safetyDepth}"`),
-    `Dynamic Training safety depth missing: ${safetyDepth}`
-  );
-}
-const trainingSafetyDepthSource = sceneDepths.match(/trainingParallaxSafetyDepths = \[([\s\S]*?)\]/)?.[1] ?? "";
-assert(!trainingSafetyDepthSource.includes("trainingParticles"), "HTML particle planes must not enter raster overscan safety scaling.");
-
-const requestedTrainingTranslations = {
-  trainingSkyline: 7,
-  trainingMid: 22,
-  trainingNear: 34,
-  trainingGround: 27,
-};
-const trainingSafetyMargin = 10;
-const trainingMaximumScale = 1.1;
-
-function calculateExpectedTrainingSafety(width, requestedTranslationX) {
-  const maximumOverscanPerSide = ((trainingMaximumScale - 1) * width) / 2;
-  const safetyMargin = Math.min(trainingSafetyMargin, maximumOverscanPerSide);
-  const translationX = Math.min(
-    requestedTranslationX,
-    Math.max(0, maximumOverscanPerSide - safetyMargin)
-  );
-  const scaleX = 1 + (2 * (translationX + safetyMargin)) / width;
-  return { safetyMargin, scaleX, translationX };
-}
-
-for (const width of [1672, 1166, 1180, 820, 320]) {
-  for (const [name, requestedTranslationX] of Object.entries(requestedTrainingTranslations)) {
-    const safety = calculateExpectedTrainingSafety(width, requestedTranslationX);
-    const overscanPerSide = ((safety.scaleX - 1) * width) / 2;
-
-    assert(safety.scaleX <= trainingMaximumScale + 1e-9, `${name} zoom exceeds cap at ${width}px.`);
-    for (const cameraX of [-1, 0, 1]) {
-      const requiredCoverage = Math.abs(cameraX * safety.translationX) + safety.safetyMargin;
-      assert(
-        overscanPerSide + 1e-9 >= requiredCoverage,
-        `${name} exposes an edge at x=${cameraX} and ${width}px.`
-      );
-    }
-  }
-}
-assert(
-  calculateExpectedTrainingSafety(820, 34).translationX < 34 &&
-    calculateExpectedTrainingSafety(320, 34).translationX <
-      calculateExpectedTrainingSafety(820, 34).translationX,
-  "Small screens must reduce horizontal travel instead of increasing zoom past the cap."
-);
-assert(trainingRadarSequence.includes("tacticalPhases") && trainingRadarSequence.includes("activeTacticalTargetId") && trainingRadarSequence.includes("...HIDDEN_TACTICAL_PHASES"), "Radar must clear the previous tactical object before activating exactly one deep-analysis target.");
-assert(trainingRadarSequence.includes("volumeScanPhases") && trainingRadarSequence.includes("for (const volumeTarget of trainingVolumeScanTargets)") && trainingRadarSequence.includes("getTrainingRadarHitDelayMs(\n          volumeTarget"), "Every pass must independently schedule a hit-synchronous volume scan for all five 3D objects.");
-assert(trainingRadarSequence.includes('setVolumeScan(volumeTarget.id, "active", passDirection)') && trainingRadarSequence.includes('setVolumeScan(volumeTarget.id, "fade")') && trainingRadarSequence.includes('setVolumeScan(volumeTarget.id, "hidden")'), "Volume scan delay must apply to disappearance, not initial reveal.");
-assert(trainingRadarSequence.includes("schedule(beginPass, TRAINING_RADAR_TIMING.passDurationMs)"), "Radar must reverse immediately when each traverse ends.");
-for (const phase of ['"contact"', '"wireframe"', '"fade"', '"active"']) {
-  assert(trainingRadarSequence.includes(phase), `Separated radar phase missing: ${phase}.`);
-}
-assert(
-  css.includes("translate3d(0, -8%, 0) scaleY(1)") &&
-    css.includes("translate3d(0, -4%, 0) scaleY(1.02)"),
-  "Middle and near skyline planes must use vertical placement without horizontal CSS zoom."
-);
-const middleCityCss = css.match(/\.training-city-middle\s*\{[^}]*\}/s)?.[0] ?? "";
-const nearCityCss = css.match(/\.training-city-near\s*\{[^}]*\}/s)?.[0] ?? "";
-assert(
-  !/\bscale\(/.test(middleCityCss) && !/\bscale\(/.test(nearCityCss),
-  "Middle and near skyline images must not reintroduce a second horizontal scale."
-);
-assert(sceneDepths.includes("trainingMid: { translationX: 22") && sceneDepths.includes("trainingNear: { translationX: 34"), "The first two skyline planes must have strong and distinct foreground parallax.");
-assert(css.includes("inset: 11% -6% 61%") && css.includes("ellipse at 52% 82%"), "The skyline haze must retain the latest calibrated horizon placement.");
-assert(parallaxController.includes("AUTO_DRIFT_PERIOD_MS = 20000") && parallaxController.includes("-Math.sin(autoAngle)"), "Automatic camera must follow one continuous 20-second center-left-center-right cycle.");
-assert(parallaxController.includes('removeEventListener("pointermove"'), "Parallax pointer listener must clean up.");
-assert(parallaxController.includes('document.removeEventListener("visibilitychange"'), "Parallax visibility listener must clean up.");
-assert(parallaxController.includes("intersectionObserver?.disconnect()"), "Parallax observer must disconnect.");
-assert(!parallaxController.includes("useState"), "Parallax must not update React state per frame.");
-
-for (const line of css.split("\n")) {
-  if (line.includes("font-size")) {
-    assert(!line.includes("vw") && !line.includes("clamp("), `Font size must not scale with viewport width: ${line.trim()}`);
-  }
-}
-
-assert(css.includes("height: 100svh") && css.includes("overflow-y: hidden"), "Desktop home must fit the available viewport without scrolling.");
-assert(css.includes("@media (min-width: 1024px) and (min-height: 720px)"), "No-scroll desktop rule must start at the requested format.");
-assert(css.includes("@media (max-width: 820px)"), "Portrait tablet and mobile layouts must stack.");
-assert(css.includes(".home-statistics-panel") && css.includes(".statistics-lower-grid"), "Statistics panel layout must exist.");
-assert(/\.home-statistics-panel\s*\{[^}]*height:\s*auto;/s.test(css), "Empty statistics content must shrink to its natural height.");
-assert(!/\.home-statistics-panel\s*\{[^}]*border:\s*1px/s.test(css), "Statistics groups must not sit inside one visible outer card.");
-for (const separatedGroup of ["statistics-weekly-focus", "statistics-insight", "statistics-targeted", "statistics-sessions"]) {
-  assert(css.includes(`.${separatedGroup}`), `Missing separated statistics group: ${separatedGroup}`);
-}
-assert(css.includes("aspect-ratio: 1672 / 941"), "Scene ratio must remain 1672x941.");
-assert(css.includes('.mode-illustration[data-motion-active="false"]'), "Hidden and offscreen scene motion must pause.");
-assert(css.includes("@media (prefers-reduced-motion: reduce)"), "Reduced motion support must remain.");
-assert(css.includes("3% 44.2%") && css.includes("82% 44.7%") && css.includes("97% 44.2%"), "Particles must be clipped below the curved terrain horizon.");
-for (const preset of ["far", "mid", "near"]) {
-  assert(css.includes(`data-particle-preset="${preset}"`), `Missing CSS depth band for ${preset} radar particles.`);
-}
-for (const keyframe of ["training-radar-particle-birth-flash", "training-radar-particle-disintegrate", "training-radar-particle-fragment"]) {
-  assert(css.includes(`@keyframes ${keyframe}`), `Missing radar trail particle animation: ${keyframe}.`);
-}
-for (const kind of ["violet-dust", "gold-dot", "tactical-spark"]) {
-  assert(css.includes(`data-particle-kind="${kind}"`), `Missing radar trail particle shape: ${kind}.`);
-}
-assert(css.includes("var(--particle-delay) 1 forwards") && !css.includes("var(--particle-delay) infinite"), "Radar particles must play once after each scan hit, never loop independently.");
-assert(css.includes("drop-shadow(0 0 var(--particle-glow) currentColor)") && css.includes("drop-shadow(0 0 0 transparent)"), "Particles must leave the radar glowing and end with no glow.");
-assert(trainingParticleField.includes('className="training-particle-birth-flash"') && css.includes("var(--particle-kick-x)") && css.includes("scale(1.22)"), "Each radar particle must receive a visible birth flash and directional ejection impulse.");
-assert(css.includes("var(--particle-rise-mid)") && css.includes("var(--particle-rise-soft)") && css.includes("var(--particle-rise-end)"), "Particles must rise progressively while disintegrating.");
-assert(css.includes("var(--particle-fragment-rise-mid)") && css.includes("var(--particle-fragment-rise-end)"), "Each radar particle must shed a secondary rising fragment.");
-for (const removedWormMarker of ["training-metal-shard-jitter", "training-neon-streak-flash", "hard-glint", "neon-streak"]) {
-  assert(!css.includes(removedWormMarker) && !trainingParticlePresets.includes(removedWormMarker), `Legacy worm-like particle effect must stay removed: ${removedWormMarker}.`);
-}
-assert(css.includes("clip-path: polygon(0 42%, 67% 0") && css.includes('data-particle-kind="tactical-spark"'), "Radar particles must use compact tactical fragments instead of large soft circles.");
-assert(css.includes(".training-radar-core-line") && css.includes("stroke-width: 2.5px") && css.includes(".training-tactical-terrain-core"), "The radar core must stay thin, sharp and visibly linked to the saturated tactical mesh.");
-for (const layeredScanMarker of ["training-object-contact", "training-object-surface-scan-ltr", "training-object-surface-scan-rtl", "training-object-contour-scan-ltr", "training-object-contour-scan-rtl", "training-ball-volume-surface", "training-ball-volume-contour", "training-fennec-volume-surface-ltr", "training-fennec-volume-surface-rtl", "training-fennec-volume-detail-ltr", "training-fennec-volume-detail-rtl", "training-object-tactical-wireframe", "training-object-tactical-glow"]) {
-  assert(css.includes(layeredScanMarker), `Layered Training object scan CSS missing: ${layeredScanMarker}.`);
-}
-assert(css.includes("opacity: 0.34") && css.includes("opacity: 0.3") && css.includes("mask-position: 130% 50%") && css.includes("mask-position: -30% 50%"), "Surface and contour scans must reveal progressively behind the aligned local line at restrained opacity.");
-assert(trainingRadarTargets.includes('angle: "-19deg"') && trainingRadarTargets.includes("durationMs: 380") && trainingGroundedActor.includes("--training-volume-scan-duration") && trainingGroundedActor.includes("--training-volume-contour-delay"), "Each car volume scan must expose its own mask axis and short persistence timing.");
-assert(css.includes("calc(90deg + var(--training-object-scan-angle))") && css.includes("var(--training-volume-scan-duration)") && css.includes("var(--training-volume-contour-delay)"), "Directional surface mask and near-immediate contour must share the short volume-scan timing.");
-assert(css.includes('[data-volume-scan-phase="active"]') && css.includes('[data-tactical-active="true"]') && !css.includes("data-radar-active"), "Systematic volume reveal and selective tactical activation must use separate CSS state channels.");
-assert(css.includes("opacity: 0.3") && css.includes("opacity: 0.09") && css.includes("--training-target-lifetime"), "Selective tactical wireframe and glow must keep their longer restrained lifecycle.");
-for (const premiumClass of ["training-fennec-rim-light", "training-lights-glow", "training-fennec-headlight-glow", "training-fennec-rear-accent"]) {
-  assert(css.includes(premiumClass), `Premium Fennec treatment missing: ${premiumClass}.`);
-}
-for (const safeOpacity of ["opacity: 0.32", "opacity: 0.24", "opacity: 0.3", "opacity: 0.09"]) {
-  assert(css.includes(safeOpacity), `Safe Training overlay opacity missing: ${safeOpacity}.`);
-}
-assert(!css.includes("training-fennec-reflection"), "The removed Fennec reflection overlay must not retain dead rendering CSS.");
-assert(/\.training-fennec-headlight-glow\s*\{[\s\S]*?opacity:\s*0\.05;[\s\S]*?animation:\s*none;/s.test(css), "The legacy Fennec headlight overlay must remain strongly reduced to avoid doubling the screen glow.");
-assert(/\.training-lights-glow\s*\{[\s\S]*?opacity:\s*0\.48;[\s\S]*?mix-blend-mode:\s*screen;[\s\S]*?animation:\s*training-lights-breathe 3\.6s ease-in-out infinite;/s.test(css), "The violet Fennec light asset must breathe visibly as a separate screen layer.");
-assert(/@keyframes training-lights-breathe\s*\{[\s\S]*?opacity:\s*0\.48;[\s\S]*?brightness\(0\.86\)[\s\S]*?opacity:\s*0\.76;[\s\S]*?brightness\(1\.12\)/s.test(css), "The separate violet lights must restore the stronger legacy breathing range.");
-assert(css.includes("training-ball-volume-surface-ltr") && css.includes("training-ball-volume-surface-rtl") && css.includes("training-ball-volume-contour-ltr") && css.includes("training-ball-volume-contour-rtl"), "The ball volume scan must visibly traverse the ball in both radar directions.");
-assert(css.includes("--training-ball-volume-mask-angle: 90deg") && /\.training-radar-ball-target\[data-radar-direction="rtl"\]\s*\{\s*--training-ball-volume-mask-angle:\s*270deg;/s.test(css), "The RTL ball pass must mirror the mask gradient instead of lighting the whole layer at once.");
-assert(/@keyframes training-ball-volume-surface-ltr\s*\{[\s\S]*?mask-position:\s*88% 50%;[\s\S]*?mask-position:\s*12% 50%;/s.test(css), "The LTR ball mask must enter the sphere immediately instead of starting far outside it.");
-assert(/@keyframes training-ball-volume-surface-rtl\s*\{[\s\S]*?mask-position:\s*12% 50%;[\s\S]*?mask-position:\s*88% 50%;/s.test(css), "The mirrored RTL ball mask must enter the sphere immediately from the opposite edge.");
-assert(/\.training-radar-ball-volume-surface\s*\{[\s\S]*?transparent 39\.5%,[\s\S]*?black 47% 53%,[\s\S]*?transparent 60\.5%/s.test(css), "The systematic ball surface scan must expose a readable volumetric window without a full reveal.");
-assert(/\.training-radar-ball-volume-contour\s*\{[\s\S]*?transparent 41\.5%,[\s\S]*?black 47\.5% 52\.5%,[\s\S]*?transparent 58\.5%/s.test(css), "The systematic ball contour scan must reinforce the readable moving window without a full reveal.");
-assert(!css.includes("black 0 46%") && !css.includes("black 42% 66%"), "The ball volume scan must never reuse a broad full-layer reveal mask.");
-assert(css.includes("opacity: 0.68") && css.includes("opacity: 0.58") && css.includes("mask-position: 88% 50%") && css.includes("mask-position: 12% 50%"), "The aligned ball assets must expose a readable directional surface and contour pass.");
-assert(/\.training-radar-ball-volume-surface,[\s\S]*?\.training-radar-ball-volume-contour\s*\{[\s\S]*?inset:\s*0;[\s\S]*?width:\s*100% !important;[\s\S]*?height:\s*100% !important;[\s\S]*?object-fit:\s*contain;/s.test(css), "Square ball scan assets must preserve their intrinsic canvas without cover enlargement.");
-assert(css.includes("--training-ball-volume-scale-x: 0.4") && css.includes("--training-ball-volume-scale-y: 0.415") && css.includes("--training-ball-volume-scale-x: 0.375") && css.includes("--training-ball-volume-scale-y: 0.385"), "Surface and contour assets must retain their measured scale calibration against the base ball.");
-assert(css.includes("--training-ball-volume-translate-x: 0.48%") && css.includes("--training-ball-volume-translate-y: -3.3%") && css.includes("--training-ball-volume-translate-y: -3.15%"), "Ball scan assets must retain their measured center calibration against the base ball.");
-assert(!css.includes("width: 8.6%") && !css.includes("translate(-50%, -88%)"), "The obsolete undersized and offset ball fallback must stay removed.");
-const ballVolumeKeyframes = css.slice(css.indexOf("@keyframes training-ball-volume-surface-ltr"), css.indexOf("@keyframes training-object-tactical-wireframe"));
-assert(!ballVolumeKeyframes.includes("scale(") && !ballVolumeKeyframes.includes("width:"), "The systematic ball volume scan must not resize or displace the ball.");
-const tacticalTargetCollection = trainingRadarTargets.slice(trainingRadarTargets.indexOf("export const trainingRadarTargets"), trainingRadarTargets.indexOf("export const trainingFennecVolumeScanTarget"));
-assert(!tacticalTargetCollection.includes('id: "fennec"') && trainingRadarTargets.includes('id: "fennec"'), "The Fennec must receive systematic volume scans without joining tactical target selection.");
-const fennecScene = trainingScene.slice(trainingScene.indexOf('name="fennec"'), trainingScene.indexOf('name="fennec-lights-glow"'));
-const fennecScanCss = css.slice(css.indexOf(".training-radar-fennec-target"), css.indexOf('.scene-group[data-scene-group="fennec-lights-glow"]'));
-assert(!fennecScene.includes("training-object-local-scan-line") && !fennecScanCss.includes("::before") && !fennecScanCss.includes("::after"), "The Fennec volume scan must never render a local line or pseudo-line.");
-assert(/\.training-radar-fennec-surface\s*\{[\s\S]*?brightness\(1\.12\) contrast\(1\.26\) saturate\(1\.18\);[\s\S]*?transparent 44%,[\s\S]*?black 48% 54%,[\s\S]*?transparent 57%/s.test(css), "The Fennec surface overlay must remain the sharp, high-contrast primary material reveal.");
-assert(/\.training-radar-fennec-contour\s*\{[\s\S]*?--training-fennec-detail-peak:\s*0\.18;[\s\S]*?--training-fennec-detail-tail:\s*0;[\s\S]*?transparent 44%,[\s\S]*?black 49% 52%,[\s\S]*?transparent 56%/s.test(css), "The Fennec contour must remain a lighter reinforcement behind the surface reveal.");
-assert(/\.training-radar-fennec-surface,[\s\S]*?\.training-radar-fennec-impact\s*\{[\s\S]*?position:\s*absolute;[\s\S]*?inset:\s*0;[\s\S]*?width:\s*100% !important;[\s\S]*?height:\s*100% !important;[\s\S]*?object-fit:\s*cover;[\s\S]*?object-position:\s*center;[\s\S]*?clip-path:\s*inset\(47% 7\.6% 15% 61\.3%\);[\s\S]*?transform:\s*none;[\s\S]*?transform-origin:\s*center;/s.test(css), "Fennec scan overlays must use the base full-canvas frame and measured useful alpha bounds.");
-assert(!fennecScanCss.includes("scale(") && !fennecScanCss.includes("translate("), "Same-canvas Fennec overlays must not use manual scale or translate calibration.");
-assert(/@keyframes training-fennec-volume-surface-ltr\s*\{[\s\S]*?mask-position:\s*43% 50%;[\s\S]*?mask-position:\s*9% 50%;/s.test(css) && /@keyframes training-fennec-volume-surface-rtl\s*\{[\s\S]*?mask-position:\s*9% 50%;[\s\S]*?mask-position:\s*43% 50%;/s.test(css), "The Fennec material reveal must traverse the entire car in both directions.");
-assert(/\.training-radar-fennec-impact\s*\{[\s\S]*?--training-fennec-detail-peak:\s*0\.025;[\s\S]*?--training-fennec-detail-tail:\s*0;[\s\S]*?filter:\s*none;/s.test(css), "The im-light must remain an extremely faint post-effect without additional diffusion.");
-assert(fennecScanCss.includes("training-fennec-volume-impact-ltr 170ms") && fennecScanCss.includes("training-fennec-volume-impact-rtl 170ms") && fennecScanCss.includes("var(--training-volume-contour-delay) + 120ms") && css.includes("@keyframes training-fennec-volume-impact-ltr") && css.includes("@keyframes training-fennec-volume-impact-rtl"), "The im-light must use a short delayed post-effect that fully fades before it can form a halo.");
-assert(trainingRadarSequence.includes("TRAINING_FENNEC_IM_LIGHT_PERSISTENCE_MS = 2000") && trainingRadarSequence.includes("fennecVolumeScanGeneration") && trainingRadarSequence.includes("volumeScanGeneration === fennecVolumeScanGeneration") && trainingRadarSequence.includes("TRAINING_VOLUME_SCAN_TIMING.activeDurationMs +\n              TRAINING_FENNEC_IM_LIGHT_PERSISTENCE_MS"), "The Fennec im-light residual must remain scheduled for two seconds without stale scan timers cutting a newer pass.");
-assert(/\.training-radar-fennec-target\[data-volume-scan-phase="fade"\][\s\S]*?\.training-radar-fennec-impact\s*\{[\s\S]*?training-fennec-volume-impact-persist 2000ms ease-out both;[\s\S]*?mask-image:\s*none;/s.test(fennecScanCss) && /@keyframes training-fennec-volume-impact-persist\s*\{[\s\S]*?0%\s*\{\s*opacity:\s*0\.025;[\s\S]*?100%\s*\{\s*opacity:\s*0;/s.test(css), "The im-light must leave a faint full-overlay residual for two seconds after the material scan, then fully disappear.");
-assert(!fennecScanCss.includes("blur(") && !fennecScanCss.includes("drop-shadow("), "Fennec volume overlays must stay crisp without diffuse blur or glow spread.");
-assert(/@keyframes training-fennec-volume-surface-ltr\s*\{[\s\S]*?0%\s*\{[\s\S]*?opacity:\s*0;[\s\S]*?16%\s*\{[\s\S]*?opacity:\s*0\.62;[\s\S]*?100%\s*\{[\s\S]*?opacity:\s*0;/s.test(css), "The primary Fennec surface reveal must appear crisply and finish fully transparent.");
-assert(!fennecScanCss.includes("49.2% 50.8%") && !fennecScanCss.includes("49.5% 50.5%") && !fennecScanCss.includes("49.7% 50.3%"), "Fennec masks must not regress to ultra-thin line cores.");
-assert(!trainingScene.includes("fennecReflection") && !trainingRadarTargets.includes("wireframeAsset: assets.fennec") && !trainingRadarTargets.includes("glowAsset: assets.fennec"), "The Fennec volume scan must not restore reflection or tactical target overlays.");
-assert(/\.training-fennec-rear-accent\s*\{[\s\S]*?opacity:\s*0\.08;/s.test(css), "Fennec rear accent must remain very subtle.");
-assert(css.includes(".training-radar-ball-target::before") && css.includes("display: none"), "The ball must not render the full-canvas contact ring.");
-assert(css.includes('.mode-illustration[data-active="false"] .training-particle-core') && css.includes('.mode-illustration[data-motion-active="false"] .training-particle-core::after'), "Inactive and offscreen particle and fragment animations must pause.");
-assert(css.includes('.training-scene[data-launching="true"] .training-particle-field') && css.includes("transition: opacity 240ms ease-out"), "Particles must fade and pause during launch.");
-assert(css.includes("transparent 44%") && css.includes("rgb(0 0 0 / 0.22) 47%") && css.includes("rgb(0 0 0 / 0.78) 73%") && css.includes("black 100%"), "Radar particles must be hidden at the horizon, readable in the middle and strongest in the foreground.");
-assert(css.includes("brightness(2.2)") && css.includes("var(--particle-delay) 1 forwards"), "Radar particles must flash immediately at emission while staying hidden before the scan line arrives.");
-assert(/@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.training-particle-field\s*\{\s*display:\s*none;/s.test(css), "Reduced motion must hide the radar particle trail together with the radar.");
-
-assert(css.includes("@keyframes training-radar-traverse") && !css.includes("@keyframes training-analysis-scan"), "Training must use the clipped field radar instead of legacy circles.");
-assert(css.includes("@keyframes training-launch-ball-energy") && css.includes("@keyframes home-training-launch-wave"), "Training launch keyframes must remain untouched.");
-assert(css.includes("@keyframes competitive-launch-fennec"), "Competitive prepared launch keyframes must remain.");
-
-for (const legacyPath of legacyHomeFiles) {
-  assert(!existsSync(legacyPath), `Legacy home component must be removed: ${legacyPath}`);
-}
-
-const forbiddenVisibleWording = [
-  "mode verrouille",
-  "permis verrouille",
-  "top mondial",
-  "classement mondial",
-  "faux rang",
-  "218 sessions",
-  "45h",
-  "78%",
-  "68%",
-];
-for (const [path, content] of Object.entries(files)) {
-  const lower = content.toLowerCase();
-  for (const wording of forbiddenVisibleWording) {
-    assert(!lower.includes(wording), `Forbidden home wording found in ${path}: ${wording}`);
-  }
-}
-
-for (const [path, content] of Object.entries(files)) {
-  for (const forbidden of ["content.json", "@/lib/questions", "getQuestionSummaries", "getActiveQuestions", "error_tags"]) {
-    assert(!content.includes(forbidden), `Home layer must not read pedagogical internals in ${path}: ${forbidden}`);
-  }
-}
-
-console.log("Home dashboard validation OK");
-console.log("Covered states: statistics default, training launch, competitive locked preview, permit 0-100, weekly focus lifecycle, empty insights, targeted sessions locked, up to three real sessions.");
+assert(!homeIllustrationAssets.includes("fennec-base reflect÷¯;¶‰žËkºwµçMÍ•ÉÐ¡ÍÌ¹¥¹±Õ‘•Ì ‰±¥ÀµÁ…Ñ èÁ½±å½¸ À€ÐÈ”°€ØÜ”€Àˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ‘…Ñ„µÁ…ÉÑ¥±”µ­¥¹ô‰Ñ…Ñ¥…°µÍÁ…É¬ˆœ¤°€‰I…‘…ÈÁ…ÉÑ¥±•ÌµÕÍÐÕÍ”½µÁ…ÐÑ…Ñ¥…°™É…µ•¹ÑÌ¥¹ÍÑ•…½˜±…É”Í½™Ð¥É±•Ì¸ˆ¤ì)…ÍÍ•ÉÐ¡ÍÌ¹¥¹±Õ‘•Ì ˆ¹ÑÉ…¥¹¥¹œµÉ…‘…Èµ½É”µ±¥¹”ˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ‰ÍÑÉ½­”µÝ¥‘Ñ è€È¸ÕÁàˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ˆ¹ÑÉ…¥¹¥¹œµÑ…Ñ¥…°µÑ•ÉÉ…¥¸µ½É”ˆ¤°€‰Q¡”É…‘…È½É”µÕÍÐÍÑ…äÑ¡¥¸°Í¡…ÉÀ…¹Ù¥Í¥‰±ä±¥¹­•Ñ¼Ñ¡”Í…ÑÕÉ…Ñ•Ñ…Ñ¥…°µ•Í ¸ˆ¤ì)™½È€¡½¹ÍÐ±…å•É•‘M…¹5…É­•È½˜l‰ÑÉ…¥¹¥¹œµ½‰©•Ðµ½¹Ñ…Ðˆ°€‰ÑÉ…¥¹¥¹œµ½‰©•ÐµÍÕÉ™…”µÍ…¸µ±ÑÈˆ°€‰ÑÉ…¥¹¥¹œµ½‰©•ÐµÍÕÉ™…”µÍ…¸µÉÑ°ˆ°€‰ÑÉ…¥¹¥¹œµ½‰©•Ðµ½¹Ñ½ÕÈµÍ…¸µ±ÑÈˆ°€‰ÑÉ…¥¹¥¹œµ½‰©•Ðµ½¹Ñ½ÕÈµÍ…¸µÉÑ°ˆ°€‰ÑÉ…¥¹¥¹œµ‰…±°µÙ½±Õµ”µÍÕÉ™…”ˆ°€‰ÑÉ…¥¹¥¹œµ‰…±°µÙ½±Õµ”µ½¹Ñ½ÕÈˆ°€‰ÑÉ…¥¹¥¹œµ™•¹¹•ŒµÙ½±Õµ”µÍÕÉ™…”µ±ÑÈˆ°€‰ÑÉ…¥¹¥¹œµ™•¹¹•ŒµÙ½±Õµ”µÍÕÉ™…”µÉÑ°ˆ°€‰ÑÉ…¥¹¥¹œµ™•¹¹•ŒµÙ½±Õµ”µ‘•Ñ…¥°µ±ÑÈˆ°€‰ÑÉ…¥¹¥¹œµ™•¹¹•ŒµÙ½±Õµ”µ‘•Ñ…¥°µÉÑ°ˆ°€‰ÑÉ…¥¹¥¹œµ½‰©•ÐµÑ…Ñ¥…°µÝ¥É•™É…µ”ˆ°€‰ÑÉ…¥¹¥¹œµ½‰©•ÐµÑ…Ñ¥…°µ±½Ü‰t¤ì(€…ÍÍ•ÉÐ¡ÍÌ¹¥¹±Õ‘•Ì¡±…å•É•‘M…¹5…É­•È¤°1…å•É•QÉ…¥¹¥¹œ½‰©•ÐÍ…¸MLµ¥ÍÍ¥¹œè€‘í±…å•É•‘M…¹5…É­•Éô¹€¤ì)ô)…ÍÍ•ÉÐ¡ÍÌ¹¥¹±Õ‘•Ì ‰½Á…¥Ñäè€À¸ÌÐˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ‰½Á…¥Ñäè€À¸Ìˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ‰µ…Í¬µÁ½Í¥Ñ¥½¸è€ÄÌÀ”€ÔÀ”ˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ‰µ…Í¬µÁ½Í¥Ñ¥½¸è€´ÌÀ”€ÔÀ”ˆ¤°€‰MÕÉ™…”…¹½¹Ñ½ÕÈÍ…¹ÌµÕÍÐÉ•Ù•…°ÁÉ½É•ÍÍ¥Ù•±ä‰•¡¥¹Ñ¡”…±¥¹•±½…°±¥¹”…ÐÉ•ÍÑÉ…¥¹•½Á…¥Ñä¸ˆ¤ì)…ÍÍ•ÉÐ¡ÑÉ…¥¹¥¹I…‘…ÉQ…É•ÑÌ¹¥¹±Õ‘•Ì …¹±”è€ˆ´Äå‘•œˆœ¤€˜˜ÑÉ…¥¹¥¹I…‘…ÉQ…É•ÑÌ¹¥¹±Õ‘•Ì ‰‘ÕÉ…Ñ¥½¹5Ìè€ÌàÀˆ¤€˜˜ÑÉ…¥¹¥¹É½Õ¹‘•‘Ñ½È¹¥¹±Õ‘•Ì ˆ´µÑÉ…¥¹¥¹œµÙ½±Õµ”µÍ…¸µ‘ÕÉ…Ñ¥½¸ˆ¤€˜˜ÑÉ…¥¹¥¹É½Õ¹‘•‘Ñ½È¹¥¹±Õ‘•Ì ˆ´µÑÉ…¥¹¥¹œµÙ½±Õµ”µ½¹Ñ½ÕÈµ‘•±…äˆ¤°€‰… …ÈÙ½±Õµ”Í…¸µÕÍÐ•áÁ½Í”¥ÑÌ½Ý¸µ…Í¬…á¥Ì…¹Í¡½ÉÐÁ•ÉÍ¥ÍÑ•¹”Ñ¥µ¥¹œ¸ˆ¤ì)…ÍÍ•ÉÐ¡ÍÌ¹¥¹±Õ‘•Ì ‰…±Œ äÁ‘•œ€¬Ù…È ´µÑÉ…¥¹¥¹œµ½‰©•ÐµÍ…¸µ…¹±”¤¤ˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ‰Ù…È ´µÑÉ…¥¹¥¹œµÙ½±Õµ”µÍ…¸µ‘ÕÉ…Ñ¥½¸¤ˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ‰Ù…È ´µÑÉ…¥¹¥¹œµÙ½±Õµ”µ½¹Ñ½ÕÈµ‘•±…ä¤ˆ¤°€‰¥É•Ñ¥½¹…°ÍÕÉ™…”µ…Í¬…¹¹•…Èµ¥µµ•‘¥…Ñ”½¹Ñ½ÕÈµÕÍÐÍ¡…É”Ñ¡”Í¡½ÉÐÙ½±Õµ”µÍ…¸Ñ¥µ¥¹œ¸ˆ¤ì)…ÍÍ•ÉÐ¡ÍÌ¹¥¹±Õ‘•Ì m‘…Ñ„µÙ½±Õµ”µÍ…¸µÁ¡…Í”ô‰…Ñ¥Ù”‰tœ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì m‘…Ñ„µÑ…Ñ¥…°µ…Ñ¥Ù”ô‰ÑÉÕ”‰tœ¤€˜˜€…ÍÌ¹¥¹±Õ‘•Ì ‰‘…Ñ„µÉ…‘…Èµ…Ñ¥Ù”ˆ¤°€‰MåÍÑ•µ…Ñ¥ŒÙ½±Õµ”É•Ù•…°…¹Í•±•Ñ¥Ù”Ñ…Ñ¥…°…Ñ¥Ù…Ñ¥½¸µÕÍÐÕÍ”Í•Á…É…Ñ”MLÍÑ…Ñ”¡…¹¹•±Ì¸ˆ¤ì)…ÍÍ•ÉÐ¡ÍÌ¹¥¹±Õ‘•Ì ‰½Á…¥Ñäè€À¸Ìˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ‰½Á…¥Ñäè€À¸Àäˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ˆ´µÑÉ…¥¹¥¹œµÑ…É•Ðµ±¥™•Ñ¥µ”ˆ¤°€‰M•±•Ñ¥Ù”Ñ…Ñ¥…°Ý¥É•™É…µ”…¹±½ÜµÕÍÐ­••ÀÑ¡•¥È±½¹•ÈÉ•ÍÑÉ…¥¹•±¥™•å±”¸ˆ¤ì)™½È€¡½¹ÍÐÁÉ•µ¥Õµ±…ÍÌ½˜l‰ÑÉ…¥¹¥¹œµ™•¹¹•ŒµÉ¥´µ±¥¡Ðˆ°€‰ÑÉ…¥¹¥¹œµ±¥¡ÑÌµ±½Üˆ°€‰ÑÉ…¥¹¥¹œµ™•¹¹•Œµ¡•…‘±¥¡Ðµ±½Üˆ°€‰ÑÉ…¥¹¥¹œµ™•¹¹•ŒµÉ•…Èµ…•¹Ð‰t¤ì(€…ÍÍ•ÉÐ¡ÍÌ¹¥¹±Õ‘•Ì¡ÁÉ•µ¥Õµ±…ÍÌ¤°AÉ•µ¥Õ´•¹¹•ŒÑÉ•…Ñµ•¹Ðµ¥ÍÍ¥¹œè€‘íÁÉ•µ¥Õµ±…ÍÍô¹€¤ì)ô)™½È€¡½¹ÍÐÍ…™•=Á…¥Ñä½˜l‰½Á…¥Ñäè€À¸ÌÈˆ°€‰½Á…¥Ñäè€À¸ÈÐˆ°€‰½Á…¥Ñäè€À¸Ìˆ°€‰½Á…¥Ñäè€À¸Àä‰t¤ì(€…ÍÍ•ÉÐ¡ÍÌ¹¥¹±Õ‘•Ì¡Í…™•=Á…¥Ñä¤°M…™”QÉ…¥¹¥¹œ½Ù•É±…ä½Á…¥Ñäµ¥ÍÍ¥¹œè€‘íÍ…™•=Á…¥Ñåô¹€¤ì)ô)…ÍÍ•ÉÐ …ÍÌ¹¥¹±Õ‘•Ì ‰ÑÉ…¥¹¥¹œµ™•¹¹•ŒµÉ•™±•Ñ¥½¸ˆ¤°€‰Q¡”É•µ½Ù••¹¹•ŒÉ•™±•Ñ¥½¸½Ù•É±…äµÕÍÐ¹½ÐÉ•Ñ…¥¸‘•…É•¹‘•É¥¹œML¸ˆ¤ì)…ÍÍ•ÉÐ ½p¹ÑÉ…¥¹¥¹œµ™•¹¹•Œµ¡•…‘±¥¡Ðµ±½ÝqÌ©qímqÍqMt¨ý½Á…¥ÑäéqÌ¨Áp¸ÀÔímqÍqMt¨ý…¹¥µ…Ñ¥½¸éqÌ©¹½¹”ì½Ì¹Ñ•ÍÐ¡ÍÌ¤°€‰Q¡”±•…ä•¹¹•Œ¡•…‘±¥¡Ð½Ù•É±…äµÕÍÐÉ•µ…¥¸ÍÑÉ½¹±äÉ•‘Õ•Ñ¼…Ù½¥‘½Õ‰±¥¹œÑ¡”ÍÉ••¸±½Ü¸ˆ¤ì)…ÍÍ•ÉÐ ½p¹ÑÉ…¥¹¥¹œµ±¥¡ÑÌµ±½ÝqÌ©qímqÍqMt¨ý½Á…¥ÑäéqÌ¨Áp¸ÐàímqÍqMt¨ýµ¥àµ‰±•¹µµ½‘”éqÌ©ÍÉ••¸ímqÍqMt¨ý…¹¥µ…Ñ¥½¸éqÌ©ÑÉ…¥¹¥¹œµ±¥¡ÑÌµ‰É•…Ñ¡”€Íp¸ÙÌ•…Í”µ¥¸µ½ÕÐ¥¹™¥¹¥Ñ”ì½Ì¹Ñ•ÍÐ¡ÍÌ¤°€‰Q¡”Ù¥½±•Ð•¹¹•Œ±¥¡Ð…ÍÍ•ÐµÕÍÐ‰É•…Ñ¡”Ù¥Í¥‰±ä…Ì„Í•Á…É…Ñ”ÍÉ••¸±…å•È¸ˆ¤ì)…ÍÍ•ÉÐ ½­•å™É…µ•ÌÑÉ…¥¹¥¹œµ±¥¡ÑÌµ‰É•…Ñ¡•qÌ©qímqÍqMt¨ý½Á…¥ÑäéqÌ¨Áp¸ÐàímqÍqMt¨ý‰É¥¡Ñ¹•ÍÍp Áp¸àÙp¥mqÍqMt¨ý½Á…¥ÑäéqÌ¨Áp¸ÜØímqÍqMt¨ý‰É¥¡Ñ¹•ÍÍp Åp¸ÄÉp¤½Ì¹Ñ•ÍÐ¡ÍÌ¤°€‰Q¡”Í•Á…É…Ñ”Ù¥½±•Ð±¥¡ÑÌµÕÍÐÉ•ÍÑ½É”Ñ¡”ÍÑÉ½¹•È±•…ä‰É•…Ñ¡¥¹œÉ…¹”¸ˆ¤ì)…ÍÍ•ÉÐ¡ÍÌ¹¥¹±Õ‘•Ì ‰ÑÉ…¥¹¥¹œµ‰…±°µÙ½±Õµ”µÍÕÉ™…”µ±ÑÈˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ‰ÑÉ…¥¹¥¹œµ‰…±°µÙ½±Õµ”µÍÕÉ™…”µÉÑ°ˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ‰ÑÉ…¥¹¥¹œµ‰…±°µÙ½±Õµ”µ½¹Ñ½ÕÈµ±ÑÈˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ‰ÑÉ…¥¹¥¹œµ‰…±°µÙ½±Õµ”µ½¹Ñ½ÕÈµÉÑ°ˆ¤°€‰Q¡”‰…±°Ù½±Õµ”Í…¸µÕÍÐÙ¥Í¥‰±äÑÉ…Ù•ÉÍ”Ñ¡”‰…±°¥¸‰½Ñ É…‘…È‘¥É•Ñ¥½¹Ì¸ˆ¤ì)…ÍÍ•ÉÐ¡ÍÌ¹¥¹±Õ‘•Ì ˆ´µÑÉ…¥¹¥¹œµ‰…±°µÙ½±Õµ”µµ…Í¬µ…¹±”è€äÁ‘•œˆ¤€˜˜€½p¹ÑÉ…¥¹¥¹œµÉ…‘…Èµ‰…±°µÑ…É•Ñqm‘…Ñ„µÉ…‘…Èµ‘¥É•Ñ¥½¸ô‰ÉÑ°‰quqÌ©qíqÌ¨´µÑÉ…¥¹¥¹œµ‰…±°µÙ½±Õµ”µµ…Í¬µ…¹±”éqÌ¨ÈÜÁ‘•œì½Ì¹Ñ•ÍÐ¡ÍÌ¤°€‰Q¡”IQ0‰…±°Á…ÍÌµÕÍÐµ¥ÉÉ½ÈÑ¡”µ…Í¬É…‘¥•¹Ð¥¹ÍÑ•…½˜±¥¡Ñ¥¹œÑ¡”Ý¡½±”±…å•È…Ð½¹”¸ˆ¤ì)…ÍÍ•ÉÐ ½­•å™É…µ•ÌÑÉ…¥¹¥¹œµ‰…±°µÙ½±Õµ”µÍÕÉ™…”µ±ÑÉqÌ©qímqÍqMt¨ýµ…Í¬µÁ½Í¥Ñ¥½¸éqÌ¨àà”€ÔÀ”ímqÍqMt¨ýµ…Í¬µÁ½Í¥Ñ¥½¸éqÌ¨ÄÈ”€ÔÀ”ì½Ì¹Ñ•ÍÐ¡ÍÌ¤°€‰Q¡”1QH‰…±°µ…Í¬µÕÍÐ•¹Ñ•ÈÑ¡”ÍÁ¡•É”¥µµ•‘¥…Ñ•±ä¥¹ÍÑ•…½˜ÍÑ…ÉÑ¥¹œ™…È½ÕÑÍ¥‘”¥Ð¸ˆ¤ì)…ÍÍ•ÉÐ ½­•å™É…µ•ÌÑÉ…¥¹¥¹œµ‰…±°µÙ½±Õµ”µÍÕÉ™…”µÉÑ±qÌ©qímqÍqMt¨ýµ…Í¬µÁ½Í¥Ñ¥½¸éqÌ¨ÄÈ”€ÔÀ”ímqÍqMt¨ýµ…Í¬µÁ½Í¥Ñ¥½¸éqÌ¨àà”€ÔÀ”ì½Ì¹Ñ•ÍÐ¡ÍÌ¤°€‰Q¡”µ¥ÉÉ½É•IQ0‰…±°µ…Í¬µÕÍÐ•¹Ñ•ÈÑ¡”ÍÁ¡•É”¥µµ•‘¥…Ñ•±ä™É½´Ñ¡”½ÁÁ½Í¥Ñ”•‘”¸ˆ¤ì)…ÍÍ•ÉÐ ½p¹ÑÉ…¥¹¥¹œµÉ…‘…Èµ‰…±°µÙ½±Õµ”µÍÕÉ™…•qÌ©qímqÍqMt¨ýÑÉ…¹ÍÁ…É•¹Ð€Ìåp¸Ô”±mqÍqMt¨ý‰±…¬€ÐÜ”€ÔÌ”±mqÍqMt¨ýÑÉ…¹ÍÁ…É•¹Ð€ØÁp¸Ô”½Ì¹Ñ•ÍÐ¡ÍÌ¤°€‰Q¡”ÍåÍÑ•µ…Ñ¥Œ‰…±°ÍÕÉ™…”Í…¸µÕÍÐ•áÁ½Í”„É•…‘…‰±”Ù½±Õµ•ÑÉ¥ŒÝ¥¹‘½ÜÝ¥Ñ¡½ÕÐ„™Õ±°É•Ù•…°¸ˆ¤ì)…ÍÍ•ÉÐ ½p¹ÑÉ…¥¹¥¹œµÉ…‘…Èµ‰…±°µÙ½±Õµ”µ½¹Ñ½ÕÉqÌ©qímqÍqMt¨ýÑÉ…¹ÍÁ…É•¹Ð€ÐÅp¸Ô”±mqÍqMt¨ý‰±…¬€ÐÝp¸Ô”€ÔÉp¸Ô”±mqÍqMt¨ýÑÉ…¹ÍÁ…É•¹Ð€Ôáp¸Ô”½Ì¹Ñ•ÍÐ¡ÍÌ¤°€‰Q¡”ÍåÍÑ•µ…Ñ¥Œ‰…±°½¹Ñ½ÕÈÍ…¸µÕÍÐÉ•¥¹™½É”Ñ¡”É•…‘…‰±”µ½Ù¥¹œÝ¥¹‘½ÜÝ¥Ñ¡½ÕÐ„™Õ±°É•Ù•…°¸ˆ¤ì)…ÍÍ•ÉÐ …ÍÌ¹¥¹±Õ‘•Ì ‰‰±…¬€À€ÐØ”ˆ¤€˜˜€…ÍÌ¹¥¹±Õ‘•Ì ‰‰±…¬€ÐÈ”€ØØ”ˆ¤°€‰Q¡”‰…±°Ù½±Õµ”Í…¸µÕÍÐ¹•Ù•ÈÉ•ÕÍ”„‰É½…™Õ±°µ±…å•ÈÉ•Ù•…°µ…Í¬¸ˆ¤ì)…ÍÍ•ÉÐ¡ÍÌ¹¥¹±Õ‘•Ì ‰½Á…¥Ñäè€À¸Øàˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ‰½Á…¥Ñäè€À¸Ôàˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ‰µ…Í¬µÁ½Í¥Ñ¥½¸è€àà”€ÔÀ”ˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ‰µ…Í¬µÁ½Í¥Ñ¥½¸è€ÄÈ”€ÔÀ”ˆ¤°€‰Q¡”…±¥¹•‰…±°…ÍÍ•ÑÌµÕÍÐ•áÁ½Í”„É•…‘…‰±”‘¥É•Ñ¥½¹…°ÍÕÉ™…”…¹½¹Ñ½ÕÈÁ…ÍÌ¸ˆ¤ì)…ÍÍ•ÉÐ ½p¹ÑÉ…¥¹¥¹œµÉ…‘…Èµ‰…±°µÙ½±Õµ”µÍÕÉ™…”±mqÍqMt¨ýp¹ÑÉ…¥¹¥¹œµÉ…‘…Èµ‰…±°µÙ½±Õµ”µ½¹Ñ½ÕÉqÌ©qímqÍqMt¨ý¥¹Í•ÐéqÌ¨ÀímqÍqMt¨ýÝ¥‘Ñ éqÌ¨ÄÀÀ”€…¥µÁ½ÉÑ…¹ÐímqÍqMt¨ý¡•¥¡ÐéqÌ¨ÄÀÀ”€…¥µÁ½ÉÑ…¹ÐímqÍqMt¨ý½‰©•Ðµ™¥ÐéqÌ©½¹Ñ…¥¸ì½Ì¹Ñ•ÍÐ¡ÍÌ¤°€‰MÅÕ…É”‰…±°Í…¸…ÍÍ•ÑÌµÕÍÐÁÉ•Í•ÉÙ”Ñ¡•¥È¥¹ÑÉ¥¹Í¥Œ…¹Ù…ÌÝ¥Ñ¡½ÕÐ½Ù•È•¹±…É•µ•¹Ð¸ˆ¤ì)…ÍÍ•ÉÐ¡ÍÌ¹¥¹±Õ‘•Ì ˆ´µÑÉ…¥¹¥¹œµ‰…±°µÙ½±Õµ”µÍ…±”µàè€À¸Ðˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ˆ´µÑÉ…¥¹¥¹œµ‰…±°µÙ½±Õµ”µÍ…±”µäè€À¸ÐÄÔˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ˆ´µÑÉ…¥¹¥¹œµ‰…±°µÙ½±Õµ”µÍ…±”µàè€À¸ÌÜÔˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ˆ´µÑÉ…¥¹¥¹œµ‰…±°µÙ½±Õµ”µÍ…±”µäè€À¸ÌàÔˆ¤°€‰MÕÉ™…”…¹½¹Ñ½ÕÈ…ÍÍ•ÑÌµÕÍÐÉ•Ñ…¥¸Ñ¡•¥Èµ•…ÍÕÉ•Í…±”…±¥‰É…Ñ¥½¸……¥¹ÍÐÑ¡”‰…Í”‰…±°¸ˆ¤ì)…ÍÍ•ÉÐ¡ÍÌ¹¥¹±Õ‘•Ì ˆ´µÑÉ…¥¹¥¹œµ‰…±°µÙ½±Õµ”µÑÉ…¹Í±…Ñ”µàè€À¸Ðà”ˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ˆ´µÑÉ…¥¹¥¹œµ‰…±°µÙ½±Õµ”µÑÉ…¹Í±…Ñ”µäè€´Ì¸Ì”ˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ˆ´µÑÉ…¥¹¥¹œµ‰…±°µÙ½±Õµ”µÑÉ…¹Í±…Ñ”µäè€´Ì¸ÄÔ”ˆ¤°€‰	…±°Í…¸…ÍÍ•ÑÌµÕÍÐÉ•Ñ…¥¸Ñ¡•¥Èµ•…ÍÕÉ••¹Ñ•È…±¥‰É…Ñ¥½¸……¥¹ÍÐÑ¡”‰…Í”‰…±°¸ˆ¤ì)…ÍÍ•ÉÐ …ÍÌ¹¥¹±Õ‘•Ì ‰Ý¥‘Ñ è€à¸Ø”ˆ¤€˜˜€…ÍÌ¹¥¹±Õ‘•Ì ‰ÑÉ…¹Í±…Ñ” ´ÔÀ”°€´àà”¤ˆ¤°€‰Q¡”½‰Í½±•Ñ”Õ¹‘•ÉÍ¥é•…¹½™™Í•Ð‰…±°™…±±‰…¬µÕÍÐÍÑ…äÉ•µ½Ù•¸ˆ¤ì)½¹ÍÐ‰…±±Y½±Õµ•-•å™É…µ•Ì€ôÍÌ¹Í±¥”¡ÍÌ¹¥¹‘•á=˜ ‰­•å™É…µ•ÌÑÉ…¥¹¥¹œµ‰…±°µÙ½±Õµ”µÍÕÉ™…”µ±ÑÈˆ¤°ÍÌ¹¥¹‘•á=˜ ‰­•å™É…µ•ÌÑÉ…¥¹¥¹œµ½‰©•ÐµÑ…Ñ¥…°µÝ¥É•™É…µ”ˆ¤¤ì)…ÍÍ•ÉÐ …‰…±±Y½±Õµ•-•å™É…µ•Ì¹¥¹±Õ‘•Ì ‰Í…±” ˆ¤€˜˜€…‰…±±Y½±Õµ•-•å™É…µ•Ì¹¥¹±Õ‘•Ì ‰Ý¥‘Ñ èˆ¤°€‰Q¡”ÍåÍÑ•µ…Ñ¥Œ‰…±°Ù½±Õµ”Í…¸µÕÍÐ¹½ÐÉ•Í¥é”½È‘¥ÍÁ±…”Ñ¡”‰…±°¸ˆ¤ì)½¹ÍÐÑ…Ñ¥…±Q…É•Ñ½±±•Ñ¥½¸€ôÑÉ…¥¹¥¹I…‘…ÉQ…É•ÑÌ¹Í±¥”¡ÑÉ…¥¹¥¹I…‘…ÉQ…É•ÑÌ¹¥¹‘•á=˜ ‰•áÁ½ÉÐ½¹ÍÐÑÉ…¥¹¥¹I…‘…ÉQ…É•ÑÌˆ¤°ÑÉ…¥¹¥¹I…‘…ÉQ…É•ÑÌ¹¥¹‘•á=˜ ‰•áÁ½ÉÐ½¹ÍÐÑÉ…¥¹¥¹•¹¹•Y½±Õµ•M…¹Q…É•Ðˆ¤¤ì)…ÍÍ•ÉÐ …Ñ…Ñ¥…±Q…É•Ñ½±±•Ñ¥½¸¹¥¹±Õ‘•Ì ¥è€‰™•¹¹•Œˆœ¤€˜˜ÑÉ…¥¹¥¹I…‘…ÉQ…É•ÑÌ¹¥¹±Õ‘•Ì ¥è€‰™•¹¹•Œˆœ¤°€‰Q¡”•¹¹•ŒµÕÍÐÉ••¥Ù”ÍåÍÑ•µ…Ñ¥ŒÙ½±Õµ”Í…¹ÌÝ¥Ñ¡½ÕÐ©½¥¹¥¹œÑ…Ñ¥…°Ñ…É•ÐÍ•±•Ñ¥½¸¸ˆ¤ì)½¹ÍÐ™•¹¹•M•¹”€ôÑÉ…¥¹¥¹M•¹”¹Í±¥”¡ÑÉ…¥¹¥¹M•¹”¹¥¹‘•á=˜ ¹…µ”ô‰™•¹¹•Œˆœ¤°ÑÉ…¥¹¥¹M•¹”¹¥¹‘•á=˜ ¹…µ”ô‰™•¹¹•Œµ±¥¡ÑÌµ±½Üˆœ¤¤ì)½¹ÍÐ™•¹¹•M…¹ÍÌ€ôÍÌ¹Í±¥”¡ÍÌ¹¥¹‘•á=˜ ˆ¹ÑÉ…¥¹¥¹œµÉ…‘…Èµ™•¹¹•ŒµÑ…É•Ðˆ¤°ÍÌ¹¥¹‘•á=˜ œ¹Í•¹”µÉ½ÕÁm‘…Ñ„µÍ•¹”µÉ½ÕÀô‰™•¹¹•Œµ±¥¡ÑÌµ±½Ü‰tœ¤¤ì)…ÍÍ•ÉÐ …™•¹¹•M•¹”¹¥¹±Õ‘•Ì ‰ÑÉ…¥¹¥¹œµ½‰©•Ðµ±½…°µÍ…¸µ±¥¹”ˆ¤€˜˜€…™•¹¹•M…¹ÍÌ¹¥¹±Õ‘•Ì ˆèé‰•™½É”ˆ¤€˜˜€…™•¹¹•M…¹ÍÌ¹¥¹±Õ‘•Ì ˆèé…™Ñ•Èˆ¤°€‰Q¡”•¹¹•ŒÙ½±Õµ”Í…¸µÕÍÐ¹•Ù•ÈÉ•¹‘•È„±½…°±¥¹”½ÈÁÍ•Õ‘¼µ±¥¹”¸ˆ¤ì)…ÍÍ•ÉÐ ½p¹ÑÉ…¥¹¥¹œµÉ…‘…Èµ™•¹¹•ŒµÍÕÉ™…•qÌ©qímqÍqMt¨ý‰É¥¡Ñ¹•ÍÍp Åp¸ÄÉp¤½¹ÑÉ…ÍÑp Åp¸ÈÙp¤Í…ÑÕÉ…Ñ•p Åp¸Äáp¤ímqÍqMt¨ýÑÉ…¹ÍÁ…É•¹Ð€ÐÐ”±mqÍqMt¨ý‰±…¬€Ðà”€ÔÐ”±mqÍqMt¨ýÑÉ…¹ÍÁ…É•¹Ð€ÔÜ”½Ì¹Ñ•ÍÐ¡ÍÌ¤°€‰Q¡”•¹¹•ŒÍÕÉ™…”½Ù•É±…äµÕÍÐÉ•µ…¥¸Ñ¡”Í¡…ÉÀ°¡¥ µ½¹ÑÉ…ÍÐÁÉ¥µ…Éäµ…Ñ•É¥…°É•Ù•…°¸ˆ¤ì)…ÍÍ•ÉÐ ½p¹ÑÉ…¥¹¥¹œµÉ…‘…Èµ™•¹¹•Œµ½¹Ñ½ÕÉqÌ©qímqÍqMt¨ü´µÑÉ…¥¹¥¹œµ™•¹¹•Œµ‘•Ñ…¥°µÁ•…¬éqÌ¨Áp¸ÄàímqÍqMt¨ü´µÑÉ…¥¹¥¹œµ™•¹¹•Œµ‘•Ñ…¥°µÑ…¥°éqÌ¨ÀímqÍqMt¨ýÑÉ…¹ÍÁ…É•¹Ð€ÐÐ”±mqÍqMt¨ý‰±…¬€Ðä”€ÔÈ”±mqÍqMt¨ýÑÉ…¹ÍÁ…É•¹Ð€ÔØ”½Ì¹Ñ•ÍÐ¡ÍÌ¤°€‰Q¡”•¹¹•Œ½¹Ñ½ÕÈµÕÍÐÉ•µ…¥¸„±¥¡Ñ•ÈÉ•¥¹™½É•µ•¹Ð‰•¡¥¹Ñ¡”ÍÕÉ™…”É•Ù•…°¸ˆ¤ì)…ÍÍ•ÉÐ ½p¹ÑÉ…¥¹¥¹œµÉ…‘…Èµ™•¹¹•ŒµÍÕÉ™…”±mqÍqMt¨ýp¹ÑÉ…¥¹¥¹œµÉ…‘…Èµ™•¹¹•Œµ¥µÁ…ÑqÌ©qímqÍqMt¨ýÁ½Í¥Ñ¥½¸éqÌ©…‰Í½±ÕÑ”ímqÍqMt¨ý¥¹Í•ÐéqÌ¨ÀímqÍqMt¨ýÝ¥‘Ñ éqÌ¨ÄÀÀ”€…¥µÁ½ÉÑ…¹ÐímqÍqMt¨ý¡•¥¡ÐéqÌ¨ÄÀÀ”€…¥µÁ½ÉÑ…¹ÐímqÍqMt¨ý½‰©•Ðµ™¥ÐéqÌ©½Ù•ÈímqÍqMt¨ý½‰©•ÐµÁ½Í¥Ñ¥½¸éqÌ©•¹Ñ•ÈímqÍqMt¨ý±¥ÀµÁ…Ñ éqÌ©¥¹Í•Ñp ÐÜ”€Ýp¸Ø”€ÄÔ”€ØÅp¸Ì•p¤ímqÍqMt¨ýÑÉ…¹Í™½É´éqÌ©¹½¹”ímqÍqMt¨ýÑÉ…¹Í™½É´µ½É¥¥¸éqÌ©•¹Ñ•Èì½Ì¹Ñ•ÍÐ¡ÍÌ¤°€‰•¹¹•ŒÍ…¸½Ù•É±…åÌµÕÍÐÕÍ”Ñ¡”‰…Í”™Õ±°µ…¹Ù…Ì™É…µ”…¹µ•…ÍÕÉ•ÕÍ•™Õ°…±Á¡„‰½Õ¹‘Ì¸ˆ¤ì)…ÍÍ•ÉÐ …™•¹¹•M…¹ÍÌ¹¥¹±Õ‘•Ì ‰Í…±” ˆ¤€˜˜€…™•¹¹•M…¹ÍÌ¹¥¹±Õ‘•Ì ‰ÑÉ…¹Í±…Ñ” ˆ¤°€‰M…µ”µ…¹Ù…Ì•¹¹•Œ½Ù•É±…åÌµÕÍÐ¹½ÐÕÍ”µ…¹Õ…°Í…±”½ÈÑÉ…¹Í±…Ñ”…±¥‰É…Ñ¥½¸¸ˆ¤ì)…ÍÍ•ÉÐ ½­•å™É…µ•ÌÑÉ…¥¹¥¹œµ™•¹¹•ŒµÙ½±Õµ”µÍÕÉ™…”µ±ÑÉqÌ©qímqÍqMt¨ýµ…Í¬µÁ½Í¥Ñ¥½¸éqÌ¨ÐÌ”€ÔÀ”ímqÍqMt¨ýµ…Í¬µÁ½Í¥Ñ¥½¸éqÌ¨ä”€ÔÀ”ì½Ì¹Ñ•ÍÐ¡ÍÌ¤€˜˜€½­•å™É…µ•ÌÑÉ…¥¹¥¹œµ™•¹¹•ŒµÙ½±Õµ”µÍÕÉ™…”µÉÑ±qÌ©qímqÍqMt¨ýµ…Í¬µÁ½Í¥Ñ¥½¸éqÌ¨ä”€ÔÀ”ímqÍqMt¨ýµ…Í¬µÁ½Í¥Ñ¥½¸éqÌ¨ÐÌ”€ÔÀ”ì½Ì¹Ñ•ÍÐ¡ÍÌ¤°€‰Q¡”•¹¹•Œµ…Ñ•É¥…°É•Ù•…°µÕÍÐÑÉ…Ù•ÉÍ”Ñ¡”•¹Ñ¥É”…È¥¸‰½Ñ ‘¥É•Ñ¥½¹Ì¸ˆ¤ì)…ÍÍ•ÉÐ ½p¹ÑÉ…¥¹¥¹œµÉ…‘…Èµ™•¹¹•Œµ¥µÁ…ÑqÌ©qímqÍqMt¨ü´µÑÉ…¥¹¥¹œµ™•¹¹•Œµ‘•Ñ…¥°µÁ•…¬éqÌ¨Áp¸ÀÈÔímqÍqMt¨ü´µÑÉ…¥¹¥¹œµ™•¹¹•Œµ‘•Ñ…¥°µÑ…¥°éqÌ¨ÀímqÍqMt¨ý™¥±Ñ•ÈéqÌ©¹½¹”ì½Ì¹Ñ•ÍÐ¡ÍÌ¤°€‰Q¡”¥´µ±¥¡ÐµÕÍÐÉ•µ…¥¸…¸•áÑÉ•µ•±ä™…¥¹ÐÁ½ÍÐµ•™™•ÐÝ¥Ñ¡½ÕÐ…‘‘¥Ñ¥½¹…°‘¥™™ÕÍ¥½¸¸ˆ¤ì)…ÍÍ•ÉÐ¡™•¹¹•M…¹ÍÌ¹¥¹±Õ‘•Ì ‰ÑÉ…¥¹¥¹œµ™•¹¹•ŒµÙ½±Õµ”µ¥µÁ…Ðµ±ÑÈ€ÄÜÁµÌˆ¤€˜˜™•¹¹•M…¹ÍÌ¹¥¹±Õ‘•Ì ‰ÑÉ…¥¹¥¹œµ™•¹¹•ŒµÙ½±Õµ”µ¥µÁ…ÐµÉÑ°€ÄÜÁµÌˆ¤€˜˜™•¹¹•M…¹ÍÌ¹¥¹±Õ‘•Ì ‰Ù…È ´µÑÉ…¥¹¥¹œµÙ½±Õµ”µ½¹Ñ½ÕÈµ‘•±…ä¤€¬€ÄÈÁµÌˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ‰­•å™É…µ•ÌÑÉ…¥¹¥¹œµ™•¹¹•ŒµÙ½±Õµ”µ¥µÁ…Ðµ±ÑÈˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ‰­•å™É…µ•ÌÑÉ…¥¹¥¹œµ™•¹¹•ŒµÙ½±Õµ”µ¥µÁ…ÐµÉÑ°ˆ¤°€‰Q¡”¥´µ±¥¡ÐµÕÍÐÕÍ”„Í¡½ÉÐ‘•±…å•Á½ÍÐµ•™™•ÐÑ¡…Ð™Õ±±ä™…‘•Ì‰•™½É”¥Ð…¸™½É´„¡…±¼¸ˆ¤ì)…ÍÍ•ÉÐ¡ÑÉ…¥¹¥¹I…‘…ÉM•ÅÕ•¹”¹¥¹±Õ‘•Ì ‰QI%9%9}99}%5}1%!Q}AIM%MQ9}5L€ô€ÈÀÀÀˆ¤€˜˜ÑÉ…¥¹¥¹I…‘…ÉM•ÅÕ•¹”¹¥¹±Õ‘•Ì ‰™•¹¹•Y½±Õµ•M…¹•¹•É…Ñ¥½¸ˆ¤€˜˜ÑÉ…¥¹¥¹I…‘…ÉM•ÅÕ•¹”¹¥¹±Õ‘•Ì ‰Ù½±Õµ•M…¹•¹•É…Ñ¥½¸€ôôô™•¹¹•Y½±Õµ•M…¹•¹•É…Ñ¥½¸ˆ¤€˜˜ÑÉ…¥¹¥¹I…‘…ÉM•ÅÕ•¹”¹¥¹±Õ‘•Ì ‰Ù½±Õµ•Ñ¥Ù•ÕÉ…Ñ¥½¹5Ì€­q¸€€€€€€€€€€€€€QI%9%9}99}%5}1%!Q}AIM%MQ9}5Lˆ¤°€‰Q¡”•¹¹•Œ¥´µ±¥¡ÐÉ•Í¥‘Õ…°µÕÍÐÉ•µ…¥¸Í¡•‘Õ±•™½ÈÑÝ¼Í•½¹‘ÌÝ¥Ñ¡½ÕÐÍÑ…±”Í…¸Ñ¥µ•ÉÌÕÑÑ¥¹œ„¹•Ý•ÈÁ…ÍÌ¸ˆ¤ì)…ÍÍ•ÉÐ ½p¹ÑÉ…¥¹¥¹œµÉ…‘…Èµ™•¹¹•ŒµÑ…É•Ñqm‘…Ñ„µÙ½±Õµ”µÍ…¸µÁ¡…Í”ô‰™…‘”‰qumqÍqMt¨ýp¹ÑÉ…¥¹¥¹œµÉ…‘…Èµ™•¹¹•Œµ¥µÁ…ÑqÌ©qímqÍqMt¨ýÑÉ…¥¹¥¹œµ™•¹¹•ŒµÙ½±Õµ”µ¥µÁ…ÐµÁ•ÉÍ¥ÍÐ€ÈÀÀÁµÌ•…Í”µ½ÕÐ‰½Ñ ímqÍqMt¨ýµ…Í¬µ¥µ…”éqÌ©¹½¹”ì½Ì¹Ñ•ÍÐ¡™•¹¹•M…¹ÍÌ¤€˜˜€½­•å™É…µ•ÌÑÉ…¥¹¥¹œµ™•¹¹•ŒµÙ½±Õµ”µ¥µÁ…ÐµÁ•ÉÍ¥ÍÑqÌ©qímqÍqMt¨üÀ•qÌ©qíqÌ©½Á…¥ÑäéqÌ¨Áp¸ÀÈÔímqÍqMt¨üÄÀÀ•qÌ©qíqÌ©½Á…¥ÑäéqÌ¨Àì½Ì¹Ñ•ÍÐ¡ÍÌ¤°€‰Q¡”¥´µ±¥¡ÐµÕÍÐ±•…Ù”„™…¥¹Ð™Õ±°µ½Ù•É±…äÉ•Í¥‘Õ…°™½ÈÑÝ¼Í•½¹‘Ì…™Ñ•ÈÑ¡”µ…Ñ•É¥…°Í…¸°Ñ¡•¸™Õ±±ä‘¥Í…ÁÁ•…È¸ˆ¤ì)…ÍÍ•ÉÐ …™•¹¹•M…¹ÍÌ¹¥¹±Õ‘•Ì ‰‰±ÕÈ ˆ¤€˜˜€…™•¹¹•M…¹ÍÌ¹¥¹±Õ‘•Ì ‰‘É½ÀµÍ¡…‘½Ü ˆ¤°€‰•¹¹•ŒÙ½±Õµ”½Ù•É±…åÌµÕÍÐÍÑ…äÉ¥ÍÀÝ¥Ñ¡½ÕÐ‘¥™™ÕÍ”‰±ÕÈ½È±½ÜÍÁÉ•…¸ˆ¤ì)…ÍÍ•ÉÐ ½­•å™É…µ•ÌÑÉ…¥¹¥¹œµ™•¹¹•ŒµÙ½±Õµ”µÍÕÉ™…”µ±ÑÉqÌ©qímqÍqMt¨üÀ•qÌ©qímqÍqMt¨ý½Á…¥ÑäéqÌ¨ÀímqÍqMt¨üÄØ•qÌ©qímqÍqMt¨ý½Á…¥ÑäéqÌ¨Áp¸ØÈímqÍqMt¨üÄÀÀ•qÌ©qímqÍqMt¨ý½Á…¥ÑäéqÌ¨Àì½Ì¹Ñ•ÍÐ¡ÍÌ¤°€‰Q¡”ÁÉ¥µ…Éä•¹¹•ŒÍÕÉ™…”É•Ù•…°µÕÍÐ…ÁÁ•…ÈÉ¥ÍÁ±ä…¹™¥¹¥Í ™Õ±±äÑÉ…¹ÍÁ…É•¹Ð¸ˆ¤ì)…ÍÍ•ÉÐ …™•¹¹•M…¹ÍÌ¹¥¹±Õ‘•Ì ˆÐä¸È”€ÔÀ¸à”ˆ¤€˜˜€…™•¹¹•M…¹ÍÌ¹¥¹±Õ‘•Ì ˆÐä¸Ô”€ÔÀ¸Ô”ˆ¤€˜˜€…™•¹¹•M…¹ÍÌ¹¥¹±Õ‘•Ì ˆÐä¸Ü”€ÔÀ¸Ì”ˆ¤°€‰•¹¹•Œµ…Í­ÌµÕÍÐ¹½ÐÉ•É•ÍÌÑ¼Õ±ÑÉ„µÑ¡¥¸±¥¹”½É•Ì¸ˆ¤ì)…ÍÍ•ÉÐ …ÑÉ…¥¹¥¹M•¹”¹¥¹±Õ‘•Ì ‰™•¹¹•I•™±•Ñ¥½¸ˆ¤€˜˜€…ÑÉ…¥¹¥¹I…‘…ÉQ…É•ÑÌ¹¥¹±Õ‘•Ì ‰Ý¥É•™É…µ•ÍÍ•Ðè…ÍÍ•ÑÌ¹™•¹¹•Œˆ¤€˜˜€…ÑÉ…¥¹¥¹I…‘…ÉQ…É•ÑÌ¹¥¹±Õ‘•Ì ‰±½ÝÍÍ•Ðè…ÍÍ•ÑÌ¹™•¹¹•Œˆ¤°€‰Q¡”•¹¹•ŒÙ½±Õµ”Í…¸µÕÍÐ¹½ÐÉ•ÍÑ½É”É•™±•Ñ¥½¸½ÈÑ…Ñ¥…°Ñ…É•Ð½Ù•É±…åÌ¸ˆ¤ì)…ÍÍ•ÉÐ ½p¹ÑÉ…¥¹¥¹œµ™•¹¹•ŒµÉ•…Èµ…•¹ÑqÌ©qímqÍqMt¨ý½Á…¥ÑäéqÌ¨Áp¸Ààì½Ì¹Ñ•ÍÐ¡ÍÌ¤°€‰•¹¹•ŒÉ•…È…•¹ÐµÕÍÐÉ•µ…¥¸Ù•ÉäÍÕ‰Ñ±”¸ˆ¤ì)…ÍÍ•ÉÐ¡ÍÌ¹¥¹±Õ‘•Ì ˆ¹ÑÉ…¥¹¥¹œµÉ…‘…Èµ‰…±°µÑ…É•Ðèé‰•™½É”ˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ‰‘¥ÍÁ±…äè¹½¹”ˆ¤°€‰Q¡”‰…±°µÕÍÐ¹½ÐÉ•¹‘•ÈÑ¡”™Õ±°µ…¹Ù…Ì½¹Ñ…ÐÉ¥¹œ¸ˆ¤ì)…ÍÍ•ÉÐ¡ÍÌ¹¥¹±Õ‘•Ì œ¹µ½‘”µ¥±±ÕÍÑÉ…Ñ¥½¹m‘…Ñ„µ…Ñ¥Ù”ô‰™…±Í”‰t€¹ÑÉ…¥¹¥¹œµÁ…ÉÑ¥±”µ½É”œ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì œ¹µ½‘”µ¥±±ÕÍÑÉ…Ñ¥½¹m‘…Ñ„µµ½Ñ¥½¸µ…Ñ¥Ù”ô‰™…±Í”‰t€¹ÑÉ…¥¹¥¹œµÁ…ÉÑ¥±”µ½É”èé…™Ñ•Èœ¤°€‰%¹…Ñ¥Ù”…¹½™™ÍÉ••¸Á…ÉÑ¥±”…¹™É…µ•¹Ð…¹¥µ…Ñ¥½¹ÌµÕÍÐÁ…ÕÍ”¸ˆ¤ì)…ÍÍ•ÉÐ¡ÍÌ¹¥¹±Õ‘•Ì œ¹ÑÉ…¥¹¥¹œµÍ•¹•m‘…Ñ„µ±…Õ¹¡¥¹œô‰ÑÉÕ”‰t€¹ÑÉ…¥¹¥¹œµÁ…ÉÑ¥±”µ™¥•±œ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ‰ÑÉ…¹Í¥Ñ¥½¸è½Á…¥Ñä€ÈÐÁµÌ•…Í”µ½ÕÐˆ¤°€‰A…ÉÑ¥±•ÌµÕÍÐ™…‘”…¹Á…ÕÍ”‘ÕÉ¥¹œ±…Õ¹ ¸ˆ¤ì)…ÍÍ•ÉÐ¡ÍÌ¹¥¹±Õ‘•Ì ‰ÑÉ…¹ÍÁ…É•¹Ð€ÐÐ”ˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ‰Éˆ À€À€À€¼€À¸ÈÈ¤€ÐÜ”ˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ‰Éˆ À€À€À€¼€À¸Üà¤€ÜÌ”ˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ‰‰±…¬€ÄÀÀ”ˆ¤°€‰I…‘…ÈÁ…ÉÑ¥±•ÌµÕÍÐ‰”¡¥‘‘•¸…ÐÑ¡”¡½É¥é½¸°É•…‘…‰±”¥¸Ñ¡”µ¥‘‘±”…¹ÍÑÉ½¹•ÍÐ¥¸Ñ¡”™½É•É½Õ¹¸ˆ¤ì)…ÍÍ•ÉÐ¡ÍÌ¹¥¹±Õ‘•Ì ‰‰É¥¡Ñ¹•ÍÌ È¸È¤ˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ‰Ù…È ´µÁ…ÉÑ¥±”µ‘•±…ä¤€Ä™½ÉÝ…É‘Ìˆ¤°€‰I…‘…ÈÁ…ÉÑ¥±•ÌµÕÍÐ™±…Í ¥µµ•‘¥…Ñ•±ä…Ð•µ¥ÍÍ¥½¸Ý¡¥±”ÍÑ…å¥¹œ¡¥‘‘•¸‰•™½É”Ñ¡”Í…¸±¥¹”…ÉÉ¥Ù•Ì¸ˆ¤ì)…ÍÍ•ÉÐ ½µ•‘¥„p¡ÁÉ•™•ÉÌµÉ•‘Õ•µµ½Ñ¥½¸èÉ•‘Õ•p¥mqÍqMt¨ýp¹ÑÉ…¥¹¥¹œµÁ…ÉÑ¥±”µ™¥•±‘qÌ©qíqÌ©‘¥ÍÁ±…äéqÌ©¹½¹”ì½Ì¹Ñ•ÍÐ¡ÍÌ¤°€‰I•‘Õ•µ½Ñ¥½¸µÕÍÐ¡¥‘”Ñ¡”É…‘…ÈÁ…ÉÑ¥±”ÑÉ…¥°Ñ½•Ñ¡•ÈÝ¥Ñ Ñ¡”É…‘…È¸ˆ¤ì()…ÍÍ•ÉÐ¡ÍÌ¹¥¹±Õ‘•Ì ‰­•å™É…µ•ÌÑÉ…¥¹¥¹œµÉ…‘…ÈµÑÉ…Ù•ÉÍ”ˆ¤€˜˜€…ÍÌ¹¥¹±Õ‘•Ì ‰­•å™É…µ•ÌÑÉ…¥¹¥¹œµ…¹…±åÍ¥ÌµÍ…¸ˆ¤°€‰QÉ…¥¹¥¹œµÕÍÐÕÍ”Ñ¡”±¥ÁÁ•™¥•±É…‘…È¥¹ÍÑ•…½˜±•…ä¥É±•Ì¸ˆ¤ì)…ÍÍ•ÉÐ¡ÍÌ¹¥¹±Õ‘•Ì ‰­•å™É…µ•ÌÑÉ…¥¹¥¹œµ±…Õ¹ µ‰…±°µ•¹•Éäˆ¤€˜˜ÍÌ¹¥¹±Õ‘•Ì ‰­•å™É…µ•Ì¡½µ”µÑÉ…¥¹¥¹œµ±…Õ¹ µÝ…Ù”ˆ¤°€‰QÉ…¥¹¥¹œ±…Õ¹ ­•å™É…µ•ÌµÕÍÐÉ•µ…¥¸Õ¹Ñ½Õ¡•¸ˆ¤ì)…ÍÍ•ÉÐ¡ÍÌ¹¥¹±Õ‘•Ì ‰­•å™É…µ•Ì½µÁ•Ñ¥Ñ¥Ù”µ±…Õ¹ µ™•¹¹•Œˆ¤°€‰½µÁ•Ñ¥Ñ¥Ù”ÁÉ•Á…É•±…Õ¹ ­•å™É…µ•ÌµÕÍÐÉ•µ…¥¸¸ˆ¤ì()™½È€¡½¹ÍÐ±•…åA…Ñ ½˜±•…å!½µ•¥±•Ì¤ì(€…ÍÍ•ÉÐ …•á¥ÍÑÍMå¹Œ¡±•…åA…Ñ ¤°1•…ä¡½µ”½µÁ½¹•¹ÐµÕÍÐ‰”É•µ½Ù•è€‘í±•…åA…Ñ¡õ€¤ì)ô()½¹ÍÐ™½É‰¥‘‘•¹Y¥Í¥‰±•]½É‘¥¹œ€ôl(€€‰µ½‘”Ù•ÉÉ½Õ¥±±”ˆ°(€€‰Á•Éµ¥ÌÙ•ÉÉ½Õ¥±±”ˆ°(€€‰Ñ½Àµ½¹‘¥…°ˆ°(€€‰±…ÍÍ•µ•¹Ðµ½¹‘¥…°ˆ°(€€‰™…ÕàÉ…¹œˆ°(€€ˆÈÄàÍ•ÍÍ¥½¹Ìˆ°(€€ˆÐÕ ˆ°(€€ˆÜà”ˆ°(€€ˆØà”ˆ°)tì)™½È€¡½¹ÍÐmÁ…Ñ °½¹Ñ•¹Ñt½˜=‰©•Ð¹•¹ÑÉ¥•Ì¡™¥±•Ì¤¤ì(€½¹ÍÐ±½Ý•È€ô½¹Ñ•¹Ð¹Ñ½1½Ý•É…Í” ¤ì(€™½È€¡½¹ÍÐÝ½É‘¥¹œ½˜™½É‰¥‘‘•¹Y¥Í¥‰±•]½É‘¥¹œ¤ì(€€€…ÍÍ•ÉÐ …±½Ý•È¹¥¹±Õ‘•Ì¡Ý½É‘¥¹œ¤°½É‰¥‘‘•¸¡½µ”Ý½É‘¥¹œ™½Õ¹¥¸€‘íÁ…Ñ¡ôè€‘íÝ½É‘¥¹õ€¤ì(€ô)ô()™½È€¡½¹ÍÐmÁ…Ñ °½¹Ñ•¹Ñt½˜=‰©•Ð¹•¹ÑÉ¥•Ì¡™¥±•Ì¤¤ì(€™½È€¡½¹ÍÐ™½É‰¥‘‘•¸½˜l‰½¹Ñ•¹Ð¹©Í½¸ˆ°€‰ ½±¥ˆ½ÅÕ•ÍÑ¥½¹Ìˆ°€‰•ÑEÕ•ÍÑ¥½¹MÕµµ…É¥•Ìˆ°€‰•ÑÑ¥Ù•EÕ•ÍÑ¥½¹Ìˆ°€‰•ÉÉ½É}Ñ…Ì‰t¤ì(€€€…ÍÍ•ÉÐ …½¹Ñ•¹Ð¹¥¹±Õ‘•Ì¡™½É‰¥‘‘•¸¤°!½µ”±…å•ÈµÕÍÐ¹½ÐÉ•…Á•‘…½¥…°¥¹Ñ•É¹…±Ì¥¸€‘íÁ…Ñ¡ôè€‘í™½É‰¥‘‘•¹õ€¤ì(€ô)ô()½¹Í½±”¹±½œ ‰!½µ”‘…Í¡‰½…ÉÙ…±¥‘…Ñ¥½¸=,ˆ¤ì)½¹Í½±”¹±½œ ‰½Ù•É•ÍÑ…Ñ•ÌèÍÑ…Ñ¥ÍÑ¥Ì‘•™…Õ±Ð°ÑÉ…¥¹¥¹œ±…Õ¹ °½µÁ•Ñ¥Ñ¥Ù”±½­•ÁÉ•Ù¥•Ü°Á•Éµ¥Ð€À´ÄÀÀ°Ý••­±ä™½ÕÌ±¥™•å±”°•µÁÑä¥¹Í¥¡ÑÌ°Ñ…É•Ñ•Í•ÍÍ¥½¹Ì±½­•°ÕÀÑ¼Ñ¡É•”É•…°Í•ÍÍ¥½¹Ì¸ˆ¤ì(
