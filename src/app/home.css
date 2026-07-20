@@ -1041,8 +1041,15 @@
 }
 
 .training-radar-fennec-target[data-volume-scan-phase="fade"]
-  :is(.training-radar-fennec-surface, .training-radar-fennec-contour, .training-radar-fennec-impact) {
+  :is(.training-radar-fennec-surface, .training-radar-fennec-contour) {
   opacity: 0;
+}
+
+.training-radar-fennec-target[data-volume-scan-phase="fade"]
+  .training-radar-fennec-impact {
+  animation: training-fennec-volume-impact-persist 2000ms ease-out both;
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 
 .scene-group[data-scene-group="fennec-lights-glow"] .training-lights-glow {
@@ -2870,6 +2877,24 @@
     opacity: 0;
     -webkit-mask-position: 43% 50%;
     mask-position: 43% 50%;
+  }
+}
+
+@keyframes training-fennec-volume-impact-persist {
+  0% {
+    opacity: 0.025;
+  }
+
+  18% {
+    opacity: 0.02;
+  }
+
+  64% {
+    opacity: 0.008;
+  }
+
+  100% {
+    opacity: 0;
   }
 }
 
