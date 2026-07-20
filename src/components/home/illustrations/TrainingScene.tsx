@@ -11,11 +11,13 @@ import { useTrainingRadarSequence } from "@/components/home/illustrations/Traini
 import { TrainingParticleField } from "@/components/home/illustrations/TrainingParticleField";
 import { homeIllustrationAssets } from "@/lib/home/homeIllustrationAssets";
 import {
+  getTrainingRadarRangeTiming,
   TRAINING_VOLUME_SCAN_TIMING,
   trainingBallRadarTarget,
   trainingCarRadarTargets,
   trainingFennecVolumeScanTarget,
   type TrainingCarRadarTarget,
+  type TrainingRadarDirection,
   type TrainingRadarTargetId,
   type TrainingVolumeScanTargetId,
 } from "@/lib/home/trainingRadarTargets";
@@ -41,11 +43,38 @@ const trainingFarCarTarget = getTrainingCarTarget("trainingCarFar");
 const trainingMidCarTarget = getTrainingCarTarget("trainingCarMid");
 const trainingNearCarTarget = getTrainingCarTarget("trainingCarNear");
 
-const trainingFennecScanStyle = {
-  "--training-volume-contour-delay": `${TRAINING_VOLUME_SCAN_TIMING.contourDelayMs}ms`,
-  "--training-volume-fade-duration": `${TRAINING_VOLUME_SCAN_TIMING.fadeDurationMs}ms`,
-  "--training-volume-scan-duration": `${TRAINING_VOLUME_SCAN_TIMING.fennecActiveDurationMs}ms`,
-} as CSSProperties;
+type TrainingFennecScanStyle = CSSProperties & {
+  "--training-fennec-mask-end-position": string;
+  "--training-fennec-mask-start-position": string;
+  "--training-volume-contour-delay": string;
+  "--training-volume-fade-duration": string;
+  "--training-volume-scan-duration": string;
+  "--training-volume-scan-easing": string;
+};
+
+function getTrainingFennecScanStyle(
+  direction: TrainingRadarDirection,
+): TrainingFennecScanStyle {
+  const rangeTiming = getTrainingRadarRangeTiming(
+    trainingFennecVolumeScanTarget.scanRange,
+    direction,
+  );
+
+  return {
+    "--training-fennec-mask-end-position": `${(
+      (1 - trainingFennecVolumeScanTarget.scanRange.endProgress) *
+      100
+    ).toFixed(1)}%`,
+    "--training-fennec-mask-start-position": `${(
+      (1 - trainingFennecVolumeScanTarget.scanRange.startProgress) *
+      100
+    ).toFixed(1)}%`,
+    "--training-volume-contour-delay": `${TRAINING_VOLUME_SCAN_TIMING.contourDelayMs}ms`,
+    "--training-volume-fade-duration": `${TRAINING_VOLUME_SCAN_TIMING.fadeDurationMs}ms`,
+    "--training-volume-scan-duration": `${rangeTiming.durationMs}ms`,
+    "--training-volume-scan-easing": rangeTiming.easing,
+  };
+}
 
 export function TrainingScene({ active, launching }: TrainingSceneProps) {
   const {
@@ -64,6 +93,12 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
     volumeScanDirections[targetId];
   const getVolumeScanPhase = (targetId: TrainingVolumeScanTargetId) =>
     volumeScanPhases[targetId];
+  const trainingFennecScanDirection = getVolumeScanDirection(
+    trainingFennecVolumeScanTarget.id,
+  );
+  const trainingFennecScanStyle = getTrainingFennecScanStyle(
+    trainingFennecScanDirection,
+  );
 
   return (
     <div
@@ -197,7 +232,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         <SceneLayer asset={assets.fennecBase} />
         <div
           className="training-radar-fennec-target"
-          data-radar-direction={getVolumeScanDirection(trainingFennecVolumeScanTarget.id)}
+          data-radar-direction={trainingFennecScanDirection}
           data-surface-scan-persistent={fennecSurfacePersistent ? "true" : "false"}
           data-volume-scan-phase={getVolumeScanPhase(trainingFennecVolumeScanTarget.id)}
           style={trainingFennecScanStyle}
