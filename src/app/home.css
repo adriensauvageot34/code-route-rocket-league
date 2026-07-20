@@ -927,36 +927,20 @@
   z-index: 2;
   clip-path: none;
   filter: brightness(1.18) contrast(1.34) saturate(1.2);
-  -webkit-mask-image:
-    url("/ui/training-fennec-base.png"),
-    linear-gradient(
-      var(--training-fennec-volume-mask-angle),
-      black 0 50%,
-      rgb(0 0 0 / 0.72) 51%,
-      transparent 53%
-    );
-  mask-image:
-    url("/ui/training-fennec-base.png"),
-    linear-gradient(
-      var(--training-fennec-volume-mask-angle),
-      black 0 50%,
-      rgb(0 0 0 / 0.72) 51%,
-      transparent 53%
-    );
-  -webkit-mask-composite: source-in;
-  mask-composite: intersect;
-  -webkit-mask-mode: alpha, alpha;
-  mask-mode: alpha, alpha;
-  -webkit-mask-position:
-    center,
-    var(--training-fennec-mask-start-position) 50%;
-  mask-position:
-    center,
-    var(--training-fennec-mask-start-position) 50%;
-  -webkit-mask-repeat: no-repeat, no-repeat;
-  mask-repeat: no-repeat, no-repeat;
-  -webkit-mask-size: cover, 200% 100%;
-  mask-size: cover, 200% 100%;
+  -webkit-mask-image: linear-gradient(
+    var(--training-fennec-volume-mask-angle),
+    black 0 50%,
+    rgb(0 0 0 / 0.72) 51%,
+    transparent 53%
+  );
+  mask-image: linear-gradient(
+    var(--training-fennec-volume-mask-angle),
+    black 0 50%,
+    rgb(0 0 0 / 0.72) 51%,
+    transparent 53%
+  );
+  -webkit-mask-size: 200% 100%;
+  mask-size: 200% 100%;
 }
 
 .training-radar-fennec-contour {
@@ -1038,16 +1022,8 @@
 .training-radar-fennec-target[data-surface-scan-mode="persisted"]
   .training-radar-fennec-surface {
   opacity: 0.48;
-  -webkit-mask-image: url("/ui/training-fennec-base.png");
-  mask-image: url("/ui/training-fennec-base.png");
-  -webkit-mask-mode: alpha;
-  mask-mode: alpha;
-  -webkit-mask-position: center;
-  mask-position: center;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-size: cover;
-  mask-size: cover;
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 
 .training-radar-fennec-target[data-volume-scan-phase="active"][data-radar-direction="ltr"]
@@ -2811,12 +2787,8 @@
 @keyframes training-fennec-volume-surface-ltr {
   0% {
     opacity: 0.58;
-    -webkit-mask-position:
-      center,
-      var(--training-fennec-mask-start-position) 50%;
-    mask-position:
-      center,
-      var(--training-fennec-mask-start-position) 50%;
+    -webkit-mask-position: var(--training-fennec-mask-start-position) 50%;
+    mask-position: var(--training-fennec-mask-start-position) 50%;
   }
 
   16% {
@@ -2829,24 +2801,16 @@
 
   100% {
     opacity: 0.48;
-    -webkit-mask-position:
-      center,
-      var(--training-fennec-mask-end-position) 50%;
-    mask-position:
-      center,
-      var(--training-fennec-mask-end-position) 50%;
+    -webkit-mask-position: var(--training-fennec-mask-end-position) 50%;
+    mask-position: var(--training-fennec-mask-end-position) 50%;
   }
 }
 
 @keyframes training-fennec-volume-surface-rtl {
   0% {
     opacity: 0.48;
-    -webkit-mask-position:
-      center,
-      var(--training-fennec-mask-end-position) 50%;
-    mask-position:
-      center,
-      var(--training-fennec-mask-end-position) 50%;
+    -webkit-mask-position: var(--training-fennec-mask-end-position) 50%;
+    mask-position: var(--training-fennec-mask-end-position) 50%;
   }
 
   16% {
@@ -2859,12 +2823,8 @@
 
   100% {
     opacity: 0;
-    -webkit-mask-position:
-      center,
-      var(--training-fennec-mask-start-position) 50%;
-    mask-position:
-      center,
-      var(--training-fennec-mask-start-position) 50%;
+    -webkit-mask-position: var(--training-fennec-mask-start-position) 50%;
+    mask-position: var(--training-fennec-mask-start-position) 50%;
   }
 }
 
