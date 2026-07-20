@@ -420,7 +420,7 @@ assert(
 );
 assert(trainingRadarSequence.includes("tacticalPhases") && trainingRadarSequence.includes("activeTacticalTargetId") && trainingRadarSequence.includes("...HIDDEN_TACTICAL_PHASES"), "Radar must clear the previous tactical object before activating exactly one deep-analysis target.");
 assert(trainingRadarSequence.includes("volumeScanPhases") && trainingRadarSequence.includes("for (const volumeTarget of trainingVolumeScanTargets)") && trainingRadarSequence.includes("getTrainingRadarHitDelayMs(\n          volumeTarget"), "Every pass must independently schedule a hit-synchronous volume scan for all five 3D objects.");
-assert(trainingRadarSequence.includes('setVolumeScan(volumeTarget.id, "active", passDirection)') && trainingRadarSequence.includes('setVolumeScan(volumeTarget.id, "fade")') && trainingRadarSequence.includes('setVolumeScan(volumeTarget.id, "hidden")'), "Volume scan delay must apply to disappearance, not initial reveal.");
+assert(/setVolumeScan\([\s\S]*?volumeTarget\.id,[\s\S]*?"active",[\s\S]*?passDirection,/s.test(trainingRadarSequence) && /setVolumeScan\([\s\S]*?volumeTarget\.id,[\s\S]*?"fade",/s.test(trainingRadarSequence) && trainingRadarSequence.includes('setVolumeScan(volumeTarget.id, "hidden")'), "Volume scan delay must apply to disappearance, while the initial reveal commits atomically with direction and surface mode.");
 assert(trainingRadarSequence.includes("schedule(beginPass, TRAINING_RADAR_TIMING.passDurationMs)"), "Radar must reverse immediately when each traverse ends.");
 for (const phase of ['"contact"', '"wireframe"', '"fade"', '"active"']) {
   assert(trainingRadarSequence.includes(phase), `Separated radar phase missing: ${phase}.`);
