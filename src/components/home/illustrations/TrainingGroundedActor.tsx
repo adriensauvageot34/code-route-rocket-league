@@ -9,7 +9,6 @@ import {
   TRAINING_VOLUME_SCAN_TIMING,
   type TrainingBallRadarTarget,
   type TrainingCarRadarTarget,
-  type TrainingRadarDirection,
 } from "@/lib/home/trainingRadarTargets";
 
 type GroundedActorStyle = CSSProperties & {
@@ -34,14 +33,12 @@ type TrainingCarScanStyle = CSSProperties & {
 };
 
 type TrainingGroundedCarProps = {
-  direction: TrainingRadarDirection;
   target: TrainingCarRadarTarget;
   tacticalPhase: TrainingTacticalPhase;
   volumeScanPhase: TrainingVolumeScanPhase;
 };
 
 type TrainingGroundedBallProps = {
-  direction: TrainingRadarDirection;
   target: TrainingBallRadarTarget;
   tacticalPhase: TrainingTacticalPhase;
   volumeScanPhase: TrainingVolumeScanPhase;
@@ -73,22 +70,18 @@ function getGroundedActorStyle(
 }
 
 export function TrainingGroundedCar({
-  direction,
   target,
   tacticalPhase,
   volumeScanPhase,
 }: TrainingGroundedCarProps) {
   const scan = target.objectScan;
-  const movesLeftToRight = direction === "ltr";
   const placementStyle: TrainingCarScanStyle = {
     aspectRatio: target.placement.aspectRatio,
     left: target.placement.left,
     top: target.placement.top,
     transformOrigin: target.placement.transformOrigin,
     width: target.placement.width,
-    "--training-object-scan-angle": movesLeftToRight
-      ? scan.angle
-      : `${Number.parseFloat(scan.angle) * -1}deg`,
+    "--training-object-scan-angle": scan.angle,
     "--training-volume-contour-delay": `${scan.contourDelayMs}ms`,
     "--training-volume-scan-duration": `${scan.durationMs}ms`,
   };
@@ -114,7 +107,6 @@ export function TrainingGroundedCar({
       <div
         className="training-radar-object-target training-radar-car-target"
         data-object-scan="aligned"
-        data-radar-direction={direction}
         data-tactical-active={tacticalPhase === "hidden" ? "false" : "true"}
         data-tactical-phase={tacticalPhase}
         data-volume-scan-phase={volumeScanPhase}
@@ -166,7 +158,6 @@ export function TrainingGroundedCar({
 }
 
 export function TrainingGroundedBall({
-  direction,
   target,
   tacticalPhase,
   volumeScanPhase,
@@ -193,7 +184,6 @@ export function TrainingGroundedBall({
       />
       <div
         className="training-radar-object-target training-radar-ball-target"
-        data-radar-direction={direction}
         data-tactical-phase={tacticalPhase}
         data-volume-scan-phase={volumeScanPhase}
       >
