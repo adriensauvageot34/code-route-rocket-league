@@ -3394,3 +3394,372 @@
     transform: translate3d(3.8%, 6%, 0);
   }
 }
+
+/* =========================================================
+   LABORATOIRE D’EFFETS FENNEC / IM-LIGHT
+   Modifier uniquement les 3 variables dans :root
+   ========================================================= */
+
+:root {
+  /* EFFET ACTUEL : CROSSFADE DOUX */
+  --fennec-base-effect: fx-fennec-base-soft;
+  --fennec-impact-effect: fx-fennec-impact-soft;
+  --fennec-effect-easing: cubic-bezier(0.45, 0, 0.55, 1);
+}
+
+/* La Fennec normale utilise l’effet sélectionné */
+.training-fennec-base-frame[data-surface-scan-mode="persisted"] {
+  animation-name: var(--fennec-base-effect) !important;
+  animation-duration: var(--training-fennec-persisted-duration) !important;
+  animation-timing-function: var(--fennec-effect-easing) !important;
+  animation-fill-mode: both !important;
+  animation-iteration-count: 1 !important;
+}
+
+/* L’im-light utilise l’effet inverse sélectionné */
+.training-radar-fennec-target[data-surface-scan-mode="persisted"]
+  .training-radar-fennec-impact {
+  animation-name: var(--fennec-impact-effect) !important;
+  animation-duration: var(--training-fennec-persisted-duration) !important;
+  animation-timing-function: var(--fennec-effect-easing) !important;
+  animation-fill-mode: both !important;
+  animation-iteration-count: 1 !important;
+
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+  mix-blend-mode: screen !important;
+}
+
+/* =========================================================
+   1. CROSSFADE DOUX
+   ========================================================= */
+
+@keyframes fx-fennec-base-soft {
+  0% {
+    opacity: 1;
+  }
+
+  45%,
+  55% {
+    opacity: 0.15;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fx-fennec-impact-soft {
+  0% {
+    opacity: 0;
+  }
+
+  45%,
+  55% {
+    opacity: 0.85;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+/* =========================================================
+   2. RESPIRATION LENTE
+   ========================================================= */
+
+@keyframes fx-fennec-base-breathe {
+  0% {
+    opacity: 1;
+  }
+
+  30% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 0.1;
+  }
+
+  70% {
+    opacity: 0.55;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fx-fennec-impact-breathe {
+  0% {
+    opacity: 0;
+  }
+
+  30% {
+    opacity: 0.45;
+  }
+
+  50% {
+    opacity: 0.9;
+  }
+
+  70% {
+    opacity: 0.45;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+/* =========================================================
+   3. DOUBLE PULSATION
+   ========================================================= */
+
+@keyframes fx-fennec-base-double-pulse {
+  0% {
+    opacity: 1;
+  }
+
+  24% {
+    opacity: 0.35;
+  }
+
+  40% {
+    opacity: 0.75;
+  }
+
+  62% {
+    opacity: 0.15;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fx-fennec-impact-double-pulse {
+  0% {
+    opacity: 0;
+  }
+
+  24% {
+    opacity: 0.65;
+  }
+
+  40% {
+    opacity: 0.25;
+  }
+
+  62% {
+    opacity: 0.85;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+/* =========================================================
+   4. CLIGNOTEMENT NUMÉRIQUE
+   ========================================================= */
+
+@keyframes fx-fennec-base-flicker {
+  0% {
+    opacity: 1;
+  }
+
+  18% {
+    opacity: 0.35;
+  }
+
+  25% {
+    opacity: 0.8;
+  }
+
+  34% {
+    opacity: 0.15;
+  }
+
+  43% {
+    opacity: 0.55;
+  }
+
+  52% {
+    opacity: 0.08;
+  }
+
+  62% {
+    opacity: 0.5;
+  }
+
+  72% {
+    opacity: 0.2;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fx-fennec-impact-flicker {
+  0% {
+    opacity: 0;
+  }
+
+  18% {
+    opacity: 0.65;
+  }
+
+  25% {
+    opacity: 0.2;
+  }
+
+  34% {
+    opacity: 0.85;
+  }
+
+  43% {
+    opacity: 0.45;
+  }
+
+  52% {
+    opacity: 0.92;
+  }
+
+  62% {
+    opacity: 0.5;
+  }
+
+  72% {
+    opacity: 0.8;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+/* =========================================================
+   5. APPARITION NETTE / MAINTIEN / RETOUR DOUX
+   ========================================================= */
+
+@keyframes fx-fennec-base-sharp {
+  0% {
+    opacity: 1;
+  }
+
+  18% {
+    opacity: 0.1;
+  }
+
+  48% {
+    opacity: 0.1;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fx-fennec-impact-sharp {
+  0% {
+    opacity: 0;
+  }
+
+  18% {
+    opacity: 0.9;
+  }
+
+  48% {
+    opacity: 0.9;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+/* =========================================================
+   6. GLOW VIOLET / ORANGE AVEC HALO
+   ========================================================= */
+
+@keyframes fx-fennec-base-glow {
+  0% {
+    opacity: 1;
+  }
+
+  45%,
+  55% {
+    opacity: 0.25;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fx-fennec-impact-glow {
+  0% {
+    opacity: 0;
+    filter:
+      brightness(1)
+      saturate(1)
+      drop-shadow(0 0 0 rgb(255 174 55 / 0))
+      drop-shadow(0 0 0 rgb(150 62 255 / 0));
+  }
+
+  45%,
+  55% {
+    opacity: 0.75;
+    filter:
+      brightness(1.55)
+      saturate(1.6)
+      drop-shadow(0 0 4px rgb(255 174 55 / 0.75))
+      drop-shadow(0 0 12px rgb(150 62 255 / 0.5));
+  }
+
+  100% {
+    opacity: 0;
+    filter:
+      brightness(1)
+      saturate(1)
+      drop-shadow(0 0 0 rgb(255 174 55 / 0))
+      drop-shadow(0 0 0 rgb(150 62 255 / 0));
+  }
+}
+
+/* =========================================================
+   7. GLOW NET SANS HALO DIFFUS
+   ========================================================= */
+
+@keyframes fx-fennec-base-crisp-glow {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.15;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fx-fennec-impact-crisp-glow {
+  0% {
+    opacity: 0;
+    filter: brightness(1) contrast(1) saturate(1);
+  }
+
+  50% {
+    opacity: 0.85;
+    filter: brightness(1.7) contrast(1.25) saturate(1.65);
+  }
+
+  100% {
+    opacity: 0;
+    filter: brightness(1) contrast(1) saturate(1);
+  }
+}
