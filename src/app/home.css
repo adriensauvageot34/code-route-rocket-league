@@ -1028,11 +1028,11 @@
 
 .training-radar-fennec-impact-frame {
   position: absolute;
-  left: 15.8085%;
-  top: 6.1722%;
-  width: 80.4954%;
-  height: 88.9024%;
+  left: 39.8085%;
+  top: 35.1722%;
   z-index: 2;
+  width: 56.4954%;
+  height: 59.9024%;
   pointer-events: none;
 }
 
