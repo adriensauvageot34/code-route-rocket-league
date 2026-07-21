@@ -5,12 +5,10 @@ import {
   TRAINING_RADAR_SWEEP,
   TRAINING_RADAR_TIMING,
   TRAINING_RADAR_TRAVEL_EASING,
-  type TrainingRadarDirection,
 } from "@/lib/home/trainingRadarTargets";
 
 type TrainingRadarOverlayProps = {
   active: boolean;
-  direction: TrainingRadarDirection;
   variant: "surface" | "sweep";
 };
 
@@ -24,38 +22,21 @@ type TrainingRadarStyle = CSSProperties & {
 
 const terrainAsset = homeIllustrationAssets.training.tacticalTerrain;
 
-const REVEAL_PATHS: Record<TrainingRadarDirection, string> = {
-  ltr: "M -790 340 L 30 340 L 270 941 L -550 941 Z",
-  rtl: "M 790 340 L -30 340 L -270 941 L 550 941 Z",
-};
-
-const CORE_REVEAL_PATHS: Record<TrainingRadarDirection, string> = {
-  ltr: "M -24 340 L 18 340 L 256 941 L 214 941 Z",
-  rtl: "M 24 340 L -18 340 L -256 941 L -214 941 Z",
-};
-
-const SWEEP_PATHS: Record<TrainingRadarDirection, string> = {
-  ltr: "M -286 340 L 2 340 L 238 941 L -50 941 Z",
-  rtl: "M 286 340 L -2 340 L -238 941 L 50 941 Z",
-};
-
-const CORE_PATHS: Record<TrainingRadarDirection, string> = {
-  ltr: "M 2 340 L 238 941",
-  rtl: "M -2 340 L -238 941",
-};
+const REVEAL_PATH = "M -790 340 L 30 340 L 270 941 L -550 941 Z";
+const CORE_REVEAL_PATH = "M -24 340 L 18 340 L 256 941 L 214 941 Z";
+const SWEEP_PATH = "M -286 340 L 2 340 L 238 941 L -50 941 Z";
+const CORE_PATH = "M 2 340 L 238 941";
 
 export function TrainingRadarOverlay({
   active,
-  direction,
   variant,
 }: TrainingRadarOverlayProps) {
-  const movesLeftToRight = direction === "ltr";
   const style: TrainingRadarStyle = {
     "--radar-entry-duration": `${TRAINING_RADAR_TIMING.entryDurationMs}ms`,
     "--radar-travel-duration": `${TRAINING_RADAR_TIMING.travelDurationMs}ms`,
-    "--radar-travel-easing": TRAINING_RADAR_TRAVEL_EASING[direction],
-    "--radar-start-x": `${movesLeftToRight ? TRAINING_RADAR_SWEEP.startX : TRAINING_RADAR_SWEEP.endX}px`,
-    "--radar-end-x": `${movesLeftToRight ? TRAINING_RADAR_SWEEP.endX : TRAINING_RADAR_SWEEP.startX}px`,
+    "--radar-travel-easing": TRAINING_RADAR_TRAVEL_EASING,
+    "--radar-start-x": `${TRAINING_RADAR_SWEEP.startX}px`,
+    "--radar-end-x": `${TRAINING_RADAR_SWEEP.endX}px`,
   };
 
   if (variant === "surface") {
@@ -63,7 +44,7 @@ export function TrainingRadarOverlay({
       <svg
         aria-hidden="true"
         className={`training-radar-overlay training-radar-surface${active ? " is-active" : ""}`}
-        data-radar-direction={direction}
+        data-radar-direction="ltr"
         preserveAspectRatio="xMidYMid slice"
         style={style}
         viewBox="0 0 1672 941"
@@ -93,8 +74,8 @@ export function TrainingRadarOverlay({
           </mask>
           <linearGradient
             id="training-radar-terrain-mask-gradient"
-            x1={movesLeftToRight ? "0" : "1"}
-            x2={movesLeftToRight ? "1" : "0"}
+            x1="0"
+            x2="1"
             y1="0"
             y2="0"
           >
@@ -109,7 +90,7 @@ export function TrainingRadarOverlay({
             <rect width="1672" height="941" fill="black" />
             <g className="training-radar-motion">
               <path
-                d={REVEAL_PATHS[direction]}
+                d={REVEAL_PATH}
                 fill="url(#training-radar-terrain-mask-gradient)"
               />
             </g>
@@ -117,7 +98,7 @@ export function TrainingRadarOverlay({
           <mask id="training-radar-terrain-core-mask" maskUnits="userSpaceOnUse">
             <rect width="1672" height="941" fill="black" />
             <g className="training-radar-motion">
-              <path d={CORE_REVEAL_PATHS[direction]} fill="white" />
+              <path d={CORE_REVEAL_PATH} fill="white" />
             </g>
           </mask>
         </defs>
@@ -147,7 +128,7 @@ export function TrainingRadarOverlay({
     <svg
       aria-hidden="true"
       className={`training-radar-overlay training-radar-sweep${active ? " is-active" : ""}`}
-      data-radar-direction={direction}
+      data-radar-direction="ltr"
       preserveAspectRatio="xMidYMid slice"
       style={style}
       viewBox="0 0 1672 941"
@@ -155,8 +136,8 @@ export function TrainingRadarOverlay({
       <defs>
         <linearGradient
           id="training-radar-trail-gradient"
-          x1={movesLeftToRight ? "0" : "1"}
-          x2={movesLeftToRight ? "1" : "0"}
+          x1="0"
+          x2="1"
           y1="0"
           y2="0"
         >
@@ -192,16 +173,16 @@ export function TrainingRadarOverlay({
         <g className="training-radar-motion">
           <path
             className="training-radar-trail"
-            d={SWEEP_PATHS[direction]}
+            d={SWEEP_PATH}
             fill="url(#training-radar-trail-gradient)"
           />
           <path
             className="training-radar-core-glow"
-            d={CORE_PATHS[direction]}
+            d={CORE_PATH}
           />
           <path
             className="training-radar-core-line"
-            d={CORE_PATHS[direction]}
+            d={CORE_PATH}
           />
         </g>
       </g>
