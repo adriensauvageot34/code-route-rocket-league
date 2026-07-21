@@ -14,18 +14,15 @@ import {
 import {
   getTrainingRadarDelayForProgress,
   TRAINING_RADAR_SWEEP,
-  type TrainingRadarDirection,
 } from "@/lib/home/trainingRadarTargets";
 
 type TrainingParticleFieldProps = {
   active: boolean;
-  direction: TrainingRadarDirection;
   passKey: number;
   preset: TrainingParticlePresetName;
 };
 
 type TrainingParticlePass = {
-  direction: TrainingRadarDirection;
   key: number;
 };
 
@@ -84,30 +81,23 @@ function getRadarCoreOffsetX(particle: TrainingParticle) {
 
 function getParticleScanDelayMs(
   particle: TrainingParticle,
-  direction: TrainingRadarDirection,
 ) {
   const logicalX = (particle.x / 100) * TRAINING_SCENE_WIDTH;
   const sweepDistance =
     TRAINING_RADAR_SWEEP.endX - TRAINING_RADAR_SWEEP.startX;
   const coreOffsetX = getRadarCoreOffsetX(particle);
   const sceneProgress =
-    direction === "ltr"
-      ? (logicalX - TRAINING_RADAR_SWEEP.startX - coreOffsetX) /
-        sweepDistance
-      : (logicalX - TRAINING_RADAR_SWEEP.startX + coreOffsetX) /
-        sweepDistance;
+    (logicalX - TRAINING_RADAR_SWEEP.startX - coreOffsetX) / sweepDistance;
   const progress = Math.min(1, Math.max(0, sceneProgress));
-  const scanHitMs = getTrainingRadarDelayForProgress(progress, direction);
+  const scanHitMs = getTrainingRadarDelayForProgress(progress);
 
   return Math.max(0, scanHitMs);
 }
 
 function createParticleStyle(
   particle: TrainingParticle,
-  direction: TrainingRadarDirection,
 ): TrainingParticleStyle {
-  const trailDirection = direction === "ltr" ? -1 : 1;
-  const directionalDriftX = particle.driftX * trailDirection;
+  const directionalDriftX = particle.driftX * -1;
 
   return {
     "--particle-x": `${particle.x}%`,
@@ -115,7 +105,7 @@ function createParticleStyle(
     "--particle-size": `${particle.size}px`,
     "--particle-opacity": String(particle.opacity),
     "--particle-duration": `${particle.durationMs}ms`,
-    "--particle-delay": `${getParticleScanDelayMs(particle, direction)}ms`,
+    "--particle-delay": `${getParticleScanDelayMs(particle)}ms`,
     "--particle-drift-x": `${directionalDriftX.toFixed(2)}px`,
     "--particle-drift-x-mid": `${(directionalDriftX * 0.52).toFixed(2)}px`,
     "--particle-drift-x-soft": `${(directionalDriftX * 0.8).toFixed(2)}px`,
@@ -140,13 +130,11 @@ function createParticleStyle(
 }
 
 type TrainingParticleSpriteProps = {
-  direction: TrainingRadarDirection;
   index: number;
   particle: TrainingParticle;
 };
 
 const TrainingParticleSprite = memo(function TrainingParticleSprite({
-  direction,
   index,
   particle,
 }: TrainingParticleSpriteProps) {
@@ -155,7 +143,7 @@ const TrainingParticleSprite = memo(function TrainingParticleSprite({
       className="training-particle"
       data-particle-index={index + 1}
       data-particle-kind={particle.kind}
-      style={createParticleStyle(particle, direction)}
+      style={createParticleStyle(particle)}
     >
       <span className="training-particle-birth-flash" />
       <span className="training-particle-core" />
@@ -165,7 +153,6 @@ const TrainingParticleSprite = memo(function TrainingParticleSprite({
 
 export const TrainingParticleField = memo(function TrainingParticleField({
   active,
-  direction,
   passKey,
   preset,
 }: TrainingParticleFieldProps) {
@@ -175,16 +162,16 @@ export const TrainingParticleField = memo(function TrainingParticleField({
       ? []
       : passes.some((pass) => pass.key === passKey)
         ? passes
-        : [...passes, { direction, key: passKey }].slice(-2);
+        : [...passes, { key: passKey }].slice(-2);
 
   useEffect(() => {
     setPasses((current) => {
       if (!active || passKey === 0) return current.length === 0 ? current : [];
       if (current.some((pass) => pass.key === passKey)) return current;
 
-      return [...current, { direction, key: passKey }].slice(-2);
+      return [...current, { key: passKey }].slice(-2);
     });
-  }, [active, direction, passKey]);
+  }, [active, passKey]);
 
   return (
     <div
@@ -197,12 +184,11 @@ export const TrainingParticleField = memo(function TrainingParticleField({
         <div
           className="training-particle-band"
           data-particle-pass={pass.key}
-          data-radar-direction={pass.direction}
+          data-radar-direction="ltr"
           key={pass.key}
         >
           {trainingParticlePresets[preset].map((particle, index) => (
             <TrainingParticleSprite
-              direction={pass.direction}
               index={index}
               key={`${pass.key}-${particle.id}`}
               particle={particle}
