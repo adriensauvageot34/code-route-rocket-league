@@ -20,7 +20,7 @@ import {
 
 export type TrainingRadarPassMode = "volume" | "tactical";
 export type TrainingTacticalPhase = "hidden" | "contact" | "active";
-export type TrainingVolumeScanPhase = "hidden" | "active" | "fade";
+export type TrainingVolumeScanPhase = "hidden" | "active" | "hold" | "fade";
 export type TrainingFennecSurfaceMode = "hidden" | "reveal";
 
 type TrainingRadarSequenceState = {
@@ -168,11 +168,6 @@ export function useTrainingRadarSequence({
           (volumeTarget.type === "ball"
             ? TRAINING_VOLUME_SCAN_TIMING.ballActiveDurationMs
             : TRAINING_VOLUME_SCAN_TIMING.activeDurationMs);
-        const totalDurationMs =
-          activeDurationMs +
-          (TRAINING_VOLUME_SCAN_TIMING.totalDurationMs -
-            TRAINING_VOLUME_SCAN_TIMING.activeDurationMs);
-
         schedule(() => {
           setVolumeScan(
             volumeTarget.id,
@@ -182,16 +177,31 @@ export function useTrainingRadarSequence({
         }, startDelayMs);
 
         schedule(() => {
-          setVolumeScan(volumeTarget.id, "fade");
+          setVolumeScan(volumeTarget.id, "hold");
         }, startDelayMs + activeDurationMs);
 
-        schedule(() => {
-          setVolumeScan(
-            volumeTarget.id,
-            "hidden",
-            volumeTarget.id === "fennec" ? "hidden" : undefined,
-          );
-        }, startDelayMs + totalDurationMs);
+        schedule(
+          () => {
+            setVolumeScan(volumeTarget.id, "fade");
+          },
+          startDelayMs +
+            activeDurationMs +
+            TRAINING_VOLUME_SCAN_TIMING.holdDurationMs,
+        );
+
+        schedule(
+          () => {
+            setVolumeScan(
+              volumeTarget.id,
+              "hidden",
+              volumeTarget.id === "fennec" ? "hidden" : undefined,
+            );
+          },
+          startDelayMs +
+            activeDurationMs +
+            TRAINING_VOLUME_SCAN_TIMING.holdDurationMs +
+            TRAINING_VOLUME_SCAN_TIMING.fadeDurationMs,
+        );
       }
     }
 
@@ -251,7 +261,13 @@ export function useTrainingRadarSequence({
         scheduleTacticalPass();
       }
 
-      schedule(beginPass, TRAINING_RADAR_TIMING.passDurationMs);
+      const nextPassDelayMs =
+        TRAINING_RADAR_TIMING.passDurationMs +
+        (passMode === "tactical"
+          ? TRAINING_RADAR_TIMING.tacticalHoldDurationMs
+          : 0);
+
+      schedule(beginPass, nextPassDelayMs);
     }
 
     beginPass();
