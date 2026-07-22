@@ -17,7 +17,8 @@ export const TRAINING_RADAR_TIMING = {
   travelDurationMs: TRAINING_RADAR_TRAVEL_DURATION_MS,
   exitDurationMs: TRAINING_RADAR_EXIT_DURATION_MS,
   pauseDurationMs: TRAINING_RADAR_PAUSE_DURATION_MS,
-  contactDurationMs: 180,
+  tacticalHoldDurationMs: 1800,
+  contactDurationMs: 360,
   wireframeDelayMs: 820,
   fadeDelayMs: 1500,
   targetLifetimeMs: 2300,
@@ -29,9 +30,9 @@ export const TRAINING_VOLUME_SCAN_TIMING = {
   ballActiveDurationMs: 540,
   fennecActiveDurationMs: 720,
   contourDelayMs: 60,
-  fadeDurationMs: 210,
+  holdDurationMs: 350,
+  fadeDurationMs: 400,
   leadMs: 120,
-  totalDurationMs: 610,
 } as const;
 
 export const TRAINING_RADAR_CYCLE_MS =
