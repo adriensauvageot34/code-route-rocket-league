@@ -881,13 +881,10 @@
   opacity: 1;
 }
 
-.training-fennec-base-frame[data-tactical-active="false"] {
-  opacity: 1;
-  animation: none;
-}
-
-.training-fennec-base-frame[data-tactical-active="true"] {
-  animation: training-fennec-tactical-base-activate 650ms linear both;
+.training-scene[data-radar-active="true"][data-radar-pass-mode="tactical"]
+  .training-fennec-base-frame {
+  animation: training-fennec-tactical-base-activate 650ms linear
+    var(--training-tactical-delay) forwards;
 }
 
 .scene-group[data-scene-group="fennec"] .training-fennec-rim-light {
@@ -988,7 +985,7 @@
   transform: none;
   transform-origin: center;
   user-select: none;
-  transition: opacity var(--training-volume-fade-duration) ease-out;
+  transition: none;
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
   -webkit-mask-size: 220% 100%;
@@ -1048,7 +1045,7 @@
   transform: none;
   transform-origin: center;
   user-select: none;
-  transition: opacity var(--training-volume-fade-duration) ease-out;
+  transition: none;
   filter: none;
   -webkit-mask-image: linear-gradient(
     var(--training-fennec-volume-mask-angle),
@@ -1078,65 +1075,55 @@
   mask-position: var(--training-fennec-mask-end-position) 50%;
 }
 
-.training-radar-fennec-target[data-surface-scan-mode="hidden"]
+.training-scene[data-radar-active="true"][data-radar-pass-mode="volume"]
+  [data-radar-target="fennec"]
   .training-radar-fennec-surface-mask {
-  opacity: 0;
-  -webkit-mask-position: var(--training-fennec-mask-start-position) 50%;
-  mask-position: var(--training-fennec-mask-start-position) 50%;
+  animation:
+    training-fennec-volume-surface-ltr
+      var(--training-volume-scan-duration)
+      var(--training-volume-scan-easing)
+      var(--training-volume-delay)
+      forwards,
+    training-fennec-volume-surface-fade
+      var(--training-volume-fade-duration)
+      ease-out
+      calc(
+        var(--training-volume-delay) +
+        var(--training-volume-scan-duration) +
+        var(--training-volume-hold-duration)
+      )
+      forwards;
 }
 
-.training-radar-fennec-target[data-surface-scan-mode="reveal"]
-  .training-radar-fennec-surface-mask {
-  opacity: 0.48;
-  animation: training-fennec-volume-surface-ltr var(--training-volume-scan-duration)
-    var(--training-volume-scan-easing) both;
-}
-
-.training-radar-fennec-target[data-volume-scan-phase="hold"]
-  .training-radar-fennec-surface-mask {
-  opacity: 0.48;
-  animation: none;
-  -webkit-mask-position: var(--training-fennec-mask-end-position) 50%;
-  mask-position: var(--training-fennec-mask-end-position) 50%;
-}
-
-.training-radar-fennec-target[data-volume-scan-phase="fade"]
-  .training-radar-fennec-surface-mask {
-  opacity: 0;
-  transition: opacity var(--training-volume-fade-duration) ease-out;
-}
-
-.training-radar-fennec-target[data-volume-scan-phase="active"]
+.training-scene[data-radar-active="true"][data-radar-pass-mode="volume"]
+  [data-radar-target="fennec"]
   .training-radar-fennec-contour {
-  animation: training-fennec-volume-detail-ltr
-    calc(var(--training-volume-scan-duration) - var(--training-volume-contour-delay))
-    linear var(--training-volume-contour-delay) both;
+  --training-fennec-detail-tail: 0.14;
+
+  animation:
+    training-fennec-volume-detail-ltr
+      calc(var(--training-volume-scan-duration) - var(--training-volume-contour-delay))
+      linear
+      calc(var(--training-volume-delay) + var(--training-volume-contour-delay))
+      forwards,
+    training-fennec-volume-contour-fade
+      var(--training-volume-fade-duration)
+      ease-out
+      calc(
+        var(--training-volume-delay) +
+        var(--training-volume-scan-duration) +
+        var(--training-volume-hold-duration)
+      )
+      forwards;
 }
 
-.training-radar-fennec-target[data-volume-scan-phase="hold"]
-  .training-radar-fennec-contour {
-  opacity: 0.14;
-  animation: none;
-  -webkit-mask-position: var(--training-fennec-mask-end-position) 50%;
-  mask-position: var(--training-fennec-mask-end-position) 50%;
-}
-
-.training-radar-fennec-target[data-tactical-active="true"]
+.training-scene[data-radar-active="true"][data-radar-pass-mode="tactical"]
+  [data-radar-target="fennec"]
   .training-radar-fennec-impact {
-  animation: training-fennec-tactical-impact-activate 650ms linear both;
+  animation: training-fennec-tactical-impact-activate 650ms linear
+    var(--training-tactical-delay) forwards;
   -webkit-mask-image: none;
   mask-image: none;
-}
-
-.training-radar-fennec-target[data-tactical-active="false"]
-  .training-radar-fennec-impact {
-  opacity: 0;
-  animation: none;
-}
-
-.training-radar-fennec-target[data-volume-scan-phase="fade"]
-  .training-radar-fennec-contour {
-  opacity: 0;
 }
 
 .scene-group[data-scene-group="fennec-lights-glow"] .training-lights-glow {
@@ -1182,10 +1169,6 @@
   transform: scale(0.72);
 }
 
-.training-radar-car-target[data-tactical-phase="contact"]::before {
-  animation: training-object-contact 180ms ease-out both;
-}
-
 .training-radar-car-surface,
 .training-radar-car-contour,
 .training-radar-car-wireframe,
@@ -1211,7 +1194,7 @@
 .training-radar-ball-volume-contour {
   opacity: 0;
   mix-blend-mode: screen;
-  transition: opacity var(--training-volume-fade-duration) ease-out;
+  transition: none;
 }
 
 .training-radar-car-wireframe,
@@ -1220,9 +1203,7 @@
   opacity: 0;
   mix-blend-mode: screen;
   clip-path: inset(0);
-  transition:
-    opacity var(--training-target-fade-duration) ease-out,
-    filter var(--training-target-fade-duration) ease-out;
+  transition: none;
 }
 
 .training-radar-object-surface {
@@ -1361,105 +1342,127 @@
   );
 }
 
-.training-radar-car-target[data-volume-scan-phase="active"]
+.training-scene[data-radar-active="true"][data-radar-pass-mode="volume"]
+  [data-radar-target]
+  .training-radar-car-target
   .training-radar-object-surface {
-  animation: training-object-surface-scan-ltr var(--training-volume-scan-duration)
-    linear both;
+  animation:
+    training-object-surface-scan-ltr
+      var(--training-volume-scan-duration)
+      linear
+      var(--training-volume-delay)
+      forwards,
+    training-object-surface-fade
+      var(--training-volume-fade-duration)
+      ease-out
+      calc(
+        var(--training-volume-delay) +
+        var(--training-volume-scan-duration) +
+        var(--training-volume-hold-duration)
+      )
+      forwards;
 }
 
-.training-radar-car-target[data-volume-scan-phase="active"]
+.training-scene[data-radar-active="true"][data-radar-pass-mode="volume"]
+  [data-radar-target]
+  .training-radar-car-target
   .training-radar-object-contour {
-  animation: training-object-contour-scan-ltr
-    calc(var(--training-volume-scan-duration) - var(--training-volume-contour-delay))
-    linear var(--training-volume-contour-delay) both;
+  animation:
+    training-object-contour-scan-ltr
+      calc(var(--training-volume-scan-duration) - var(--training-volume-contour-delay))
+      linear
+      calc(var(--training-volume-delay) + var(--training-volume-contour-delay))
+      forwards,
+    training-object-contour-fade
+      var(--training-volume-fade-duration)
+      ease-out
+      calc(
+        var(--training-volume-delay) +
+        var(--training-volume-scan-duration) +
+        var(--training-volume-hold-duration)
+      )
+      forwards;
 }
 
-.training-radar-ball-target[data-volume-scan-phase="active"]
+.training-scene[data-radar-active="true"][data-radar-pass-mode="volume"]
+  [data-radar-target="ball"]
   .training-radar-ball-volume-surface {
-  animation: training-ball-volume-surface-ltr var(--training-volume-scan-duration)
-    linear both;
+  animation:
+    training-ball-volume-surface-ltr
+      var(--training-volume-scan-duration)
+      linear
+      var(--training-volume-delay)
+      forwards,
+    training-ball-volume-surface-fade
+      var(--training-volume-fade-duration)
+      ease-out
+      calc(
+        var(--training-volume-delay) +
+        var(--training-volume-scan-duration) +
+        var(--training-volume-hold-duration)
+      )
+      forwards;
 }
 
-.training-radar-ball-target[data-volume-scan-phase="active"]
+.training-scene[data-radar-active="true"][data-radar-pass-mode="volume"]
+  [data-radar-target="ball"]
   .training-radar-ball-volume-contour {
-  animation: training-ball-volume-contour-ltr
-    calc(var(--training-volume-scan-duration) - var(--training-volume-contour-delay))
-    linear var(--training-volume-contour-delay) both;
+  animation:
+    training-ball-volume-contour-ltr
+      calc(var(--training-volume-scan-duration) - var(--training-volume-contour-delay))
+      linear
+      calc(var(--training-volume-delay) + var(--training-volume-contour-delay))
+      forwards,
+    training-ball-volume-contour-fade
+      var(--training-volume-fade-duration)
+      ease-out
+      calc(
+        var(--training-volume-delay) +
+        var(--training-volume-scan-duration) +
+        var(--training-volume-hold-duration)
+      )
+      forwards;
 }
 
-.training-radar-car-target[data-volume-scan-phase="hold"]
-  .training-radar-object-surface {
-  opacity: 0.22;
-  animation: none;
-  -webkit-mask-position: -30% 50%;
-  mask-position: -30% 50%;
+.training-scene[data-radar-active="true"][data-radar-pass-mode="tactical"]
+  [data-radar-target]
+  .training-radar-car-target::before {
+  animation:
+    training-object-contact 180ms ease-out var(--training-tactical-delay)
+      forwards,
+    training-object-contact-hide 1ms linear
+      calc(var(--training-tactical-delay) + var(--training-tactical-contact-duration))
+      forwards;
 }
 
-.training-radar-car-target[data-volume-scan-phase="hold"]
-  .training-radar-object-contour {
-  opacity: 0.14;
-  animation: none;
-  -webkit-mask-position: -30% 50%;
-  mask-position: -30% 50%;
-}
-
-.training-radar-ball-target[data-volume-scan-phase="hold"]
-  .training-radar-ball-volume-surface {
-  opacity: 0.32;
-  animation: none;
-  -webkit-mask-position: 12% 50%;
-  mask-position: 12% 50%;
-}
-
-.training-radar-ball-target[data-volume-scan-phase="hold"]
-  .training-radar-ball-volume-contour {
-  opacity: 0.2;
-  animation: none;
-  -webkit-mask-position: 12% 50%;
-  mask-position: 12% 50%;
-}
-
-.training-radar-car-target[data-tactical-active="true"]
+.training-scene[data-radar-active="true"][data-radar-pass-mode="tactical"]
+  [data-radar-target]
   .training-radar-car-wireframe {
-  animation: training-object-tactical-wireframe var(--training-target-lifetime) ease-out both;
+  animation: training-object-tactical-wireframe-activate 1ms linear
+    calc(var(--training-tactical-delay) + var(--training-tactical-contact-duration))
+    forwards;
 }
 
-.training-radar-car-target[data-tactical-active="true"]
+.training-scene[data-radar-active="true"][data-radar-pass-mode="tactical"]
+  [data-radar-target]
   .training-radar-car-glow {
-  animation: training-object-tactical-glow var(--training-target-lifetime) ease-out both;
+  animation: training-object-tactical-glow-activate 1ms linear
+    calc(var(--training-tactical-delay) + var(--training-tactical-contact-duration))
+    forwards;
 }
 
-.training-radar-car-target[data-tactical-phase="active"]
-  .training-radar-car-wireframe {
-  opacity: 0.3;
-  animation: none;
-}
-
-.training-radar-car-target[data-tactical-phase="active"]
-  .training-radar-car-glow {
-  opacity: 0.09;
-  animation: none;
-}
-
-.training-radar-ball-target[data-tactical-phase="contact"]
+.training-scene[data-radar-active="true"][data-radar-pass-mode="tactical"]
+  [data-radar-target="ball"]
   .training-radar-ball-energy {
-  opacity: 0.86;
-  filter: brightness(1.55) saturate(1.32);
-}
-
-.training-radar-ball-target[data-tactical-phase="active"]
-  .training-radar-ball-energy {
-  opacity: 0.52;
-  filter: brightness(1.3) saturate(1.2);
-}
-
-.training-radar-object-target[data-volume-scan-phase="fade"]
-  :is(.training-radar-object-surface, .training-radar-object-contour),
-.training-radar-ball-target[data-volume-scan-phase="fade"]
-  :is(.training-radar-ball-volume-surface, .training-radar-ball-volume-contour),
-.training-radar-object-target[data-tactical-phase="fade"]
-  :is(.training-radar-car-wireframe, .training-radar-car-glow, .training-radar-ball-energy) {
-  opacity: 0;
+  animation:
+    training-ball-tactical-contact
+      var(--training-tactical-contact-duration)
+      linear
+      var(--training-tactical-delay)
+      forwards,
+    training-ball-tactical-active 1ms linear
+      calc(var(--training-tactical-delay) + var(--training-tactical-contact-duration))
+      forwards;
 }
 
 .training-ball-launch-energy {
@@ -2785,6 +2788,27 @@
   }
 }
 
+@keyframes training-object-contact-hide {
+  from,
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes training-object-tactical-wireframe-activate {
+  from,
+  to {
+    opacity: 0.3;
+  }
+}
+
+@keyframes training-object-tactical-glow-activate {
+  from,
+  to {
+    opacity: 0.09;
+  }
+}
+
 @keyframes training-object-surface-scan-ltr {
   0% {
     opacity: 0.18;
@@ -2831,11 +2855,13 @@
 
 @keyframes training-fennec-volume-surface-ltr {
   0% {
+    opacity: 0.48;
     -webkit-mask-position: var(--training-fennec-mask-start-position) 50%;
     mask-position: var(--training-fennec-mask-start-position) 50%;
   }
 
   100% {
+    opacity: 0.48;
     -webkit-mask-position: var(--training-fennec-mask-end-position) 50%;
     mask-position: var(--training-fennec-mask-end-position) 50%;
   }
@@ -3016,6 +3042,82 @@
     opacity: 0.2;
     -webkit-mask-position: 12% 50%;
     mask-position: 12% 50%;
+  }
+}
+
+@keyframes training-object-surface-fade {
+  from {
+    opacity: 0.22;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes training-object-contour-fade {
+  from {
+    opacity: 0.14;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes training-ball-volume-surface-fade {
+  from {
+    opacity: 0.32;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes training-ball-volume-contour-fade {
+  from {
+    opacity: 0.2;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes training-fennec-volume-surface-fade {
+  from {
+    opacity: 0.48;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes training-fennec-volume-contour-fade {
+  from {
+    opacity: 0.14;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes training-ball-tactical-contact {
+  from,
+  to {
+    opacity: 0.86;
+    filter: brightness(1.55) saturate(1.32);
+  }
+}
+
+@keyframes training-ball-tactical-active {
+  from,
+  to {
+    opacity: 0.52;
+    filter: brightness(1.3) saturate(1.2);
   }
 }
 
