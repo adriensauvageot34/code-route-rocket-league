@@ -7,7 +7,6 @@ import {
   type RefObject,
 } from "react";
 import {
-  getTrainingRadarHitDelayMs,
   getTrainingRadarRangeTiming,
   TRAINING_RADAR_TIMING,
   TRAINING_VOLUME_SCAN_TIMING,
@@ -155,14 +154,11 @@ export function useTrainingRadarSequence({
 
     function scheduleVolumePass() {
       for (const volumeTarget of trainingVolumeScanTargets) {
-        const hitDelayMs = getTrainingRadarHitDelayMs(volumeTarget);
         const fennecRangeTiming =
           volumeTarget.type === "fennec"
             ? getTrainingRadarRangeTiming(volumeTarget.scanRange)
             : null;
-        const startDelayMs =
-          fennecRangeTiming?.startDelayMs ??
-          Math.max(0, hitDelayMs - TRAINING_VOLUME_SCAN_TIMING.leadMs);
+        const startDelayMs = volumeTarget.scanDelayMs;
         const activeDurationMs =
           fennecRangeTiming?.durationMs ??
           (volumeTarget.type === "ball"
@@ -207,7 +203,7 @@ export function useTrainingRadarSequence({
 
     function scheduleTacticalPass() {
       for (const target of trainingRadarTargets) {
-        const hitDelayMs = getTrainingRadarHitDelayMs(target);
+        const hitDelayMs = target.tacticalDelayMs;
 
         schedule(() => {
           setSequence((current) => ({
@@ -235,7 +231,7 @@ export function useTrainingRadarSequence({
           ...current,
           fennecTacticalActive: true,
         }));
-      }, getTrainingRadarHitDelayMs(trainingFennecVolumeScanTarget));
+      }, trainingFennecVolumeScanTarget.tacticalDelayMs);
     }
 
     function beginPass() {
