@@ -12,13 +12,11 @@ import { TrainingParticleField } from "@/components/home/illustrations/TrainingP
 import { homeIllustrationAssets } from "@/lib/home/homeIllustrationAssets";
 import {
   getTrainingRadarRangeTiming,
-  TRAINING_RADAR_TIMING,
   TRAINING_VOLUME_SCAN_TIMING,
   trainingBallRadarTarget,
   trainingCarRadarTargets,
   trainingFennecVolumeScanTarget,
   type TrainingCarRadarTarget,
-  type TrainingRadarDirection,
   type TrainingRadarTargetId,
   type TrainingVolumeScanTargetId,
 } from "@/lib/home/trainingRadarTargets";
@@ -47,33 +45,15 @@ const trainingNearCarTarget = getTrainingCarTarget("trainingCarNear");
 type TrainingFennecScanStyle = CSSProperties & {
   "--training-fennec-mask-end-position": string;
   "--training-fennec-mask-start-position": string;
-  "--training-fennec-persisted-duration": string;
   "--training-volume-contour-delay": string;
   "--training-volume-fade-duration": string;
   "--training-volume-scan-duration": string;
   "--training-volume-scan-easing": string;
 };
 
-const trainingFennecLtrRangeTiming = getTrainingRadarRangeTiming(
-  trainingFennecVolumeScanTarget.scanRange,
-  "ltr",
-);
-const trainingFennecRtlRangeTiming = getTrainingRadarRangeTiming(
-  trainingFennecVolumeScanTarget.scanRange,
-  "rtl",
-);
-const trainingFennecPersistedDurationMs =
-  TRAINING_RADAR_TIMING.passDurationMs -
-  (trainingFennecLtrRangeTiming.startDelayMs +
-    trainingFennecLtrRangeTiming.durationMs) +
-  trainingFennecRtlRangeTiming.startDelayMs;
-
-function getTrainingFennecScanStyle(
-  direction: TrainingRadarDirection,
-): TrainingFennecScanStyle {
+function getTrainingFennecScanStyle(): TrainingFennecScanStyle {
   const rangeTiming = getTrainingRadarRangeTiming(
     trainingFennecVolumeScanTarget.scanRange,
-    direction,
   );
 
   return {
@@ -85,7 +65,6 @@ function getTrainingFennecScanStyle(
       (1 - trainingFennecVolumeScanTarget.scanRange.startProgress) *
       100
     ).toFixed(1)}%`,
-    "--training-fennec-persisted-duration": `${trainingFennecPersistedDurationMs}ms`,
     "--training-volume-contour-delay": `${TRAINING_VOLUME_SCAN_TIMING.contourDelayMs}ms`,
     "--training-volume-fade-duration": `${TRAINING_VOLUME_SCAN_TIMING.fadeDurationMs}ms`,
     "--training-volume-scan-duration": `${rangeTiming.durationMs}ms`,
@@ -96,32 +75,26 @@ function getTrainingFennecScanStyle(
 export function TrainingScene({ active, launching }: TrainingSceneProps) {
   const {
     fennecSurfaceMode,
-    passDirection,
+    fennecTacticalActive,
     passKey,
+    passMode,
     running,
     sceneRef,
     tacticalPhases,
-    volumeScanDirections,
     volumeScanPhases,
   } = useTrainingRadarSequence({ active, launching });
   const getTacticalPhase = (targetId: TrainingRadarTargetId) =>
     tacticalPhases[targetId];
-  const getVolumeScanDirection = (targetId: TrainingVolumeScanTargetId) =>
-    volumeScanDirections[targetId];
   const getVolumeScanPhase = (targetId: TrainingVolumeScanTargetId) =>
     volumeScanPhases[targetId];
-  const trainingFennecScanDirection = getVolumeScanDirection(
-    trainingFennecVolumeScanTarget.id,
-  );
-  const trainingFennecScanStyle = getTrainingFennecScanStyle(
-    trainingFennecScanDirection,
-  );
+  const trainingFennecScanStyle = getTrainingFennecScanStyle();
 
   return (
     <div
       className="home-scene training-scene"
       data-launching={launching ? "true" : "false"}
       data-radar-active={running ? "true" : "false"}
+      data-radar-pass-mode={passMode}
       data-scene="training"
       ref={sceneRef}
     >
@@ -162,7 +135,6 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       <SceneGroup blendMode="screen" depth="trainingGround" layer={6} name="training-radar-surface">
         <TrainingRadarOverlay
           active={running}
-          direction={passDirection}
           key={`training-radar-surface-${passKey}`}
           variant="surface"
         />
@@ -171,7 +143,6 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       <SceneGroup depth="trainingGround" layer={7} name="training-radar-sweep">
         <TrainingRadarOverlay
           active={running}
-          direction={passDirection}
           key={`training-radar-sweep-${passKey}`}
           variant="sweep"
         />
@@ -184,7 +155,6 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       <SceneGroup blendMode="screen" depth="trainingParticlesFar" layer={9} name="training-particles-far">
         <TrainingParticleField
           active={running}
-          direction={passDirection}
           passKey={passKey}
           preset="far"
         />
@@ -192,7 +162,6 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
 
       <SceneGroup depth={trainingFarCarTarget.depth} layer={10} name={`training-${trainingFarCarTarget.id}`}>
         <TrainingGroundedCar
-          direction={getVolumeScanDirection(trainingFarCarTarget.id)}
           target={trainingFarCarTarget}
           tacticalPhase={getTacticalPhase(trainingFarCarTarget.id)}
           volumeScanPhase={getVolumeScanPhase(trainingFarCarTarget.id)}
@@ -202,7 +171,6 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       <SceneGroup blendMode="screen" depth="trainingParticlesMid" layer={11} name="training-particles-mid">
         <TrainingParticleField
           active={running}
-          direction={passDirection}
           passKey={passKey}
           preset="mid"
         />
@@ -210,7 +178,6 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
 
       <SceneGroup depth={trainingMidCarTarget.depth} layer={12} name={`training-${trainingMidCarTarget.id}`}>
         <TrainingGroundedCar
-          direction={getVolumeScanDirection(trainingMidCarTarget.id)}
           target={trainingMidCarTarget}
           tacticalPhase={getTacticalPhase(trainingMidCarTarget.id)}
           volumeScanPhase={getVolumeScanPhase(trainingMidCarTarget.id)}
@@ -219,7 +186,6 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
 
       <SceneGroup depth={trainingNearCarTarget.depth} layer={13} name={`training-${trainingNearCarTarget.id}`}>
         <TrainingGroundedCar
-          direction={getVolumeScanDirection(trainingNearCarTarget.id)}
           target={trainingNearCarTarget}
           tacticalPhase={getTacticalPhase(trainingNearCarTarget.id)}
           volumeScanPhase={getVolumeScanPhase(trainingNearCarTarget.id)}
@@ -228,7 +194,6 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
 
       <SceneGroup depth={trainingBallRadarTarget.depth} layer={14} name="ball">
         <TrainingGroundedBall
-          direction={getVolumeScanDirection(trainingBallRadarTarget.id)}
           target={trainingBallRadarTarget}
           tacticalPhase={getTacticalPhase(trainingBallRadarTarget.id)}
           volumeScanPhase={getVolumeScanPhase(trainingBallRadarTarget.id)}
@@ -238,7 +203,6 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       <SceneGroup blendMode="screen" depth="trainingParticlesNear" layer={15} name="training-particles-near">
         <TrainingParticleField
           active={running}
-          direction={passDirection}
           passKey={passKey}
           preset="near"
         />
@@ -248,15 +212,15 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         <div aria-hidden="true" className="training-fennec-contact-shadow" />
         <div
           className="training-fennec-base-frame"
-          data-surface-scan-mode={fennecSurfaceMode}
+          data-tactical-active={fennecTacticalActive ? "true" : "false"}
           style={trainingFennecScanStyle}
         >
           <SceneLayer asset={assets.fennecBase} className="training-fennec-base" />
         </div>
         <div
           className="training-radar-fennec-target"
-          data-radar-direction={trainingFennecScanDirection}
           data-surface-scan-mode={fennecSurfaceMode}
+          data-tactical-active={fennecTacticalActive ? "true" : "false"}
           data-volume-scan-phase={getVolumeScanPhase(trainingFennecVolumeScanTarget.id)}
           style={trainingFennecScanStyle}
         >
