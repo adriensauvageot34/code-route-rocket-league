@@ -304,6 +304,19 @@ assert(trainingRadarSequence.includes("volumeScanPhases: HIDDEN_VOLUME_SCAN_PHAS
 for (const target of ["left-car", "back-right-car", "front-right-car", "ball", "fennec"]) {
   assert(trainingRadarTargets.includes(`id: "${target}"`), `Missing training radar target: ${target}`);
 }
+for (const [targetId, scanDelayMs, tacticalDelayMs] of [
+  ["left-car", 1250, 1350],
+  ["ball", 1600, 1550],
+  ["fennec", 1783, 2000],
+  ["back-right-car", 2108, 2100],
+  ["front-right-car", 2200, 2200],
+]) {
+  const targetStart = trainingRadarTargets.indexOf(`id: "${targetId}",`);
+  const targetBlock = trainingRadarTargets.slice(targetStart, targetStart + 1200);
+  assert(targetStart >= 0 && targetBlock.includes(`scanDelayMs: ${scanDelayMs}`) && targetBlock.includes(`tacticalDelayMs: ${tacticalDelayMs}`), `Incorrect calibrated scan/tactical delay for ${targetId}.`);
+}
+assert(trainingRadarSequence.includes("const startDelayMs = volumeTarget.scanDelayMs;") && trainingRadarSequence.includes("const hitDelayMs = target.tacticalDelayMs;") && trainingRadarSequence.includes("trainingFennecVolumeScanTarget.tacticalDelayMs"), "Volume and tactical passes must consume their separate calibrated delays.");
+assert(!trainingRadarSequence.includes("getTrainingRadarHitDelayMs") && !trainingRadarTargets.includes("getTrainingRadarHitDelayMs"), "Calibrated target delays must not be replaced by one shared derived hit delay.");
 assert(trainingRadarTargets.includes("trainingVolumeScanTargets") && trainingRadarTargets.includes("trainingFennecVolumeScanTarget") && trainingRadarTargets.includes("scanHitProgress: TRAINING_FENNEC_SCAN_PROGRESS"), "The Fennec must join only the systematic volume target collection at its calibrated radar hit.");
 for (const timing of ["TRAINING_RADAR_ENTRY_DURATION_MS = 250", "TRAINING_RADAR_TRAVEL_DURATION_MS = 2500", "TRAINING_RADAR_EXIT_DURATION_MS = 200", "TRAINING_RADAR_PAUSE_DURATION_MS = 180", "tacticalHoldDurationMs: 1800", "contactDurationMs: 360", "wireframeDelayMs: 820", "fadeDelayMs: 1500", "targetLifetimeMs: 2300", "fadeDurationMs: 800", "activeDurationMs: 380", "ballActiveDurationMs: 540", "fennecActiveDurationMs: 720", "contourDelayMs: 60", "holdDurationMs: 350", "fadeDurationMs: 400", "leadMs: 120"]) {
   assert(trainingRadarTargets.includes(timing), `Missing centralized radar timing: ${timing}`);
@@ -409,7 +422,7 @@ assert(
   "Small screens must reduce horizontal travel instead of increasing zoom past the cap."
 );
 assert(trainingRadarSequence.includes("tacticalPhases") && !trainingRadarSequence.includes("activeTacticalTargetId") && trainingRadarSequence.includes("...current.tacticalPhases"), "The tactical pass must accumulate activated objects instead of replacing one selected target.");
-assert(trainingRadarSequence.includes("volumeScanPhases") && trainingRadarSequence.includes("for (const volumeTarget of trainingVolumeScanTargets)") && trainingRadarSequence.includes("getTrainingRadarHitDelayMs(volumeTarget)"), "The volume pass must schedule hit-synchronous temporary scans for all five 3D objects.");
+assert(trainingRadarSequence.includes("volumeScanPhases") && trainingRadarSequence.includes("for (const volumeTarget of trainingVolumeScanTargets)") && trainingRadarSequence.includes("const startDelayMs = volumeTarget.scanDelayMs;"), "The volume pass must schedule calibrated temporary scans for all five 3D objects.");
 const volumePassSequence = trainingRadarSequence.slice(trainingRadarSequence.indexOf("function scheduleVolumePass"), trainingRadarSequence.indexOf("function scheduleTacticalPass"));
 const volumePhaseOrder = ['"active"', '"hold"', '"fade"', '"hidden"'].map((phase) => volumePassSequence.indexOf(phase));
 assert(volumePhaseOrder.every((position, index) => position >= 0 && (index === 0 || position > volumePhaseOrder[index - 1])), "Each volume scan must follow active, hold, fade, then hidden in order.");
@@ -531,7 +544,7 @@ assert(trainingScene.includes('className="training-radar-fennec-impact-frame"') 
 assert(/\.training-radar-fennec-impact\s*\{[\s\S]*?position:\s*absolute;[\s\S]*?inset:\s*0;[\s\S]*?width:\s*100% !important;[\s\S]*?height:\s*100% !important;[\s\S]*?object-fit:\s*fill;[\s\S]*?object-position:\s*center;/s.test(css) && !/\.training-radar-fennec-impact\s*\{[\s\S]*?clip-path:/s.test(fennecScanCss), "The calibrated im-light must fill only its own frame without the obsolete crop.");
 assert(/\.training-radar-fennec-surface-mask\s*\{[\s\S]*?z-index:\s*3;/s.test(css) && /\.training-radar-fennec-contour\s*\{[\s\S]*?z-index:\s*4;/s.test(css), "The calibrated im-light must stay below the surface scan and contour.");
 assert(/@keyframes training-fennec-volume-surface-ltr\s*\{[\s\S]*?mask-position:\s*var\(--training-fennec-mask-start-position\) 50%;[\s\S]*?mask-position:\s*var\(--training-fennec-mask-end-position\) 50%;/s.test(css) && !fennecSurfaceKeyframes.includes("opacity:"), "The temporary Fennec volume pass must animate only its LTR mask position.");
-assert(trainingRadarTargets.includes("getTrainingRadarRangeTiming") && trainingRadarTargets.includes("startProgress: 0.613") && trainingRadarTargets.includes("endProgress: 0.924") && trainingRadarSequence.includes("fennecRangeTiming?.startDelayMs") && trainingRadarSequence.includes("fennecRangeTiming?.durationMs"), "The Fennec volume lifecycle must use exact linear timing across its measured width.");
+assert(trainingRadarTargets.includes("getTrainingRadarRangeTiming") && trainingRadarTargets.includes("startProgress: 0.613") && trainingRadarTargets.includes("endProgress: 0.924") && trainingRadarTargets.includes("scanDelayMs: 1783") && trainingRadarSequence.includes("fennecRangeTiming?.durationMs"), "The Fennec volume lifecycle must use its calibrated start delay and exact linear duration across its measured width.");
 assert(trainingScene.includes("--training-volume-scan-easing") && trainingScene.includes("--training-fennec-mask-start-position") && trainingScene.includes("data-surface-scan-mode={fennecSurfaceMode}"), "The temporary Fennec surface scan must consume the central LTR range timing.");
 assert(/data-surface-scan-mode="reveal"[\s\S]*?training-radar-fennec-surface-mask[\s\S]*?opacity:\s*0\.48;[\s\S]*?training-fennec-volume-surface-ltr/s.test(fennecScanCss) && /data-volume-scan-phase="fade"[\s\S]*?training-radar-fennec-surface-mask[\s\S]*?opacity:\s*0;/s.test(fennecScanCss), "The Fennec surface scan must reveal then fade during the volume pass only.");
 assert(/data-volume-scan-phase="hold"[\s\S]*?training-radar-fennec-surface-mask[\s\S]*?opacity:\s*0\.48;[\s\S]*?animation:\s*none;[\s\S]*?mask-position:\s*var\(--training-fennec-mask-end-position\) 50%;/s.test(fennecScanCss) && /data-volume-scan-phase="hold"[\s\S]*?training-radar-fennec-contour[\s\S]*?opacity:\s*0\.14;[\s\S]*?animation:\s*none;/s.test(fennecScanCss), "The Fennec volume scan must hold its fully revealed surface and discreet contour before fading.");
