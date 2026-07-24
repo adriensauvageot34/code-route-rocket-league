@@ -89,11 +89,16 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
   } = useTrainingRadarSequence({ active, launching });
   const radarClock = useTrainingRadarClock({ passKey, passMode, running });
   const [gpuRadarReady, setGpuRadarReady] = useState(false);
+  const [gpuParticlesReady, setGpuParticlesReady] = useState(false);
   const handleGpuRadarReadyChange = useCallback((ready: boolean) => {
     setGpuRadarReady(ready);
   }, []);
-  const useGpuRadar = trainingRendererMode === "gpu";
-  const showDomRadar = !useGpuRadar || !gpuRadarReady;
+  const handleGpuParticlesReadyChange = useCallback((ready: boolean) => {
+    setGpuParticlesReady(ready);
+  }, []);
+  const useGpuRenderer = trainingRendererMode === "gpu";
+  const showDomRadar = !useGpuRenderer || !gpuRadarReady;
+  const showDomParticles = !useGpuRenderer || !gpuParticlesReady;
   const getTacticalPhase = (targetId: TrainingRadarTargetId) =>
     tacticalPhases[targetId];
   const getVolumeScanPhase = (targetId: TrainingVolumeScanTargetId) =>
@@ -105,7 +110,10 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       className="home-scene training-scene"
       data-launching={launching ? "true" : "false"}
       data-radar-active={running ? "true" : "false"}
-      data-gpu-radar-ready={useGpuRadar && gpuRadarReady ? "true" : "false"}
+      data-gpu-radar-ready={useGpuRenderer && gpuRadarReady ? "true" : "false"}
+      data-gpu-particles-ready={
+        useGpuRenderer && gpuParticlesReady ? "true" : "false"
+      }
       data-radar-pass-mode={passMode}
       data-scene="training"
       data-training-renderer={trainingRendererMode}
@@ -165,28 +173,29 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         </>
       ) : null}
 
-      {useGpuRadar ? (
-        <SceneGroup depth="trainingGround" layer={6} name="training-radar-gpu">
-          <TrainingGpuCanvas
-            active={active}
-            onReadyChange={handleGpuRadarReadyChange}
-            radarClock={radarClock}
-            running={running}
-          />
-        </SceneGroup>
+      {useGpuRenderer ? (
+        <TrainingGpuCanvas
+          active={active}
+          onParticlesReadyChange={handleGpuParticlesReadyChange}
+          onRadarReadyChange={handleGpuRadarReadyChange}
+          radarClock={radarClock}
+          running={running}
+        />
       ) : null}
 
       <SceneGroup depth="trainingGround" layer={8} name="training-barrier">
         <SceneLayer asset={assets.parallaxBarrier} preload />
       </SceneGroup>
 
-      <SceneGroup blendMode="screen" depth="trainingParticlesFar" layer={9} name="training-particles-far">
-        <TrainingParticleField
-          active={running}
-          passKey={passKey}
-          preset="far"
-        />
-      </SceneGroup>
+      {showDomParticles ? (
+        <SceneGroup blendMode="screen" depth="trainingParticlesFar" layer={9} name="training-particles-far">
+          <TrainingParticleField
+            active={running}
+            passKey={passKey}
+            preset="far"
+          />
+        </SceneGroup>
+      ) : null}
 
       <SceneGroup depth={trainingFarCarTarget.depth} layer={10} name={`training-${trainingFarCarTarget.id}`}>
         <TrainingGroundedCar
@@ -196,13 +205,15 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         />
       </SceneGroup>
 
-      <SceneGroup blendMode="screen" depth="trainingParticlesMid" layer={11} name="training-particles-mid">
-        <TrainingParticleField
-          active={running}
-          passKey={passKey}
-          preset="mid"
-        />
-      </SceneGroup>
+      {showDomParticles ? (
+        <SceneGroup blendMode="screen" depth="trainingParticlesMid" layer={11} name="training-particles-mid">
+          <TrainingParticleField
+            active={running}
+            passKey={passKey}
+            preset="mid"
+          />
+        </SceneGroup>
+      ) : null}
 
       <SceneGroup depth={trainingMidCarTarget.depth} layer={12} name={`training-${trainingMidCarTarget.id}`}>
         <TrainingGroundedCar
@@ -228,13 +239,15 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         />
       </SceneGroup>
 
-      <SceneGroup blendMode="screen" depth="trainingParticlesNear" layer={15} name="training-particles-near">
-        <TrainingParticleField
-          active={running}
-          passKey={passKey}
-          preset="near"
-        />
-      </SceneGroup>
+      {showDomParticles ? (
+        <SceneGroup blendMode="screen" depth="trainingParticlesNear" layer={15} name="training-particles-near">
+          <TrainingParticleField
+            active={running}
+            passKey={passKey}
+            preset="near"
+          />
+        </SceneGroup>
+      ) : null}
 
       <SceneGroup depth="trainingFennec" layer={16} name="fennec">
         <div aria-hidden="true" className="training-fennec-contact-shadow" />
