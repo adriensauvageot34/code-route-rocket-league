@@ -6,9 +6,11 @@ import {
   TrainingGroundedBall,
   TrainingGroundedCar,
 } from "@/components/home/illustrations/TrainingGroundedActor";
+import { TrainingGpuCanvas } from "@/components/home/illustrations/gpu/TrainingGpuCanvas";
 import { TrainingRadarOverlay } from "@/components/home/illustrations/TrainingRadarOverlay";
 import { useTrainingRadarSequence } from "@/components/home/illustrations/TrainingRadarSequence";
 import { TrainingParticleField } from "@/components/home/illustrations/TrainingParticleField";
+import { useTrainingRendererMode } from "@/hooks/useTrainingRendererMode";
 import { homeIllustrationAssets } from "@/lib/home/homeIllustrationAssets";
 import {
   getTrainingRadarRangeTiming,
@@ -73,6 +75,7 @@ function getTrainingFennecScanStyle(): TrainingFennecScanStyle {
 }
 
 export function TrainingScene({ active, launching }: TrainingSceneProps) {
+  const trainingRendererMode = useTrainingRendererMode();
   const {
     fennecSurfaceMode,
     fennecTacticalActive,
@@ -96,6 +99,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       data-radar-active={running ? "true" : "false"}
       data-radar-pass-mode={passMode}
       data-scene="training"
+      data-training-renderer={trainingRendererMode}
       ref={sceneRef}
     >
       <SceneGroup depth="trainingSky" layer={0} name="training-sky">
@@ -254,6 +258,15 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       <SceneGroup blendMode="screen" depth="foreground" future layer={18} name="transition">
         <SceneLayer asset={assets.transitionWaveGold} className="training-transition-wave-local" />
       </SceneGroup>
+
+      {trainingRendererMode === "gpu" ? (
+        <TrainingGpuCanvas
+          active={active}
+          passKey={passKey}
+          passMode={passMode}
+          running={running}
+        />
+      ) : null}
     </div>
   );
 }
