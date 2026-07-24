@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { SceneGroup } from "@/components/home/illustrations/SceneGroup";
 import { TrainingGpuRenderer } from "@/lib/home/gpu/TrainingGpuRenderer";
 import {
   createTrainingGpuRadarFieldMask,
@@ -18,7 +19,8 @@ import { homeIllustrationAssets } from "@/lib/home/homeIllustrationAssets";
 
 type TrainingGpuCanvasProps = {
   active: boolean;
-  onReadyChange: (ready: boolean) => void;
+  onParticlesReadyChange: (ready: boolean) => void;
+  onRadarReadyChange: (ready: boolean) => void;
   radarClock: TrainingRadarClock;
   running: boolean;
 };
@@ -47,13 +49,17 @@ function createGpuFrameState(
 
 export function TrainingGpuCanvas({
   active,
-  onReadyChange,
+  onParticlesReadyChange,
+  onRadarReadyChange,
   radarClock,
   running,
 }: TrainingGpuCanvasProps) {
   const stackRef = useRef<HTMLDivElement>(null);
   const surfaceCanvasRef = useRef<HTMLCanvasElement>(null);
   const sweepCanvasRef = useRef<HTMLCanvasElement>(null);
+  const farParticlesCanvasRef = useRef<HTMLCanvasElement>(null);
+  const midParticlesCanvasRef = useRef<HTMLCanvasElement>(null);
+  const nearParticlesCanvasRef = useRef<HTMLCanvasElement>(null);
   const lifecycleRef = useRef<TrainingGpuLifecycleState>({
     active,
     running,
@@ -66,24 +72,52 @@ export function TrainingGpuCanvas({
     const stack = stackRef.current;
     const surfaceCanvas = surfaceCanvasRef.current;
     const sweepCanvas = sweepCanvasRef.current;
-    if (!stack || !surfaceCanvas || !sweepCanvas) return;
+    const farParticlesCanvas = farParticlesCanvasRef.current;
+    const midParticlesCanvas = midParticlesCanvasRef.current;
+    const nearParticlesCanvas = nearParticlesCanvasRef.current;
+    if (
+      !stack ||
+      !surfaceCanvas ||
+      !sweepCanvas ||
+      !farParticlesCanvas ||
+      !midParticlesCanvas ||
+      !nearParticlesCanvas
+    ) {
+      return;
+    }
 
     let cancelled = false;
     let resizeObserver: ResizeObserver | null = null;
-    onReadyChange(false);
+    onRadarReadyChange(false);
+    onParticlesReadyChange(false);
 
     async function initializeRenderer() {
       try {
-        const fieldMaskPixels = createTrainingGpuRadarFieldMask();
-        const terrainImage =
-          await loadTrainingGpuRadarTerrain(tacticalTerrainPath);
+        let fieldMaskPixels: Uint8Array | null = null;
+        let terrainImage: HTMLImageElement | null = null;
+
+        try {
+          fieldMaskPixels = createTrainingGpuRadarFieldMask();
+          terrainImage =
+            await loadTrainingGpuRadarTerrain(tacticalTerrainPath);
+        } catch {
+          fieldMaskPixels = null;
+          terrainImage = null;
+        }
 
         if (cancelled) return;
 
         const renderer = new TrainingGpuRenderer(
           {
-            surface: surfaceCanvas,
-            sweep: sweepCanvas,
+            particles: {
+              far: farParticlesCanvas,
+              mid: midParticlesCanvas,
+              near: nearParticlesCanvas,
+            },
+            radar: {
+              surface: surfaceCanvas,
+              sweep: sweepCanvas,
+            },
           },
           {
             createFrameState: (nowMs) =>
@@ -93,7 +127,8 @@ export function TrainingGpuCanvas({
                 nowMs,
               ),
             fieldMaskPixels,
-            onReadyChange,
+            onParticlesReadyChange,
+            onRadarReadyChange,
             terrainImage,
           },
         );
@@ -139,12 +174,13 @@ export function TrainingGpuCanvas({
           createGpuFrameState(lifecycleRef.current, radarClock, 0),
         );
 
-        if (!renderer.available || !renderer.initialize()) {
+        if (!renderer.initialize()) {
           resizeObserver.disconnect();
           resizeObserver = null;
           renderer.destroy();
           rendererRef.current = null;
-          onReadyChange(false);
+          onRadarReadyChange(false);
+          onParticlesReadyChange(false);
           return;
         }
 
@@ -156,7 +192,10 @@ export function TrainingGpuCanvas({
         resizeObserver = null;
         rendererRef.current?.destroy();
         rendererRef.current = null;
-        if (!cancelled) onReadyChange(false);
+        if (!cancelled) {
+          onRadarReadyChange(false);
+          onParticlesReadyChange(false);
+        }
       }
     }
 
@@ -167,9 +206,14 @@ export function TrainingGpuCanvas({
       resizeObserver?.disconnect();
       rendererRef.current?.destroy();
       rendererRef.current = null;
-      onReadyChange(false);
+      onRadarReadyChange(false);
+      onParticlesReadyChange(false);
     };
-  }, [onReadyChange, radarClock]);
+  }, [
+    onParticlesReadyChange,
+    onRadarReadyChange,
+    radarClock,
+  ]);
 
   useEffect(() => {
     const renderer = rendererRef.current;
@@ -187,21 +231,64 @@ export function TrainingGpuCanvas({
   }, [active, radarClock, running]);
 
   return (
-    <div
-      aria-hidden="true"
-      className="training-gpu-radar-stack"
-      ref={stackRef}
-    >
-      <canvas
-        aria-hidden="true"
-        className="training-gpu-canvas training-gpu-radar-surface"
-        ref={surfaceCanvasRef}
-      />
-      <canvas
-        aria-hidden="true"
-        className="training-gpu-canvas training-gpu-radar-sweep"
-        ref={sweepCanvasRef}
-      />
-    </div>
+    <>
+      <SceneGroup depth="trainingGround" layer={6} name="training-radar-gpu">
+        <div
+          aria-hidden="true"
+          className="training-gpu-radar-stack"
+          ref={stackRef}
+        >
+          <canvas
+            aria-hidden="true"
+            className="training-gpu-canvas training-gpu-radar-surface"
+            ref={surfaceCanvasRef}
+          />
+          <canvas
+            aria-hidden="true"
+            className="training-gpu-canvas training-gpu-radar-sweep"
+            ref={sweepCanvasRef}
+          />
+        </div>
+      </SceneGroup>
+
+      <SceneGroup
+        blendMode="screen"
+        depth="trainingParticlesFar"
+        layer={9}
+        name="training-particles-gpu-far"
+      >
+        <canvas
+          aria-hidden="true"
+          className="training-gpu-canvas training-gpu-particle-canvas training-gpu-particles-far"
+          ref={farParticlesCanvasRef}
+        />
+      </SceneGroup>
+
+      <SceneGroup
+        blendMode="screen"
+        depth="trainingParticlesMid"
+        layer={11}
+        name="training-particles-gpu-mid"
+      >
+        <canvas
+          aria-hidden="true"
+          className="training-gpu-canvas training-gpu-particle-canvas training-gpu-particles-mid"
+          ref={midParticlesCanvasRef}
+        />
+      </SceneGroup>
+
+      <SceneGroup
+        blendMode="screen"
+        depth="trainingParticlesNear"
+        layer={15}
+        name="training-particles-gpu-near"
+      >
+        <canvas
+          aria-hidden="true"
+          className="training-gpu-canvas training-gpu-particle-canvas training-gpu-particles-near"
+          ref={nearParticlesCanvasRef}
+        />
+      </SceneGroup>
+    </>
   );
 }

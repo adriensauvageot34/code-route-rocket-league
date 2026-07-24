@@ -11,10 +11,7 @@ import {
   type TrainingParticle,
   type TrainingParticlePresetName,
 } from "@/lib/home/trainingParticlePresets";
-import {
-  getTrainingRadarDelayForProgress,
-  TRAINING_RADAR_SWEEP,
-} from "@/lib/home/trainingRadarTargets";
+import { getTrainingParticleBirthDelayMs } from "@/lib/home/trainingParticleTiming";
 
 type TrainingParticleFieldProps = {
   active: boolean;
@@ -55,45 +52,6 @@ type TrainingParticleStyle = CSSProperties & {
   "--particle-y": string;
 };
 
-const TRAINING_SCENE_WIDTH = 1672;
-const TRAINING_SCENE_HEIGHT = 941;
-const TRAINING_RADAR_HORIZON_Y = 340;
-const TRAINING_RADAR_CORE_TOP_X = 2;
-const TRAINING_RADAR_CORE_BOTTOM_X = 238;
-
-function getRadarCoreOffsetX(particle: TrainingParticle) {
-  const logicalY = (particle.y / 100) * TRAINING_SCENE_HEIGHT;
-  const verticalProgress = Math.min(
-    1,
-    Math.max(
-      0,
-      (logicalY - TRAINING_RADAR_HORIZON_Y) /
-        (TRAINING_SCENE_HEIGHT - TRAINING_RADAR_HORIZON_Y),
-    ),
-  );
-
-  return (
-    TRAINING_RADAR_CORE_TOP_X +
-    (TRAINING_RADAR_CORE_BOTTOM_X - TRAINING_RADAR_CORE_TOP_X) *
-      verticalProgress
-  );
-}
-
-function getParticleScanDelayMs(
-  particle: TrainingParticle,
-) {
-  const logicalX = (particle.x / 100) * TRAINING_SCENE_WIDTH;
-  const sweepDistance =
-    TRAINING_RADAR_SWEEP.endX - TRAINING_RADAR_SWEEP.startX;
-  const coreOffsetX = getRadarCoreOffsetX(particle);
-  const sceneProgress =
-    (logicalX - TRAINING_RADAR_SWEEP.startX - coreOffsetX) / sweepDistance;
-  const progress = Math.min(1, Math.max(0, sceneProgress));
-  const scanHitMs = getTrainingRadarDelayForProgress(progress);
-
-  return Math.max(0, scanHitMs);
-}
-
 function createParticleStyle(
   particle: TrainingParticle,
 ): TrainingParticleStyle {
@@ -105,7 +63,7 @@ function createParticleStyle(
     "--particle-size": `${particle.size}px`,
     "--particle-opacity": String(particle.opacity),
     "--particle-duration": `${particle.durationMs}ms`,
-    "--particle-delay": `${getParticleScanDelayMs(particle)}ms`,
+    "--particle-delay": `${getTrainingParticleBirthDelayMs(particle)}ms`,
     "--particle-drift-x": `${directionalDriftX.toFixed(2)}px`,
     "--particle-drift-x-mid": `${(directionalDriftX * 0.52).toFixed(2)}px`,
     "--particle-drift-x-soft": `${(directionalDriftX * 0.8).toFixed(2)}px`,

@@ -3336,3 +3336,7 @@
   z-index: 1;
   mix-blend-mode: normal;
 }
+
+.training-gpu-particle-canvas {
+  z-index: 0;
+}
