@@ -1,4 +1,5 @@
 import { TRAINING_GPU_CONTEXT_ATTRIBUTES } from "@/lib/home/gpu/trainingGpuConstants";
+import { TRAINING_RADAR_TIMING } from "@/lib/home/trainingRadarTargets";
 import type {
   TrainingGpuFrameState,
   TrainingGpuViewport,
@@ -11,9 +12,11 @@ const INITIAL_FRAME_STATE: TrainingGpuFrameState = {
   running: false,
   passKey: 0,
   passMode: "volume",
+  passStartedAtMs: 0,
   nowMs: 0,
-  passElapsedMs: 0,
+  elapsedMs: 0,
   radarProgress: 0,
+  passDurationMs: TRAINING_RADAR_TIMING.passDurationMs,
 };
 
 export class TrainingGpuRenderer {

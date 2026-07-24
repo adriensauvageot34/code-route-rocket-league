@@ -10,6 +10,7 @@ import { TrainingGpuCanvas } from "@/components/home/illustrations/gpu/TrainingG
 import { TrainingRadarOverlay } from "@/components/home/illustrations/TrainingRadarOverlay";
 import { useTrainingRadarSequence } from "@/components/home/illustrations/TrainingRadarSequence";
 import { TrainingParticleField } from "@/components/home/illustrations/TrainingParticleField";
+import { useTrainingRadarClock } from "@/hooks/useTrainingRadarClock";
 import { useTrainingRendererMode } from "@/hooks/useTrainingRendererMode";
 import { homeIllustrationAssets } from "@/lib/home/homeIllustrationAssets";
 import {
@@ -86,6 +87,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
     tacticalPhases,
     volumeScanPhases,
   } = useTrainingRadarSequence({ active, launching });
+  const radarClock = useTrainingRadarClock({ passKey, passMode, running });
   const getTacticalPhase = (targetId: TrainingRadarTargetId) =>
     tacticalPhases[targetId];
   const getVolumeScanPhase = (targetId: TrainingVolumeScanTargetId) =>
@@ -262,8 +264,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       {trainingRendererMode === "gpu" ? (
         <TrainingGpuCanvas
           active={active}
-          passKey={passKey}
-          passMode={passMode}
+          radarClock={radarClock}
           running={running}
         />
       ) : null}
