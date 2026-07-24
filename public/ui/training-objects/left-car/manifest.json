@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "objectId": "left-car",
+  "assets": {
+    "base": {
+      "file": "base.webp",
+      "sourceSize": {
+        "width": 1672,
+        "height": 941
+      },
+      "crop": {
+        "x": 584,
+        "y": 232,
+        "width": 104,
+        "height": 80
+      },
+      "outputSize": {
+        "width": 104,
+        "height": 80
+      },
+      "paddingPx": 12,
+      "alignmentGroup": "left-car:base-scene",
+      "placementSpace": "grounded-scene"
+    },
+    "volumeSurface": {
+      "file": "volume-surface.webp",
+      "sourceSize": {
+        "width": 1448,
+        "height": 1086
+      },
+      "crop": {
+        "x": 32,
+        "y": 64,
+        "width": 1408,
+        "height": 848
+      },
+      "outputSize": {
+        "width": 1408,
+        "height": 848
+      },
+      "paddingPx": 16,
+      "alignmentGroup": "left-car:volume-surface-target",
+      "placementSpace": "target-frame"
+    },
+    "volumeContour": {
+      "file": "volume-contour.webp",
+      "sourceSize": {
+        "width": 1672,
+        "height": 941
+      },
+      "crop": {
+        "x": 120,
+        "y": 16,
+        "width": 1400,
+        "height": 864
+      },
+      "outputSize": {
+        "width": 1400,
+        "height": 864
+      },
+      "paddingPx": 16,
+      "alignmentGroup": "left-car:volume-contour-target",
+      "placementSpace": "target-frame"
+    },
+    "tacticalWireframe": {
+      "file": "tactical-wireframe.webp",
+      "sourceSize": {
+        "width": 1607,
+        "height": 979
+      },
+      "crop": {
+        "x": 200,
+        "y": 112,
+        "width": 1216,
+        "height": 704
+      },
+      "outputSize": {
+        "width": 1216,
+        "height": 704
+      },
+      "paddingPx": 16,
+      "alignmentGroup": "left-car:wireframe-target",
+      "placementSpace": "target-frame"
+    },
+    "tacticalGlow": {
+      "file": "tactical-glow.webp",
+      "sourceSize": {
+        "width": 1607,
+        "height": 979
+      },
+      "crop": {
+        "x": 120,
+        "y": 32,
+        "width": 1384,
+        "height": 864
+      },
+      "outputSize": {
+        "width": 1384,
+        "height": 864
+      },
+      "paddingPx": 24,
+      "alignmentGroup": "left-car:glow-target",
+      "placementSpace": "target-frame"
+    }
+  }
+}
