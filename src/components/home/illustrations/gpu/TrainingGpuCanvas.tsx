@@ -8,73 +8,55 @@ import {
   TRAINING_GPU_MAX_DPR,
   TRAINING_GPU_RENDER_SCALE,
 } from "@/lib/home/gpu/trainingGpuConstants";
-import type {
-  TrainingGpuFrameState,
-  TrainingGpuPassMode,
-} from "@/lib/home/gpu/trainingGpuTypes";
-import { TRAINING_RADAR_TIMING } from "@/lib/home/trainingRadarTargets";
+import type { TrainingGpuFrameState } from "@/lib/home/gpu/trainingGpuTypes";
+import type { TrainingRadarClock } from "@/lib/home/trainingRadarClock";
 
 type TrainingGpuCanvasProps = {
   active: boolean;
-  passKey: number;
-  passMode: TrainingGpuPassMode;
+  radarClock: TrainingRadarClock;
   running: boolean;
 };
 
-type TrainingGpuInputState = Pick<
+type TrainingGpuLifecycleState = Pick<
   TrainingGpuFrameState,
-  "active" | "passKey" | "passMode" | "running"
+  "active" | "running"
 >;
 
 function createGpuFrameState(
-  input: TrainingGpuInputState,
-  passStartedAtMs: number,
+  lifecycle: TrainingGpuLifecycleState,
+  radarClock: TrainingRadarClock,
   nowMs: number,
 ): TrainingGpuFrameState {
-  const passElapsedMs = Math.max(0, nowMs - passStartedAtMs);
-  const radarProgress = Math.min(
-    1,
-    passElapsedMs / TRAINING_RADAR_TIMING.passDurationMs,
-  );
+  const clockSnapshot = radarClock.sample(nowMs);
 
   return {
-    ...input,
-    nowMs,
-    passElapsedMs,
-    radarProgress,
+    ...clockSnapshot,
+    active: lifecycle.active,
+    running: lifecycle.running && clockSnapshot.running,
   };
 }
 
 export function TrainingGpuCanvas({
   active,
-  passKey,
-  passMode,
+  radarClock,
   running,
 }: TrainingGpuCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const inputRef = useRef<TrainingGpuInputState>({
+  const lifecycleRef = useRef<TrainingGpuLifecycleState>({
     active,
-    passKey,
-    passMode,
     running,
   });
-  const lastPassKeyRef = useRef(passKey);
-  const passStartedAtMsRef = useRef(0);
   const rendererRef = useRef<TrainingGpuRenderer | null>(null);
   const [contextUnavailable, setContextUnavailable] = useState(false);
 
-  inputRef.current = { active, passKey, passMode, running };
+  lifecycleRef.current = { active, running };
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const initialNowMs = performance.now();
-    passStartedAtMsRef.current = initialNowMs;
-    lastPassKeyRef.current = passKey;
-
     const renderer = new TrainingGpuRenderer(canvas, (nowMs) =>
-      createGpuFrameState(inputRef.current, passStartedAtMsRef.current, nowMs),
+      createGpuFrameState(lifecycleRef.current, radarClock, nowMs),
     );
 
     if (!renderer.available) {
@@ -122,9 +104,9 @@ export function TrainingGpuCanvas({
     resizeCanvas();
 
     const frameState = createGpuFrameState(
-      inputRef.current,
-      passStartedAtMsRef.current,
-      initialNowMs,
+      lifecycleRef.current,
+      radarClock,
+      0,
     );
     renderer.setFrameState(frameState);
 
@@ -137,29 +119,25 @@ export function TrainingGpuCanvas({
       renderer.destroy();
       rendererRef.current = null;
     };
-  }, []);
+  }, [radarClock]);
 
   useEffect(() => {
     const renderer = rendererRef.current;
     if (!renderer) return;
 
-    const nowMs = performance.now();
-
-    if (lastPassKeyRef.current !== passKey) {
-      lastPassKeyRef.current = passKey;
-      passStartedAtMsRef.current = nowMs;
-    }
-
-    renderer.setFrameState(
-      createGpuFrameState(inputRef.current, passStartedAtMsRef.current, nowMs),
+    const frameState = createGpuFrameState(
+      lifecycleRef.current,
+      radarClock,
+      0,
     );
+    renderer.setFrameState(frameState);
 
     if (active && running) {
       renderer.start();
     } else {
       renderer.stop();
     }
-  }, [active, passKey, passMode, running]);
+  }, [active, radarClock, running]);
 
   if (contextUnavailable) return null;
 
