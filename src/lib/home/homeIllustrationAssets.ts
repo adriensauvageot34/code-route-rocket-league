@@ -137,14 +137,14 @@ export const homeIllustrationAssets = {
     ballSurfaceScan: {
       path: "/ui/training-ball Overlay surface-scan.png",
       role: "ball surface volume scan",
-      dimensions: { width: 1672, height: 941 },
+      dimensions: { width: 1254, height: 1254 },
       alpha: "transparent",
       blendMode: "screen"
     },
     ballContourScan: {
       path: "/ui/training-ball overlay contour-scan.png",
       role: "ball contour scan",
-      dimensions: { width: 1672, height: 941 },
+      dimensions: { width: 1254, height: 1254 },
       alpha: "transparent",
       blendMode: "screen"
     },
@@ -193,14 +193,14 @@ export const homeIllustrationAssets = {
     surfaceScanCar01: {
       path: "/ui/car-01 overlay surface-scan.png",
       role: "surface scan matched to the distant left car",
-      dimensions: { width: 1607, height: 979 },
+      dimensions: { width: 1448, height: 1086 },
       alpha: "transparent",
       blendMode: "screen"
     },
     contourScanCar01: {
       path: "/ui/car-01 overlay contour-scan.png",
       role: "contour scan matched to the distant left car",
-      dimensions: { width: 1607, height: 979 },
+      dimensions: { width: 1672, height: 941 },
       alpha: "transparent",
       blendMode: "screen"
     },
@@ -221,14 +221,14 @@ export const homeIllustrationAssets = {
     surfaceScanCar02: {
       path: "/ui/car-02 overlay surface-scan.png",
       role: "surface scan matched to the distant back-right car",
-      dimensions: { width: 1612, height: 975 },
+      dimensions: { width: 1672, height: 941 },
       alpha: "transparent",
       blendMode: "screen"
     },
     contourScanCar02: {
       path: "/ui/car-02 overlay contour-scan.png",
       role: "contour scan matched to the distant back-right car",
-      dimensions: { width: 1612, height: 975 },
+      dimensions: { width: 1672, height: 941 },
       alpha: "transparent",
       blendMode: "screen"
     },
@@ -249,14 +249,14 @@ export const homeIllustrationAssets = {
     surfaceScanCar03: {
       path: "/ui/car-03 overlay surface-scan.png",
       role: "surface scan matched to the distant front-right car",
-      dimensions: { width: 1619, height: 972 },
+      dimensions: { width: 1672, height: 941 },
       alpha: "transparent",
       blendMode: "screen"
     },
     contourScanCar03: {
       path: "/ui/car-03 overlay contour-scan.png",
       role: "contour scan matched to the distant front-right car",
-      dimensions: { width: 1619, height: 972 },
+      dimensions: { width: 1672, height: 941 },
       alpha: "transparent",
       blendMode: "screen"
     },

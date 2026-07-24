@@ -93,7 +93,10 @@ function createCarRegistration(
   layer: number,
 ): TrainingGpuObjectRegistration {
   const baseGroup = `${target.id}:base-scene`;
-  const effectsGroup = `${target.id}:effects-target`;
+  const surfaceGroup = `${target.id}:volume-surface-target`;
+  const contourGroup = `${target.id}:volume-contour-target`;
+  const wireframeGroup = `${target.id}:wireframe-target`;
+  const glowGroup = `${target.id}:glow-target`;
 
   return {
     id: target.id,
@@ -110,15 +113,28 @@ function createCarRegistration(
         target.baseAsset.dimensions,
       ),
       createAlignmentGroup(
-        effectsGroup,
+        surfaceGroup,
         "target-frame",
-        [
-          "volumeSurface",
-          "volumeContour",
-          "tacticalWireframe",
-          "tacticalGlow",
-        ],
+        ["volumeSurface"],
         target.surfaceAsset.dimensions,
+      ),
+      createAlignmentGroup(
+        contourGroup,
+        "target-frame",
+        ["volumeContour"],
+        target.contourAsset.dimensions,
+      ),
+      createAlignmentGroup(
+        wireframeGroup,
+        "target-frame",
+        ["tacticalWireframe"],
+        target.wireframeAsset.dimensions,
+      ),
+      createAlignmentGroup(
+        glowGroup,
+        "target-frame",
+        ["tacticalGlow"],
+        target.glowAsset.dimensions,
       ),
     ],
     assetBindings: {
@@ -130,25 +146,25 @@ function createCarRegistration(
       ),
       volumeSurface: createBinding(
         "volumeSurface",
-        effectsGroup,
+        surfaceGroup,
         "target-frame",
         target.surfaceAsset,
       ),
       volumeContour: createBinding(
         "volumeContour",
-        effectsGroup,
+        contourGroup,
         "target-frame",
         target.contourAsset,
       ),
       tacticalWireframe: createBinding(
         "tacticalWireframe",
-        effectsGroup,
+        wireframeGroup,
         "target-frame",
         target.wireframeAsset,
       ),
       tacticalGlow: createBinding(
         "tacticalGlow",
-        effectsGroup,
+        glowGroup,
         "target-frame",
         target.glowAsset,
       ),
@@ -160,11 +176,13 @@ const leftCar = getCarTarget("left-car");
 const backRightCar = getCarTarget("back-right-car");
 const frontRightCar = getCarTarget("front-right-car");
 
-const ballSceneGroup = "ball:scene";
+const ballBaseEnergyGroup = "ball:base-energy-scene";
+const ballVolumeGroup = "ball:volume-square";
 const fennecBaseGroup = "fennec:base-scene";
 const fennecHeadlightGroup = "fennec:headlight-scene";
 const fennecRearGroup = "fennec:rear-scene";
-const fennecSurfaceGroup = "fennec:surface";
+const fennecSurfaceGroup = "fennec:surface-frame";
+const fennecContourGroup = "fennec:contour-scene";
 const fennecImpactGroup = "fennec:impact";
 
 const ballRegistration: TrainingGpuObjectRegistration = {
@@ -176,34 +194,40 @@ const ballRegistration: TrainingGpuObjectRegistration = {
   assetRoles: BALL_ASSET_ROLES,
   alignmentGroups: [
     createAlignmentGroup(
-      ballSceneGroup,
+      ballBaseEnergyGroup,
       "grounded-scene",
-      BALL_ASSET_ROLES,
+      ["base", "tacticalEnergy"],
       trainingBallRadarTarget.baseAsset.dimensions,
+    ),
+    createAlignmentGroup(
+      ballVolumeGroup,
+      "grounded-scene",
+      ["volumeSurface", "volumeContour"],
+      trainingBallRadarTarget.surfaceAsset.dimensions,
     ),
   ],
   assetBindings: {
     base: createBinding(
       "base",
-      ballSceneGroup,
+      ballBaseEnergyGroup,
       "grounded-scene",
       trainingBallRadarTarget.baseAsset,
     ),
     volumeSurface: createBinding(
       "volumeSurface",
-      ballSceneGroup,
+      ballVolumeGroup,
       "grounded-scene",
       trainingBallRadarTarget.surfaceAsset,
     ),
     volumeContour: createBinding(
       "volumeContour",
-      ballSceneGroup,
+      ballVolumeGroup,
       "grounded-scene",
       trainingBallRadarTarget.contourAsset,
     ),
     tacticalEnergy: createBinding(
       "tacticalEnergy",
-      ballSceneGroup,
+      ballBaseEnergyGroup,
       "grounded-scene",
       trainingBallRadarTarget.energyAsset,
     ),
@@ -239,8 +263,14 @@ const fennecRegistration: TrainingGpuObjectRegistration = {
     createAlignmentGroup(
       fennecSurfaceGroup,
       "fennec-surface-frame",
-      ["volumeSurface", "volumeContour"],
+      ["volumeSurface"],
       trainingFennecVolumeScanTarget.surfaceAsset.dimensions,
+    ),
+    createAlignmentGroup(
+      fennecContourGroup,
+      "scene",
+      ["volumeContour"],
+      trainingFennecVolumeScanTarget.contourAsset.dimensions,
     ),
     createAlignmentGroup(
       fennecImpactGroup,
@@ -276,8 +306,8 @@ const fennecRegistration: TrainingGpuObjectRegistration = {
     ),
     volumeContour: createBinding(
       "volumeContour",
-      fennecSurfaceGroup,
-      "fennec-surface-frame",
+      fennecContourGroup,
+      "scene",
       trainingFennecVolumeScanTarget.contourAsset,
     ),
     tacticalImpact: createBinding(
