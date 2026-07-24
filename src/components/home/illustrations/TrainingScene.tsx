@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import { useCallback, useState, type CSSProperties } from "react";
 import { SceneGroup, SceneLayer } from "@/components/home/illustrations/SceneGroup";
 import {
   TrainingGroundedBall,
@@ -88,6 +88,12 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
     volumeScanPhases,
   } = useTrainingRadarSequence({ active, launching });
   const radarClock = useTrainingRadarClock({ passKey, passMode, running });
+  const [gpuRadarReady, setGpuRadarReady] = useState(false);
+  const handleGpuRadarReadyChange = useCallback((ready: boolean) => {
+    setGpuRadarReady(ready);
+  }, []);
+  const useGpuRadar = trainingRendererMode === "gpu";
+  const showDomRadar = !useGpuRadar || !gpuRadarReady;
   const getTacticalPhase = (targetId: TrainingRadarTargetId) =>
     tacticalPhases[targetId];
   const getVolumeScanPhase = (targetId: TrainingVolumeScanTargetId) =>
@@ -99,6 +105,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       className="home-scene training-scene"
       data-launching={launching ? "true" : "false"}
       data-radar-active={running ? "true" : "false"}
+      data-gpu-radar-ready={useGpuRadar && gpuRadarReady ? "true" : "false"}
       data-radar-pass-mode={passMode}
       data-scene="training"
       data-training-renderer={trainingRendererMode}
@@ -138,21 +145,36 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         <SceneLayer asset={assets.parallaxGround} preload />
       </SceneGroup>
 
-      <SceneGroup blendMode="screen" depth="trainingGround" layer={6} name="training-radar-surface">
-        <TrainingRadarOverlay
-          active={running}
-          key={`training-radar-surface-${passKey}`}
-          variant="surface"
-        />
-      </SceneGroup>
+      {showDomRadar ? (
+        <>
+          <SceneGroup blendMode="screen" depth="trainingGround" layer={6} name="training-radar-surface">
+            <TrainingRadarOverlay
+              active={running}
+              key={`training-radar-surface-${passKey}`}
+              variant="surface"
+            />
+          </SceneGroup>
 
-      <SceneGroup depth="trainingGround" layer={7} name="training-radar-sweep">
-        <TrainingRadarOverlay
-          active={running}
-          key={`training-radar-sweep-${passKey}`}
-          variant="sweep"
-        />
-      </SceneGroup>
+          <SceneGroup depth="trainingGround" layer={7} name="training-radar-sweep">
+            <TrainingRadarOverlay
+              active={running}
+              key={`training-radar-sweep-${passKey}`}
+              variant="sweep"
+            />
+          </SceneGroup>
+        </>
+      ) : null}
+
+      {useGpuRadar ? (
+        <SceneGroup depth="trainingGround" layer={6} name="training-radar-gpu">
+          <TrainingGpuCanvas
+            active={active}
+            onReadyChange={handleGpuRadarReadyChange}
+            radarClock={radarClock}
+            running={running}
+          />
+        </SceneGroup>
+      ) : null}
 
       <SceneGroup depth="trainingGround" layer={8} name="training-barrier">
         <SceneLayer asset={assets.parallaxBarrier} preload />
@@ -260,14 +282,6 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       <SceneGroup blendMode="screen" depth="foreground" future layer={18} name="transition">
         <SceneLayer asset={assets.transitionWaveGold} className="training-transition-wave-local" />
       </SceneGroup>
-
-      {trainingRendererMode === "gpu" ? (
-        <TrainingGpuCanvas
-          active={active}
-          radarClock={radarClock}
-          running={running}
-        />
-      ) : null}
     </div>
   );
 }
