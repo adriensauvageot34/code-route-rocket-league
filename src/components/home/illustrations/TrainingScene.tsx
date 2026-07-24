@@ -10,6 +10,7 @@ import { TrainingGpuCanvas } from "@/components/home/illustrations/gpu/TrainingG
 import { TrainingRadarOverlay } from "@/components/home/illustrations/TrainingRadarOverlay";
 import { useTrainingRadarSequence } from "@/components/home/illustrations/TrainingRadarSequence";
 import { TrainingParticleField } from "@/components/home/illustrations/TrainingParticleField";
+import { useTrainingGpuObjectAssets } from "@/hooks/useTrainingGpuObjectAssets";
 import { useTrainingRadarClock } from "@/hooks/useTrainingRadarClock";
 import { useTrainingRendererMode } from "@/hooks/useTrainingRendererMode";
 import { homeIllustrationAssets } from "@/lib/home/homeIllustrationAssets";
@@ -97,6 +98,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
     setGpuParticlesReady(ready);
   }, []);
   const useGpuRenderer = trainingRendererMode === "gpu";
+  const gpuObjectAssetState = useTrainingGpuObjectAssets(useGpuRenderer);
   const showDomRadar = !useGpuRenderer || !gpuRadarReady;
   const showDomParticles = !useGpuRenderer || !gpuParticlesReady;
   const getTacticalPhase = (targetId: TrainingRadarTargetId) =>
@@ -114,6 +116,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       data-gpu-particles-ready={
         useGpuRenderer && gpuParticlesReady ? "true" : "false"
       }
+      data-gpu-object-assets-status={gpuObjectAssetState.status}
       data-radar-pass-mode={passMode}
       data-scene="training"
       data-training-renderer={trainingRendererMode}
