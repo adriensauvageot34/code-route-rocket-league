@@ -1,5 +1,5 @@
 import Image from "next/image";
-import type { CSSProperties } from "react";
+import type { CSSProperties, Ref } from "react";
 import type {
   TrainingTacticalPhase,
   TrainingVolumeScanPhase,
@@ -36,12 +36,18 @@ type TrainingGroundedCarProps = {
   target: TrainingCarRadarTarget;
   tacticalPhase: TrainingTacticalPhase;
   volumeScanPhase: TrainingVolumeScanPhase;
+  gpuVolumeCanvasRef?: Ref<HTMLCanvasElement>;
+  showGpuVolumeCanvas?: boolean;
+  showDomVolumeScan?: boolean;
 };
 
 type TrainingGroundedBallProps = {
   target: TrainingBallRadarTarget;
   tacticalPhase: TrainingTacticalPhase;
   volumeScanPhase: TrainingVolumeScanPhase;
+  gpuVolumeCanvasRef?: Ref<HTMLCanvasElement>;
+  showGpuVolumeCanvas?: boolean;
+  showDomVolumeScan?: boolean;
 };
 
 function getGroundedActorStyle(
@@ -73,6 +79,9 @@ export function TrainingGroundedCar({
   target,
   tacticalPhase,
   volumeScanPhase,
+  gpuVolumeCanvasRef,
+  showGpuVolumeCanvas = false,
+  showDomVolumeScan = true,
 }: TrainingGroundedCarProps) {
   const scan = target.objectScan;
   const placementStyle: TrainingCarScanStyle = {
@@ -112,26 +121,37 @@ export function TrainingGroundedCar({
         data-volume-scan-phase={volumeScanPhase}
         style={placementStyle}
       >
-        <Image
-          alt=""
-          aria-hidden="true"
-          className="training-radar-object-surface training-radar-car-surface"
-          draggable={false}
-          fill
-          sizes="12vw"
-          src={target.surfaceAsset.path}
-          unoptimized
-        />
-        <Image
-          alt=""
-          aria-hidden="true"
-          className="training-radar-object-contour training-radar-car-contour"
-          draggable={false}
-          fill
-          sizes="12vw"
-          src={target.contourAsset.path}
-          unoptimized
-        />
+        {showDomVolumeScan ? (
+          <>
+            <Image
+              alt=""
+              aria-hidden="true"
+              className="training-radar-object-surface training-radar-car-surface"
+              draggable={false}
+              fill
+              sizes="12vw"
+              src={target.surfaceAsset.path}
+              unoptimized
+            />
+            <Image
+              alt=""
+              aria-hidden="true"
+              className="training-radar-object-contour training-radar-car-contour"
+              draggable={false}
+              fill
+              sizes="12vw"
+              src={target.contourAsset.path}
+              unoptimized
+            />
+          </>
+        ) : null}
+        {showGpuVolumeCanvas ? (
+          <canvas
+            aria-hidden="true"
+            className="training-gpu-volume-canvas"
+            ref={gpuVolumeCanvasRef}
+          />
+        ) : null}
         <Image
           alt=""
           aria-hidden="true"
@@ -161,6 +181,9 @@ export function TrainingGroundedBall({
   target,
   tacticalPhase,
   volumeScanPhase,
+  gpuVolumeCanvasRef,
+  showGpuVolumeCanvas = false,
+  showDomVolumeScan = true,
 }: TrainingGroundedBallProps) {
   const sizes = "(max-width: 820px) 100vw, (max-width: 1180px) 66vw, 34vw";
 
@@ -187,26 +210,37 @@ export function TrainingGroundedBall({
         data-tactical-phase={tacticalPhase}
         data-volume-scan-phase={volumeScanPhase}
       >
-        <Image
-          alt=""
-          aria-hidden="true"
-          className="training-radar-ball-volume-surface"
-          draggable={false}
-          fill
-          sizes={sizes}
-          src={target.surfaceAsset.path}
-          unoptimized
-        />
-        <Image
-          alt=""
-          aria-hidden="true"
-          className="training-radar-ball-volume-contour"
-          draggable={false}
-          fill
-          sizes={sizes}
-          src={target.contourAsset.path}
-          unoptimized
-        />
+        {showDomVolumeScan ? (
+          <>
+            <Image
+              alt=""
+              aria-hidden="true"
+              className="training-radar-ball-volume-surface"
+              draggable={false}
+              fill
+              sizes={sizes}
+              src={target.surfaceAsset.path}
+              unoptimized
+            />
+            <Image
+              alt=""
+              aria-hidden="true"
+              className="training-radar-ball-volume-contour"
+              draggable={false}
+              fill
+              sizes={sizes}
+              src={target.contourAsset.path}
+              unoptimized
+            />
+          </>
+        ) : null}
+        {showGpuVolumeCanvas ? (
+          <canvas
+            aria-hidden="true"
+            className="training-gpu-volume-canvas"
+            ref={gpuVolumeCanvasRef}
+          />
+        ) : null}
         <Image
           alt=""
           aria-hidden="true"

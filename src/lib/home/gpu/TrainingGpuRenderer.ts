@@ -22,6 +22,13 @@ import type {
   TrainingGpuFrameState,
   TrainingGpuViewport,
 } from "@/lib/home/gpu/trainingGpuTypes";
+import type { TrainingGpuPreparedObjectId } from "@/lib/home/gpu/trainingGpuObjectAssetCatalog";
+import type { TrainingGpuDecodedObjectAssetSet } from "@/lib/home/gpu/TrainingGpuObjectAssetLoader";
+import {
+  TrainingGpuVolumeSubsystem,
+  type TrainingGpuVolumeCanvases,
+} from "@/lib/home/gpu/trainingGpuVolumeUtils";
+import { getTrainingGpuVolumeScanSnapshot } from "@/lib/home/gpu/trainingGpuVolumeScanTiming";
 import type { TrainingRadarPassMode } from "@/lib/home/trainingRadarClock";
 import {
   TRAINING_RADAR_SWEEP,
@@ -36,6 +43,7 @@ type TrainingGpuCanvases = {
     surface: HTMLCanvasElement;
     sweep: HTMLCanvasElement;
   };
+  volume: TrainingGpuVolumeCanvases;
 };
 
 type TrainingGpuParticlePass = {
@@ -69,6 +77,7 @@ type TrainingGpuRendererOptions = {
   fieldMaskPixels: Uint8Array | null;
   onParticlesReadyChange: (ready: boolean) => void;
   onRadarReadyChange: (ready: boolean) => void;
+  onVolumeScansReadyChange: (ready: boolean) => void;
   terrainImage: HTMLImageElement | null;
 };
 
@@ -110,6 +119,7 @@ export class TrainingGpuRenderer {
     TrainingGpuParticleDepth,
     TrainingGpuParticleTarget
   >;
+  private readonly volumeSubsystem: TrainingGpuVolumeSubsystem;
 
   constructor(
     canvases: TrainingGpuCanvases,
@@ -124,6 +134,13 @@ export class TrainingGpuRenderer {
       mid: this.createParticleTarget("mid", canvases.particles.mid),
       near: this.createParticleTarget("near", canvases.particles.near),
     };
+    this.volumeSubsystem = new TrainingGpuVolumeSubsystem(canvases.volume, {
+      onReadyChange: options.onVolumeScansReadyChange,
+      onContextRestored: () => {
+        this.completeFirstRender();
+        this.syncAnimationLoop();
+      },
+    });
 
     for (const target of Object.values(this.radarTargets)) {
       target.canvas.addEventListener("webglcontextlost", target.onContextLost);
@@ -145,9 +162,14 @@ export class TrainingGpuRenderer {
   initialize() {
     this.initializeRadarSubsystem();
     this.initializeParticleSubsystem();
+    this.volumeSubsystem.initialize();
     this.completeFirstRender();
     this.syncAnimationLoop();
-    return this.radarInitialized || this.particlesInitialized;
+    return (
+      this.radarInitialized ||
+      this.particlesInitialized ||
+      this.volumeSubsystem.isInitialized()
+    );
   }
 
   resize(viewport: TrainingGpuViewport) {
@@ -175,6 +197,21 @@ export class TrainingGpuRenderer {
     }
   }
 
+  resizeVolumeTargets() {
+    this.volumeSubsystem.resize();
+    this.completeFirstRender();
+  }
+
+  setVolumeAssets(
+    assets: Partial<
+      Record<TrainingGpuPreparedObjectId, TrainingGpuDecodedObjectAssetSet>
+    > | null,
+  ) {
+    this.volumeSubsystem.setAssets(assets);
+    this.completeFirstRender();
+    this.syncAnimationLoop();
+  }
+
   setFrameState(state: TrainingGpuFrameState) {
     this.frameState = state;
     if (!state.active || !state.running) this.resetParticlePasses();
@@ -194,7 +231,11 @@ export class TrainingGpuRenderer {
   }
 
   render(nowMs: number) {
-    if (!this.radarReady && !this.particlesReady) return;
+    if (
+      !this.radarReady &&
+      !this.particlesReady &&
+      !this.volumeSubsystem.isReady()
+    ) return;
 
     const frameState = this.options.createFrameState(nowMs);
     this.frameState = frameState;
@@ -210,6 +251,7 @@ export class TrainingGpuRenderer {
     this.clear();
     this.releaseRadarResources();
     this.releaseParticleResources();
+    this.volumeSubsystem.destroy();
 
     for (const target of Object.values(this.radarTargets)) {
       target.canvas.removeEventListener(
@@ -378,6 +420,11 @@ export class TrainingGpuRenderer {
     } else {
       this.setParticlesReady(false);
     }
+
+    this.volumeSubsystem.render(
+      getTrainingGpuVolumeScanSnapshot(firstFrameState),
+      firstFrameState.active && firstFrameState.running,
+    );
   }
 
   private renderFrame(frameState: TrainingGpuFrameState) {
@@ -386,6 +433,10 @@ export class TrainingGpuRenderer {
     this.updateParticlePassHistory(frameState);
     if (this.radarReady) this.renderRadarFrame(frameState);
     if (this.particlesReady) this.renderParticleFrame(frameState);
+    this.volumeSubsystem.render(
+      getTrainingGpuVolumeScanSnapshot(frameState),
+      frameState.active && frameState.running,
+    );
   }
 
   private renderRadarFrame(frameState: TrainingGpuFrameState) {
@@ -527,7 +578,9 @@ export class TrainingGpuRenderer {
   private canAnimate() {
     return (
       this.shouldRun &&
-      (this.radarReady || this.particlesReady) &&
+      (this.radarReady ||
+        this.particlesReady ||
+        this.volumeSubsystem.isReady()) &&
       this.frameState.active &&
       this.frameState.running &&
       document.visibilityState === "visible"
@@ -565,6 +618,7 @@ export class TrainingGpuRenderer {
   private clear() {
     this.clearRadarCanvases();
     this.clearParticleCanvases();
+    this.volumeSubsystem.clear();
   }
 
   private clearRadarCanvases() {

@@ -169,3 +169,72 @@ export function getTrainingGpuObjectRenderRect(
       );
   }
 }
+
+
+export type TrainingGpuObjectFitMode = "contain" | "cover" | "fill";
+
+export type TrainingGpuObjectLocalFrame = {
+  width: number;
+  height: number;
+};
+
+export type TrainingGpuObjectLocalTransform = {
+  scaleX: number;
+  scaleY: number;
+  translateXPercent: number;
+  translateYPercent: number;
+};
+
+export function getTrainingGpuObjectLocalQuad(
+  entry: TrainingGpuObjectAssetEntry,
+  frame: TrainingGpuObjectLocalFrame,
+  fitMode: TrainingGpuObjectFitMode,
+): TrainingGpuObjectRenderRect {
+  const sourceWidth = entry.sourceSize.width;
+  const sourceHeight = entry.sourceSize.height;
+  let scaleX = frame.width / sourceWidth;
+  let scaleY = frame.height / sourceHeight;
+
+  if (fitMode !== "fill") {
+    const uniformScale =
+      fitMode === "contain"
+        ? Math.min(scaleX, scaleY)
+        : Math.max(scaleX, scaleY);
+    scaleX = uniformScale;
+    scaleY = uniformScale;
+  }
+
+  const fittedWidth = sourceWidth * scaleX;
+  const fittedHeight = sourceHeight * scaleY;
+  const offsetX = (frame.width - fittedWidth) / 2;
+  const offsetY = (frame.height - fittedHeight) / 2;
+
+  return {
+    x: offsetX + entry.crop.x * scaleX,
+    y: offsetY + entry.crop.y * scaleY,
+    width: entry.crop.width * scaleX,
+    height: entry.crop.height * scaleY,
+  };
+}
+
+export function transformTrainingGpuObjectLocalQuad(
+  quad: TrainingGpuObjectRenderRect,
+  frame: TrainingGpuObjectLocalFrame,
+  transform: TrainingGpuObjectLocalTransform,
+): TrainingGpuObjectRenderRect {
+  const centerX = frame.width / 2;
+  const centerY = frame.height / 2;
+
+  return {
+    x:
+      centerX +
+      (quad.x - centerX) * transform.scaleX +
+      (transform.translateXPercent / 100) * frame.width,
+    y:
+      centerY +
+      (quad.y - centerY) * transform.scaleY +
+      (transform.translateYPercent / 100) * frame.height,
+    width: quad.width * transform.scaleX,
+    height: quad.height * transform.scaleY,
+  };
+}
