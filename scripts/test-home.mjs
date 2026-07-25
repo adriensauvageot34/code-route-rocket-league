@@ -20,6 +20,7 @@ const expectedFiles = [
   "src/components/home/illustrations/TrainingRadarOverlay.tsx",
   "src/components/home/illustrations/TrainingRadarSequence.tsx",
   "src/components/home/illustrations/gpu/TrainingGpuCanvas.tsx",
+  "src/components/home/illustrations/gpu/TrainingGpuDebugPanel.tsx",
   "src/components/home/illustrations/CompetitiveScene.tsx",
   "src/components/home/illustrations/SceneGroup.tsx",
   "src/lib/home/homeDashboardViewModel.ts",
@@ -31,8 +32,13 @@ const expectedFiles = [
   "src/lib/home/trainingParticleTiming.ts",
   "src/lib/home/trainingRadarTargets.ts",
   "src/lib/home/gpu/TrainingGpuRenderer.ts",
+  "src/lib/home/gpu/TrainingGpuObjectAssetLoader.ts",
+  "src/lib/home/gpu/debug/TrainingGpuDebugCollector.ts",
+  "src/lib/home/gpu/debug/trainingGpuDebugTypes.ts",
   "src/lib/home/gpu/trainingGpuVolumeUtils.ts",
   "src/hooks/useParallaxController.ts",
+  "src/hooks/useTrainingRendererDebug.ts",
+  "src/hooks/useTrainingRendererMode.ts",
   "src/types/home.ts",
 ];
 
@@ -78,6 +84,7 @@ const trainingParticleField = files["src/components/home/illustrations/TrainingP
 const trainingRadarOverlay = files["src/components/home/illustrations/TrainingRadarOverlay.tsx"];
 const trainingRadarSequence = files["src/components/home/illustrations/TrainingRadarSequence.tsx"];
 const trainingGpuCanvas = files["src/components/home/illustrations/gpu/TrainingGpuCanvas.tsx"];
+const trainingGpuDebugPanel = files["src/components/home/illustrations/gpu/TrainingGpuDebugPanel.tsx"];
 const competitiveScene = files["src/components/home/illustrations/CompetitiveScene.tsx"];
 const sceneGroup = files["src/components/home/illustrations/SceneGroup.tsx"];
 const sceneDepths = files["src/lib/home/homeSceneParallax.ts"];
@@ -87,6 +94,11 @@ const trainingParticlePresets = files["src/lib/home/trainingParticlePresets.ts"]
 const trainingParticleTiming = files["src/lib/home/trainingParticleTiming.ts"];
 const trainingRadarTargets = files["src/lib/home/trainingRadarTargets.ts"];
 const trainingGpuRenderer = files["src/lib/home/gpu/TrainingGpuRenderer.ts"];
+const trainingGpuObjectAssetLoader = files["src/lib/home/gpu/TrainingGpuObjectAssetLoader.ts"];
+const trainingGpuDebugCollector = files["src/lib/home/gpu/debug/TrainingGpuDebugCollector.ts"];
+const trainingGpuDebugTypes = files["src/lib/home/gpu/debug/trainingGpuDebugTypes.ts"];
+const trainingRendererDebugHook = files["src/hooks/useTrainingRendererDebug.ts"];
+const trainingRendererModeHook = files["src/hooks/useTrainingRendererMode.ts"];
 const trainingGpuVolumeUtils = files["src/lib/home/gpu/trainingGpuVolumeUtils.ts"];
 const homeIllustrationAssets = files["src/lib/home/homeIllustrationAssets.ts"];
 const types = files["src/types/home.ts"];
@@ -145,6 +157,99 @@ assert(trainingGpuVolumeUtils.includes("finally {\n    gl.deleteShader(vertexSha
 assert(trainingScene.includes("const showDomVolumeScan = !useGpuRenderer || !gpuVolumeScansReady") && trainingScene.includes('data-gpu-volume-scans-ready='), "The four object volume scans must switch atomically to the DOM fallback.");
 assert(trainingGroundedActor.includes("training-grounded-actor-base") && trainingGroundedActor.includes("target.wireframeAsset.path") && trainingGroundedActor.includes("target.energyAsset.path"), "Base and tactical object layers must remain in the DOM.");
 assert(trainingScene.includes('name="fennec"') && !trainingGpuVolumeUtils.includes('"fennec"'), "The Fennec must remain outside the GPU object volume subsystem.");
+
+assert(
+  trainingRendererDebugHook.includes('TRAINING_RENDERER_DEBUG_PARAM = "debugRenderer"') &&
+    trainingRendererDebugHook.includes('=== "1"') &&
+    trainingScene.includes("debugEnabled && debugCollector ? ("),
+  "Renderer diagnostics must activate only with debugRenderer=1 and must not render a panel otherwise.",
+);
+assert(
+  trainingGpuDebugPanel.includes("const PANEL_REFRESH_MS = 250") &&
+    trainingGpuDebugPanel.includes("window.setInterval(refresh, PANEL_REFRESH_MS)") &&
+    trainingGpuDebugPanel.includes("window.clearInterval(panelTimerId)"),
+  "The React diagnostics panel must poll at four hertz and clean up its timer.",
+);
+assert(
+  trainingGpuDebugCollector.includes("new Float64Array(capacity)") &&
+    trainingGpuDebugCollector.includes("FRAME_SAMPLE_CAPACITY = 240") &&
+    trainingGpuDebugCollector.includes("CPU_SAMPLE_CAPACITY = 120") &&
+    !trainingGpuDebugCollector.includes(".push(..."),
+  "Renderer frame and CPU histories must stay bounded in circular buffers.",
+);
+assert(
+  trainingGpuDebugPanel.includes("new PerformanceObserver") &&
+    trainingGpuDebugPanel.includes('observe({ type: "longtask", buffered: false })') &&
+    trainingGpuDebugPanel.includes("longTaskObserver.disconnect()"),
+  "Long tasks must be observed and disconnected only while the debug panel is mounted.",
+);
+const trainingRendererCoreDebugSources =
+  trainingGpuDebugCollector +
+  trainingGpuDebugTypes +
+  trainingRendererDebugHook;
+const trainingRendererDebugSources =
+  trainingGpuDebugPanel + trainingRendererCoreDebugSources;
+assert(
+  !trainingRendererCoreDebugSources.includes("requestAnimationFrame") &&
+    !trainingRendererCoreDebugSources.includes("new TrainingRadarClock") &&
+    !trainingRendererCoreDebugSources.includes("setTimeout") &&
+    !trainingRendererCoreDebugSources.includes("setInterval("),
+  "Diagnostics must not create an effect clock, RAF loop, or uncontrolled timer.",
+);
+assert(
+  trainingGpuDebugPanel.includes("window.setInterval(") &&
+    !/(fetch\s*\(|XMLHttpRequest|sendBeacon|WebSocket)/.test(
+      trainingRendererDebugSources,
+    ),
+  "Diagnostics may use only the bounded panel timer and must never send telemetry.",
+);
+assert(
+  trainingGpuDebugPanel.includes("Copier le rapport JSON") &&
+    trainingGpuDebugPanel.includes("navigator.clipboard?.writeText") &&
+    trainingGpuDebugPanel.includes("Rapport JSON à copier manuellement") &&
+    trainingGpuDebugPanel.includes("getSafeReportUrl"),
+  "Renderer diagnostics must export a sanitized local JSON report with a manual fallback.",
+);
+assert(
+  trainingGpuDebugCollector.includes('recordSubsystemCpu(') &&
+    trainingGpuDebugCollector.includes("p95FrameMs") &&
+    trainingGpuDebugCollector.includes("over20Ms") &&
+    trainingGpuDebugCollector.includes("over33Ms") &&
+    trainingGpuDebugCollector.includes("over50Ms"),
+  "Diagnostics must expose bounded frame metrics and CPU timings.",
+);
+assert(
+  trainingGpuRenderer.includes('recordSubsystemCpu(\n        "radar"') &&
+    trainingGpuRenderer.includes('recordSubsystemCpu(\n        "particles"') &&
+    trainingGpuRenderer.includes('recordSubsystemCpu(\n      "volume"') &&
+    !trainingGpuRenderer.includes("TrainingGpuDebugPanel"),
+  "The renderer must report each GPU subsystem without importing React presentation.",
+);
+assert(
+  trainingGpuObjectAssetLoader.includes("recordManifestLoaded") &&
+    trainingGpuObjectAssetLoader.includes("recordImageDecoded") &&
+    trainingGpuVolumeUtils.includes("recordTextureUpload"),
+  "Manifest, image decode, and texture upload diagnostics must remain passive loading measurements.",
+);
+assert(
+  trainingGpuDebugCollector.includes("recordContextLost") &&
+    trainingGpuDebugCollector.includes("recordContextRestored") &&
+    trainingGpuDebugTypes.includes("estimatedTextureBytes"),
+  "Context events and theoretical texture memory must be present in local reports.",
+);
+assert(
+  trainingRendererModeHook.includes('useState<TrainingRendererMode>("dom")') &&
+    trainingScene.includes("const showDomRadar = !useGpuRenderer || !gpuRadarReady") &&
+    trainingScene.includes("const showDomParticles = !useGpuRenderer || !gpuParticlesReady") &&
+    trainingScene.includes("const showDomVolumeScan = !useGpuRenderer || !gpuVolumeScansReady"),
+  "DOM mode and every existing DOM fallback must remain the default.",
+);
+assert(
+  !trainingRendererDebugSources.includes("FRAGMENT_SHADER") &&
+    !trainingRendererDebugSources.includes("trainingParticlePresets") &&
+    !trainingRendererDebugSources.includes("trainingRadarTargets"),
+  "Renderer diagnostics must not migrate or redefine a visual effect.",
+);
 
 assert(homeDashboard.includes("useState<HomeViewId>(viewModel.selectedView)"), "Dashboard must initialize from the selected home view.");
 assert(homeDashboard.includes('selectedView === "statistics"'), "Statistics panel must be the default right context.");

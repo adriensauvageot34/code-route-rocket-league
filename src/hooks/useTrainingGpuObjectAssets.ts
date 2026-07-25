@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { TrainingGpuDebugCollector } from "@/lib/home/gpu/debug/TrainingGpuDebugCollector";
 import {
   TRAINING_GPU_OBJECT_MANIFEST_URLS,
   type TrainingGpuPreparedObjectId,
@@ -26,21 +27,33 @@ function createIdleState(): TrainingGpuObjectAssetLoadState {
   };
 }
 
-export function useTrainingGpuObjectAssets(enabled: boolean) {
+export function useTrainingGpuObjectAssets(
+  enabled: boolean,
+  debugCollector: TrainingGpuDebugCollector | null = null,
+) {
   const loaderRef = useRef<TrainingGpuObjectAssetLoader | null>(null);
+  const debugCollectorRef = useRef(debugCollector);
   const [state, setState] =
     useState<TrainingGpuObjectAssetLoadState>(createIdleState);
 
   if (loaderRef.current === null) {
     loaderRef.current = new TrainingGpuObjectAssetLoader();
   }
+  const loader = loaderRef.current;
+  debugCollectorRef.current = debugCollector;
 
   useEffect(() => {
-    const loader = loaderRef.current;
-    if (!loader) return;
+    loader.setDebugCollector(debugCollector);
+    return () => {
+      loader.setDebugCollector(null);
+    };
+  }, [debugCollector, loader]);
+
+  useEffect(() => {
 
     if (!enabled) {
       loader.clear();
+      debugCollectorRef.current?.setAssetStatus("idle");
       setState(createIdleState());
       return;
     }
@@ -48,6 +61,7 @@ export function useTrainingGpuObjectAssets(enabled: boolean) {
     const abortController = new AbortController();
     let current = true;
 
+    debugCollectorRef.current?.setAssetStatus("loading");
     setState({
       status: "loading",
       objects: {},
@@ -58,6 +72,7 @@ export function useTrainingGpuObjectAssets(enabled: boolean) {
       TrainingGpuPreparedObjectId,
       string,
     ][];
+    debugCollectorRef.current?.setExpectedManifests(entries.length);
 
     void Promise.all(
       entries.map(async ([expectedObjectId, manifestUrl]) => {
@@ -75,6 +90,7 @@ export function useTrainingGpuObjectAssets(enabled: boolean) {
     )
       .then((loadedEntries) => {
         if (!current || abortController.signal.aborted) return;
+        debugCollectorRef.current?.setAssetStatus("ready");
         setState({
           status: "ready",
           objects: Object.fromEntries(loadedEntries),
@@ -83,6 +99,7 @@ export function useTrainingGpuObjectAssets(enabled: boolean) {
       })
       .catch((error: unknown) => {
         if (!current || abortController.signal.aborted) return;
+        debugCollectorRef.current?.setAssetStatus("error");
         setState({
           status: "error",
           objects: {},
@@ -98,7 +115,7 @@ export function useTrainingGpuObjectAssets(enabled: boolean) {
       abortController.abort();
       loader.clear();
     };
-  }, [enabled]);
+  }, [enabled, loader]);
 
   return state;
 }

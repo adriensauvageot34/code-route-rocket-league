@@ -24,6 +24,7 @@ import type {
   TrainingGpuPreparedObjectId,
 } from "@/lib/home/gpu/trainingGpuObjectAssetCatalog";
 import type { TrainingGpuViewport } from "@/lib/home/gpu/trainingGpuTypes";
+import type { TrainingGpuDebugCollector } from "@/lib/home/gpu/debug/TrainingGpuDebugCollector";
 import type { TrainingGpuVolumeScanState } from "@/lib/home/gpu/trainingGpuVolumeScanTiming";
 
 export type TrainingGpuVolumeCanvases = Record<
@@ -67,6 +68,7 @@ export type TrainingGpuVolumeTarget = {
 };
 
 type TrainingGpuVolumeSubsystemOptions = {
+  debugCollector: TrainingGpuDebugCollector | null;
   onReadyChange: (ready: boolean) => void;
   onContextRestored: () => void;
 };
@@ -184,6 +186,7 @@ function getUniform(
 function createTexture(
   gl: WebGL2RenderingContext,
   asset: TrainingGpuDecodedObjectAsset,
+  debugCollector: TrainingGpuDebugCollector | null,
 ) {
   const texture = gl.createTexture();
   if (!texture) throw new Error("Unable to create Training volume texture.");
@@ -196,6 +199,7 @@ function createTexture(
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    const uploadStartedAtMs = debugCollector ? performance.now() : 0;
     gl.texImage2D(
       gl.TEXTURE_2D,
       0,
@@ -203,6 +207,9 @@ function createTexture(
       gl.RGBA,
       gl.UNSIGNED_BYTE,
       asset.image,
+    );
+    debugCollector?.recordTextureUpload(
+      performance.now() - uploadStartedAtMs,
     );
     return texture;
   } catch (error) {
@@ -217,6 +224,7 @@ function createTexture(
 function createVolumeResources(
   gl: WebGL2RenderingContext,
   assets: TrainingGpuDecodedObjectAssetSet,
+  debugCollector: TrainingGpuDebugCollector | null,
 ): TrainingGpuVolumeResources {
   const surfaceAsset = assets.assets.volumeSurface;
   const contourAsset = assets.assets.volumeContour;
@@ -257,8 +265,8 @@ function createVolumeResources(
     gl.bindVertexArray(null);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-    surfaceTexture = createTexture(gl, surfaceAsset);
-    contourTexture = createTexture(gl, contourAsset);
+    surfaceTexture = createTexture(gl, surfaceAsset, debugCollector);
+    contourTexture = createTexture(gl, contourAsset, debugCollector);
 
     gl.useProgram(program);
     const uniforms: TrainingGpuVolumeUniforms = {
@@ -408,6 +416,7 @@ export class TrainingGpuVolumeSubsystem {
         target.onContextRestored,
       );
     }
+    this.updateDebugState();
   }
 
   isInitialized() {
@@ -430,6 +439,7 @@ export class TrainingGpuVolumeSubsystem {
     this.setReady(false);
     this.clear();
     if (assets) this.initialize();
+    this.updateDebugState();
   }
 
   initialize() {
@@ -446,10 +456,12 @@ export class TrainingGpuVolumeSubsystem {
       this.initialized = this.hasResources();
     } catch (error) {
       reportVolumeFailureOnce("initialization failed", error);
+      this.options.debugCollector?.recordSubsystemError("volume", error);
       this.initialized = false;
       this.releaseResources();
       this.setReady(false);
     }
+    this.updateDebugState();
     return this.initialized;
   }
 
@@ -458,6 +470,7 @@ export class TrainingGpuVolumeSubsystem {
       this.resizeTarget(target);
     }
     if (!this.hasViewports()) this.setReady(false);
+    this.updateDebugState();
   }
 
   render(snapshot: TrainingGpuVolumeSnapshot, running: boolean) {
@@ -475,6 +488,7 @@ export class TrainingGpuVolumeSubsystem {
       return true;
     } catch (error) {
       reportVolumeFailureOnce("render failed", error);
+      this.options.debugCollector?.recordSubsystemError("volume", error);
       this.setReady(false);
       this.clear();
       return false;
@@ -506,6 +520,7 @@ export class TrainingGpuVolumeSubsystem {
     }
     this.assets = null;
     this.initialized = false;
+    this.updateDebugState();
   }
 
   private createTarget(
@@ -538,7 +553,11 @@ export class TrainingGpuVolumeSubsystem {
     }
 
     destroyVolumeResources(target.gl, target.resources);
-    target.resources = createVolumeResources(target.gl, assets);
+    target.resources = createVolumeResources(
+      target.gl,
+      assets,
+      this.options.debugCollector,
+    );
     this.resizeTarget(target);
   }
 
@@ -717,6 +736,7 @@ export class TrainingGpuVolumeSubsystem {
     if (this.ready === ready) return;
     this.ready = ready;
     this.options.onReadyChange(ready);
+    this.updateDebugState();
   }
 
   private releaseResources() {
@@ -726,6 +746,7 @@ export class TrainingGpuVolumeSubsystem {
       }
       target.resources = null;
     }
+    this.updateDebugState();
   }
 
   private loseTarget(target: TrainingGpuVolumeTarget, event: Event) {
@@ -733,8 +754,10 @@ export class TrainingGpuVolumeSubsystem {
     target.contextLost = true;
     target.resources = null;
     this.initialized = false;
+    this.options.debugCollector?.recordContextLost("volume");
     this.setReady(false);
     this.clear();
+    this.updateDebugState();
   }
 
   private restoreTarget(target: TrainingGpuVolumeTarget) {
@@ -748,15 +771,81 @@ export class TrainingGpuVolumeSubsystem {
     try {
       this.initializeTarget(target);
       this.initialized = this.hasResources();
+      this.options.debugCollector?.recordContextRestored("volume");
+      this.updateDebugState();
       this.options.onContextRestored();
     } catch (error) {
       reportVolumeFailureOnce(
         `context restoration failed for ${target.objectId}`,
         error,
       );
+      this.options.debugCollector?.recordSubsystemError("volume", error);
       target.resources = null;
       this.initialized = false;
       this.setReady(false);
+      this.updateDebugState();
     }
+  }
+
+  private updateDebugState() {
+    const debugCollector = this.options.debugCollector;
+    if (!debugCollector) return;
+
+    const targets = Object.values(this.targets);
+    const activeContexts = targets.filter(
+      (target) => target.gl !== null && !target.contextLost,
+    );
+    const resourceTargets = targets.filter(
+      (target) => target.resources !== null,
+    );
+    const contextState = targets.some(
+      (target) => target.contextLost && target.gl !== null,
+    )
+      ? "lost"
+      : activeContexts.length > 0
+        ? "available"
+        : "unavailable";
+    let estimatedTextureBytes = 0;
+    for (const target of resourceTargets) {
+      const assetSet = this.assets?.[target.objectId];
+      for (const role of ["volumeSurface", "volumeContour"] as const) {
+        const asset = assetSet?.assets[role];
+        if (asset) {
+          estimatedTextureBytes +=
+            asset.entry.outputSize.width * asset.entry.outputSize.height * 4;
+        }
+      }
+    }
+
+    debugCollector.setSubsystemState("volume", {
+      initialized: this.initialized,
+      ready: this.ready,
+      contextState,
+    });
+    debugCollector.setSubsystemResources(
+      "volume",
+      {
+        contexts: activeContexts.length,
+        programs: resourceTargets.length,
+        buffers: resourceTargets.length,
+        vertexArrays: resourceTargets.length,
+        textures: resourceTargets.length * 2,
+        estimatedTextureBytes,
+      },
+      targets.flatMap((target) =>
+        target.viewport
+          ? [
+              {
+                id: `volume-${target.objectId}`,
+                subsystem: "volume" as const,
+                cssWidth: target.viewport.cssWidth,
+                cssHeight: target.viewport.cssHeight,
+                pixelWidth: target.viewport.pixelWidth,
+                pixelHeight: target.viewport.pixelHeight,
+              },
+            ]
+          : [],
+      ),
+    );
   }
 }

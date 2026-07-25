@@ -3355,3 +3355,76 @@
 .training-radar-ball-energy {
   z-index: 3;
 }
+
+
+.training-renderer-debug-panel {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 1000;
+  display: grid;
+  width: min(390px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  gap: 8px;
+  padding: 12px;
+  overflow: auto;
+  color: #f8f4ff;
+  font: 500 11px/1.35 ui-monospace, SFMono-Regular, Consolas, monospace;
+  background: rgb(8 7 18 / 0.94);
+  border: 1px solid rgb(176 122 255 / 0.42);
+  border-radius: 10px;
+  box-shadow: 0 12px 34px rgb(0 0 0 / 0.45);
+  pointer-events: auto;
+}
+
+.training-renderer-debug-panel.is-collapsed {
+  width: auto;
+  max-height: none;
+  padding: 6px;
+}
+
+.training-renderer-debug-panel header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #f2cf79;
+}
+
+.training-renderer-debug-panel section {
+  display: grid;
+  gap: 2px;
+  padding-top: 7px;
+  border-top: 1px solid rgb(255 255 255 / 0.1);
+}
+
+.training-renderer-debug-panel section > b {
+  color: #cba7ff;
+}
+
+.training-renderer-debug-panel button {
+  width: fit-content;
+  padding: 4px 7px;
+  color: #fff;
+  font: inherit;
+  background: rgb(122 74 194 / 0.5);
+  border: 1px solid rgb(203 167 255 / 0.48);
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.training-renderer-debug-panel textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 6px;
+  color: #f8f4ff;
+  font: inherit;
+  resize: vertical;
+  background: rgb(0 0 0 / 0.42);
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: 5px;
+}
+
+.training-renderer-debug-panel small {
+  color: rgb(248 244 255 / 0.66);
+}
