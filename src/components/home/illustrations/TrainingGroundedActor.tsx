@@ -39,6 +39,7 @@ type TrainingGroundedCarProps = {
   gpuVolumeCanvasRef?: Ref<HTMLCanvasElement>;
   showGpuVolumeCanvas?: boolean;
   showDomVolumeScan?: boolean;
+  showDomTactical?: boolean;
 };
 
 type TrainingGroundedBallProps = {
@@ -48,6 +49,7 @@ type TrainingGroundedBallProps = {
   gpuVolumeCanvasRef?: Ref<HTMLCanvasElement>;
   showGpuVolumeCanvas?: boolean;
   showDomVolumeScan?: boolean;
+  showDomTactical?: boolean;
 };
 
 function getGroundedActorStyle(
@@ -82,6 +84,7 @@ export function TrainingGroundedCar({
   gpuVolumeCanvasRef,
   showGpuVolumeCanvas = false,
   showDomVolumeScan = true,
+  showDomTactical = true,
 }: TrainingGroundedCarProps) {
   const scan = target.objectScan;
   const placementStyle: TrainingCarScanStyle = {
@@ -152,26 +155,30 @@ export function TrainingGroundedCar({
             ref={gpuVolumeCanvasRef}
           />
         ) : null}
-        <Image
-          alt=""
-          aria-hidden="true"
-          className="training-radar-car-wireframe"
-          draggable={false}
-          fill
-          sizes="12vw"
-          src={target.wireframeAsset.path}
-          unoptimized
-        />
-        <Image
-          alt=""
-          aria-hidden="true"
-          className="training-radar-car-glow"
-          draggable={false}
-          fill
-          sizes="12vw"
-          src={target.glowAsset.path}
-          unoptimized
-        />
+        {showDomTactical ? (
+          <>
+            <Image
+              alt=""
+              aria-hidden="true"
+              className="training-radar-car-wireframe"
+              draggable={false}
+              fill
+              sizes="12vw"
+              src={target.wireframeAsset.path}
+              unoptimized
+            />
+            <Image
+              alt=""
+              aria-hidden="true"
+              className="training-radar-car-glow"
+              draggable={false}
+              fill
+              sizes="12vw"
+              src={target.glowAsset.path}
+              unoptimized
+            />
+          </>
+        ) : null}
       </div>
     </div>
   );
@@ -184,6 +191,7 @@ export function TrainingGroundedBall({
   gpuVolumeCanvasRef,
   showGpuVolumeCanvas = false,
   showDomVolumeScan = true,
+  showDomTactical = true,
 }: TrainingGroundedBallProps) {
   const sizes = "(max-width: 820px) 100vw, (max-width: 1180px) 66vw, 34vw";
 
@@ -241,16 +249,18 @@ export function TrainingGroundedBall({
             ref={gpuVolumeCanvasRef}
           />
         ) : null}
-        <Image
-          alt=""
-          aria-hidden="true"
-          className="training-radar-ball-energy"
-          draggable={false}
-          fill
-          sizes={sizes}
-          src={target.energyAsset.path}
-          unoptimized
-        />
+        {showDomTactical ? (
+          <Image
+            alt=""
+            aria-hidden="true"
+            className="training-radar-ball-energy"
+            draggable={false}
+            fill
+            sizes={sizes}
+            src={target.energyAsset.path}
+            unoptimized
+          />
+        ) : null}
       </div>
       <Image
         alt=""

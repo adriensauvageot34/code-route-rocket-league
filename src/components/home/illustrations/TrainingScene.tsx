@@ -105,6 +105,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
   const [gpuRadarReady, setGpuRadarReady] = useState(false);
   const [gpuParticlesReady, setGpuParticlesReady] = useState(false);
   const [gpuVolumeScansReady, setGpuVolumeScansReady] = useState(false);
+  const [gpuTacticalReady, setGpuTacticalReady] = useState(false);
   const handleGpuRadarReadyChange = useCallback((ready: boolean) => {
     setGpuRadarReady(ready);
   }, []);
@@ -114,6 +115,9 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
   const handleGpuVolumeScansReadyChange = useCallback((ready: boolean) => {
     setGpuVolumeScansReady(ready);
   }, []);
+  const handleGpuTacticalReadyChange = useCallback((ready: boolean) => {
+    setGpuTacticalReady(ready);
+  }, []);
   const useGpuRenderer = trainingRendererMode === "gpu";
   const gpuObjectAssetState = useTrainingGpuObjectAssets(
     useGpuRenderer,
@@ -122,6 +126,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
   const showDomRadar = !useGpuRenderer || !gpuRadarReady;
   const showDomParticles = !useGpuRenderer || !gpuParticlesReady;
   const showDomVolumeScan = !useGpuRenderer || !gpuVolumeScansReady;
+  const showDomTactical = !useGpuRenderer || !gpuTacticalReady;
   const gpuVolumeAssets =
     gpuObjectAssetState.status === "ready"
       ? gpuObjectAssetState.objects
@@ -150,6 +155,9 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         useGpuRenderer && gpuParticlesReady ? "true" : "false"
       }
       data-gpu-object-assets-status={gpuObjectAssetState.status}
+      data-gpu-tactical-ready={
+        useGpuRenderer && gpuTacticalReady ? "true" : "false"
+      }
       data-gpu-volume-scans-ready={
         useGpuRenderer && gpuVolumeScansReady ? "true" : "false"
       }
@@ -219,6 +227,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
           onParticlesReadyChange={handleGpuParticlesReadyChange}
           onRadarReadyChange={handleGpuRadarReadyChange}
           onVolumeScansReadyChange={handleGpuVolumeScansReadyChange}
+          onTacticalReadyChange={handleGpuTacticalReadyChange}
           radarClock={radarClock}
           running={running}
           volumeAssets={gpuVolumeAssets}
@@ -247,6 +256,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         <TrainingGroundedCar
           gpuVolumeCanvasRef={leftCarVolumeCanvasRef}
           showDomVolumeScan={showDomVolumeScan}
+          showDomTactical={showDomTactical}
           showGpuVolumeCanvas={useGpuRenderer}
           target={trainingFarCarTarget}
           tacticalPhase={getTacticalPhase(trainingFarCarTarget.id)}
@@ -268,6 +278,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         <TrainingGroundedCar
           gpuVolumeCanvasRef={backRightCarVolumeCanvasRef}
           showDomVolumeScan={showDomVolumeScan}
+          showDomTactical={showDomTactical}
           showGpuVolumeCanvas={useGpuRenderer}
           target={trainingMidCarTarget}
           tacticalPhase={getTacticalPhase(trainingMidCarTarget.id)}
@@ -279,6 +290,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         <TrainingGroundedCar
           gpuVolumeCanvasRef={frontRightCarVolumeCanvasRef}
           showDomVolumeScan={showDomVolumeScan}
+          showDomTactical={showDomTactical}
           showGpuVolumeCanvas={useGpuRenderer}
           target={trainingNearCarTarget}
           tacticalPhase={getTacticalPhase(trainingNearCarTarget.id)}
@@ -290,6 +302,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         <TrainingGroundedBall
           gpuVolumeCanvasRef={ballVolumeCanvasRef}
           showDomVolumeScan={showDomVolumeScan}
+          showDomTactical={showDomTactical}
           showGpuVolumeCanvas={useGpuRenderer}
           target={trainingBallRadarTarget}
           tacticalPhase={getTacticalPhase(trainingBallRadarTarget.id)}

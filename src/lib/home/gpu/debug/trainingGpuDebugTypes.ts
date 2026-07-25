@@ -4,7 +4,8 @@ import type { TrainingRadarPassMode } from "@/lib/home/trainingRadarClock";
 export type TrainingGpuDebugSubsystemName =
   | "radar"
   | "particles"
-  | "volume";
+  | "volume"
+  | "tactical";
 
 export type TrainingGpuDebugContextState =
   | "available"

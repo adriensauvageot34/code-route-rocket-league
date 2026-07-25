@@ -29,6 +29,7 @@ import {
   type TrainingGpuVolumeCanvases,
 } from "@/lib/home/gpu/trainingGpuVolumeUtils";
 import { getTrainingGpuVolumeScanSnapshot } from "@/lib/home/gpu/trainingGpuVolumeScanTiming";
+import { getTrainingGpuTacticalSnapshot } from "@/lib/home/gpu/trainingGpuTacticalTiming";
 import type { TrainingRadarPassMode } from "@/lib/home/trainingRadarClock";
 import type { TrainingGpuDebugCollector } from "@/lib/home/gpu/debug/TrainingGpuDebugCollector";
 import {
@@ -80,6 +81,7 @@ type TrainingGpuRendererOptions = {
   onParticlesReadyChange: (ready: boolean) => void;
   onRadarReadyChange: (ready: boolean) => void;
   onVolumeScansReadyChange: (ready: boolean) => void;
+  onTacticalReadyChange: (ready: boolean) => void;
   terrainImage: HTMLImageElement | null;
 };
 
@@ -145,7 +147,8 @@ export class TrainingGpuRenderer {
     };
     this.volumeSubsystem = new TrainingGpuVolumeSubsystem(canvases.volume, {
       debugCollector: options.debugCollector,
-      onReadyChange: options.onVolumeScansReadyChange,
+      onVolumeReadyChange: options.onVolumeScansReadyChange,
+      onTacticalReadyChange: options.onTacticalReadyChange,
       onContextRestored: () => {
         this.completeFirstRender();
         this.syncAnimationLoop();
@@ -181,7 +184,8 @@ export class TrainingGpuRenderer {
     return (
       this.radarInitialized ||
       this.particlesInitialized ||
-      this.volumeSubsystem.isInitialized()
+      this.volumeSubsystem.isVolumeInitialized() ||
+      this.volumeSubsystem.isTacticalInitialized()
     );
   }
 
@@ -260,7 +264,8 @@ export class TrainingGpuRenderer {
     if (
       !this.radarReady &&
       !this.particlesReady &&
-      !this.volumeSubsystem.isReady()
+      !this.volumeSubsystem.isVolumeReady() &&
+      !this.volumeSubsystem.isTacticalReady()
     ) return;
 
     const frameState = this.options.createFrameState(nowMs);
@@ -456,8 +461,13 @@ export class TrainingGpuRenderer {
       this.setParticlesReady(false);
     }
 
-    this.volumeSubsystem.render(
+    this.volumeSubsystem.beginFrame();
+    this.volumeSubsystem.renderVolume(
       getTrainingGpuVolumeScanSnapshot(firstFrameState),
+      firstFrameState.active && firstFrameState.running,
+    );
+    this.volumeSubsystem.renderTactical(
+      getTrainingGpuTacticalSnapshot(firstFrameState),
       firstFrameState.active && firstFrameState.running,
     );
   }
@@ -483,14 +493,24 @@ export class TrainingGpuRenderer {
         performance.now() - startedAtMs,
       );
     }
+    this.volumeSubsystem.beginFrame();
     const volumeStartedAtMs = debugCollector ? performance.now() : 0;
-    this.volumeSubsystem.render(
+    this.volumeSubsystem.renderVolume(
       getTrainingGpuVolumeScanSnapshot(frameState),
       frameState.active && frameState.running,
     );
     debugCollector?.recordSubsystemCpu(
       "volume",
       performance.now() - volumeStartedAtMs,
+    );
+    const tacticalStartedAtMs = debugCollector ? performance.now() : 0;
+    this.volumeSubsystem.renderTactical(
+      getTrainingGpuTacticalSnapshot(frameState),
+      frameState.active && frameState.running,
+    );
+    debugCollector?.recordSubsystemCpu(
+      "tactical",
+      performance.now() - tacticalStartedAtMs,
     );
   }
 
@@ -635,7 +655,8 @@ export class TrainingGpuRenderer {
       this.shouldRun &&
       (this.radarReady ||
         this.particlesReady ||
-        this.volumeSubsystem.isReady()) &&
+        this.volumeSubsystem.isVolumeReady() ||
+        this.volumeSubsystem.isTacticalReady()) &&
       this.frameState.active &&
       this.frameState.running &&
       document.visibilityState === "visible"

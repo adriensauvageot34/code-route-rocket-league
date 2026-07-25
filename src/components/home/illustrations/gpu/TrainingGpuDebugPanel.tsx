@@ -20,6 +20,7 @@ const SUBSYSTEM_NAMES = [
   "radar",
   "particles",
   "volume",
+  "tactical",
 ] as const satisfies readonly TrainingGpuDebugSubsystemName[];
 
 type TrainingGpuDebugPanelProps = {
