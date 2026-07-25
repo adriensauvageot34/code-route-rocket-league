@@ -3340,3 +3340,18 @@
 .training-gpu-particle-canvas {
   z-index: 0;
 }
+
+.training-gpu-volume-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.training-radar-ball-energy {
+  z-index: 3;
+}

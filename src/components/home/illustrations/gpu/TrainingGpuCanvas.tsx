@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 import { SceneGroup } from "@/components/home/illustrations/SceneGroup";
 import { TrainingGpuRenderer } from "@/lib/home/gpu/TrainingGpuRenderer";
 import {
@@ -14,6 +14,8 @@ import {
   TRAINING_GPU_RENDER_SCALE,
 } from "@/lib/home/gpu/trainingGpuConstants";
 import type { TrainingGpuFrameState } from "@/lib/home/gpu/trainingGpuTypes";
+import type { TrainingGpuPreparedObjectId } from "@/lib/home/gpu/trainingGpuObjectAssetCatalog";
+import type { TrainingGpuDecodedObjectAssetSet } from "@/lib/home/gpu/TrainingGpuObjectAssetLoader";
 import type { TrainingRadarClock } from "@/lib/home/trainingRadarClock";
 import { homeIllustrationAssets } from "@/lib/home/homeIllustrationAssets";
 
@@ -21,8 +23,16 @@ type TrainingGpuCanvasProps = {
   active: boolean;
   onParticlesReadyChange: (ready: boolean) => void;
   onRadarReadyChange: (ready: boolean) => void;
+  onVolumeScansReadyChange: (ready: boolean) => void;
   radarClock: TrainingRadarClock;
   running: boolean;
+  volumeAssets: Partial<
+    Record<TrainingGpuPreparedObjectId, TrainingGpuDecodedObjectAssetSet>
+  > | null;
+  leftCarVolumeCanvasRef: RefObject<HTMLCanvasElement | null>;
+  backRightCarVolumeCanvasRef: RefObject<HTMLCanvasElement | null>;
+  frontRightCarVolumeCanvasRef: RefObject<HTMLCanvasElement | null>;
+  ballVolumeCanvasRef: RefObject<HTMLCanvasElement | null>;
 };
 
 type TrainingGpuLifecycleState = Pick<
@@ -51,8 +61,14 @@ export function TrainingGpuCanvas({
   active,
   onParticlesReadyChange,
   onRadarReadyChange,
+  onVolumeScansReadyChange,
   radarClock,
   running,
+  volumeAssets,
+  leftCarVolumeCanvasRef,
+  backRightCarVolumeCanvasRef,
+  frontRightCarVolumeCanvasRef,
+  ballVolumeCanvasRef,
 }: TrainingGpuCanvasProps) {
   const stackRef = useRef<HTMLDivElement>(null);
   const surfaceCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -65,8 +81,10 @@ export function TrainingGpuCanvas({
     running,
   });
   const rendererRef = useRef<TrainingGpuRenderer | null>(null);
+  const volumeAssetsRef = useRef(volumeAssets);
 
   lifecycleRef.current = { active, running };
+  volumeAssetsRef.current = volumeAssets;
 
   useEffect(() => {
     const stack = stackRef.current;
@@ -75,23 +93,57 @@ export function TrainingGpuCanvas({
     const farParticlesCanvas = farParticlesCanvasRef.current;
     const midParticlesCanvas = midParticlesCanvasRef.current;
     const nearParticlesCanvas = nearParticlesCanvasRef.current;
+    const leftCarVolumeCanvas = leftCarVolumeCanvasRef.current;
+    const backRightCarVolumeCanvas = backRightCarVolumeCanvasRef.current;
+    const frontRightCarVolumeCanvas = frontRightCarVolumeCanvasRef.current;
+    const ballVolumeCanvas = ballVolumeCanvasRef.current;
     if (
       !stack ||
       !surfaceCanvas ||
       !sweepCanvas ||
       !farParticlesCanvas ||
       !midParticlesCanvas ||
-      !nearParticlesCanvas
+      !nearParticlesCanvas ||
+      !leftCarVolumeCanvas ||
+      !backRightCarVolumeCanvas ||
+      !frontRightCarVolumeCanvas ||
+      !ballVolumeCanvas
     ) {
       return;
     }
 
+    const mountedCanvases = {
+      stack,
+      surfaceCanvas,
+      sweepCanvas,
+      farParticlesCanvas,
+      midParticlesCanvas,
+      nearParticlesCanvas,
+      leftCarVolumeCanvas,
+      backRightCarVolumeCanvas,
+      frontRightCarVolumeCanvas,
+      ballVolumeCanvas,
+    };
     let cancelled = false;
     let resizeObserver: ResizeObserver | null = null;
     onRadarReadyChange(false);
     onParticlesReadyChange(false);
+    onVolumeScansReadyChange(false);
 
     async function initializeRenderer() {
+      const {
+        stack,
+        surfaceCanvas,
+        sweepCanvas,
+        farParticlesCanvas,
+        midParticlesCanvas,
+        nearParticlesCanvas,
+        leftCarVolumeCanvas,
+        backRightCarVolumeCanvas,
+        frontRightCarVolumeCanvas,
+        ballVolumeCanvas,
+      } = mountedCanvases;
+
       try {
         let fieldMaskPixels: Uint8Array | null = null;
         let terrainImage: HTMLImageElement | null = null;
@@ -118,6 +170,12 @@ export function TrainingGpuCanvas({
               surface: surfaceCanvas,
               sweep: sweepCanvas,
             },
+            volume: {
+              "left-car": leftCarVolumeCanvas,
+              "back-right-car": backRightCarVolumeCanvas,
+              "front-right-car": frontRightCarVolumeCanvas,
+              ball: ballVolumeCanvas,
+            },
           },
           {
             createFrameState: (nowMs) =>
@@ -129,10 +187,12 @@ export function TrainingGpuCanvas({
             fieldMaskPixels,
             onParticlesReadyChange,
             onRadarReadyChange,
+            onVolumeScansReadyChange,
             terrainImage,
           },
         );
         rendererRef.current = renderer;
+        renderer.setVolumeAssets(volumeAssetsRef.current);
 
         const resizeCanvases = () => {
           const { width: cssWidth, height: cssHeight } =
@@ -164,10 +224,15 @@ export function TrainingGpuCanvas({
             logicalHeight: TRAINING_GPU_LOGICAL_HEIGHT,
             renderScale: TRAINING_GPU_RENDER_SCALE,
           });
+          renderer.resizeVolumeTargets();
         };
 
         resizeObserver = new ResizeObserver(resizeCanvases);
         resizeObserver.observe(stack);
+        resizeObserver.observe(leftCarVolumeCanvas);
+        resizeObserver.observe(backRightCarVolumeCanvas);
+        resizeObserver.observe(frontRightCarVolumeCanvas);
+        resizeObserver.observe(ballVolumeCanvas);
         resizeCanvases();
 
         renderer.setFrameState(
@@ -181,6 +246,7 @@ export function TrainingGpuCanvas({
           rendererRef.current = null;
           onRadarReadyChange(false);
           onParticlesReadyChange(false);
+          onVolumeScansReadyChange(false);
           return;
         }
 
@@ -195,6 +261,7 @@ export function TrainingGpuCanvas({
         if (!cancelled) {
           onRadarReadyChange(false);
           onParticlesReadyChange(false);
+          onVolumeScansReadyChange(false);
         }
       }
     }
@@ -208,12 +275,22 @@ export function TrainingGpuCanvas({
       rendererRef.current = null;
       onRadarReadyChange(false);
       onParticlesReadyChange(false);
+      onVolumeScansReadyChange(false);
     };
   }, [
+    backRightCarVolumeCanvasRef,
+    ballVolumeCanvasRef,
+    frontRightCarVolumeCanvasRef,
+    leftCarVolumeCanvasRef,
     onParticlesReadyChange,
     onRadarReadyChange,
+    onVolumeScansReadyChange,
     radarClock,
   ]);
+
+  useEffect(() => {
+    rendererRef.current?.setVolumeAssets(volumeAssets);
+  }, [volumeAssets]);
 
   useEffect(() => {
     const renderer = rendererRef.current;

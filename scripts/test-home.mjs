@@ -19,6 +19,7 @@ const expectedFiles = [
   "src/components/home/illustrations/TrainingParticleField.tsx",
   "src/components/home/illustrations/TrainingRadarOverlay.tsx",
   "src/components/home/illustrations/TrainingRadarSequence.tsx",
+  "src/components/home/illustrations/gpu/TrainingGpuCanvas.tsx",
   "src/components/home/illustrations/CompetitiveScene.tsx",
   "src/components/home/illustrations/SceneGroup.tsx",
   "src/lib/home/homeDashboardViewModel.ts",
@@ -27,7 +28,10 @@ const expectedFiles = [
   "src/lib/home/homeSceneParallax.ts",
   "src/lib/home/homeLaunch.ts",
   "src/lib/home/trainingParticlePresets.ts",
+  "src/lib/home/trainingParticleTiming.ts",
   "src/lib/home/trainingRadarTargets.ts",
+  "src/lib/home/gpu/TrainingGpuRenderer.ts",
+  "src/lib/home/gpu/trainingGpuVolumeUtils.ts",
   "src/hooks/useParallaxController.ts",
   "src/types/home.ts",
 ];
@@ -73,13 +77,17 @@ const trainingGroundedActor = files["src/components/home/illustrations/TrainingG
 const trainingParticleField = files["src/components/home/illustrations/TrainingParticleField.tsx"];
 const trainingRadarOverlay = files["src/components/home/illustrations/TrainingRadarOverlay.tsx"];
 const trainingRadarSequence = files["src/components/home/illustrations/TrainingRadarSequence.tsx"];
+const trainingGpuCanvas = files["src/components/home/illustrations/gpu/TrainingGpuCanvas.tsx"];
 const competitiveScene = files["src/components/home/illustrations/CompetitiveScene.tsx"];
 const sceneGroup = files["src/components/home/illustrations/SceneGroup.tsx"];
 const sceneDepths = files["src/lib/home/homeSceneParallax.ts"];
 const homeLaunch = files["src/lib/home/homeLaunch.ts"];
 const parallaxController = files["src/hooks/useParallaxController.ts"];
 const trainingParticlePresets = files["src/lib/home/trainingParticlePresets.ts"];
+const trainingParticleTiming = files["src/lib/home/trainingParticleTiming.ts"];
 const trainingRadarTargets = files["src/lib/home/trainingRadarTargets.ts"];
+const trainingGpuRenderer = files["src/lib/home/gpu/TrainingGpuRenderer.ts"];
+const trainingGpuVolumeUtils = files["src/lib/home/gpu/trainingGpuVolumeUtils.ts"];
 const homeIllustrationAssets = files["src/lib/home/homeIllustrationAssets.ts"];
 const types = files["src/types/home.ts"];
 const viewModel = files["src/lib/home/homeDashboardViewModel.ts"];
@@ -124,6 +132,19 @@ assert(viewSelector.includes("choiceRefs.current[nextIndex]?.focus()"), "Keyboar
 assert(viewSelector.includes('view.id !== "statistics"'), "Statistics must not mount a mode preview.");
 assert(viewSelector.includes("modePreviews[view.id]"), "Training and Competitive must keep their detailed cards.");
 assert(!modePreview.includes("ModeIllustration"), "Mode detail cards must not contain scene canvases.");
+
+assert(trainingGpuCanvas.includes("const mountedCanvases = {") && trainingGpuCanvas.includes("} = mountedCanvases;"), "GPU canvas refs must be captured as mounted non-null nodes before asynchronous initialization.");
+assert(trainingGpuRenderer.includes("function getWebGl2Context") && trainingGpuVolumeUtils.includes("function getWebGl2Context"), "All GPU subsystems must retain an explicitly typed WebGL2 context boundary.");
+assert(trainingGpuVolumeUtils.includes("if (this.initialized && this.hasResources())") && trainingGpuVolumeUtils.includes("this.resize();"), "Volume initialization must be idempotent and must not recreate textures after assets are installed.");
+assert(trainingGpuVolumeUtils.includes('reportVolumeFailureOnce("initialization failed"') && trainingGpuVolumeUtils.includes('reportVolumeFailureOnce("render failed"') && trainingGpuVolumeUtils.includes('process.env.NODE_ENV === "production"'), "Volume failures must expose one development-only diagnostic without production noise.");
+assert(!trainingGpuVolumeUtils.includes("requestAnimationFrame") && !trainingGpuVolumeUtils.includes("setTimeout") && !trainingGpuVolumeUtils.includes("setInterval"), "Object volume scans must stay on the renderer MasterClock without their own loop or timers.");
+assert(trainingGpuVolumeUtils.includes("target.contextLost = true") && trainingGpuVolumeUtils.includes("this.setReady(false)") && trainingGpuVolumeUtils.includes("this.options.onContextRestored()"), "A lost volume context must restore the global DOM fallback until a restored frame is rendered.");
+assert(trainingGpuVolumeUtils.includes("cssWidth <= 0") && trainingGpuVolumeUtils.includes("target.viewport = null") && trainingGpuVolumeUtils.includes("if (!this.hasViewports()) this.setReady(false)"), "Zero-sized object canvases must never be reported ready.");
+assert(trainingGpuVolumeUtils.includes('removeEventListener(\n        "webglcontextlost"') && trainingGpuVolumeUtils.includes("this.releaseResources();"), "Volume teardown must release resources and context listeners.");
+assert(trainingGpuVolumeUtils.includes("finally {\n    gl.deleteShader(vertexShader);") && trainingGpuVolumeUtils.includes("gl.deleteTexture(texture);") && trainingGpuVolumeUtils.includes("gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);"), "Failed shader and texture creation must release partial GPU resources and restore upload state.");
+assert(trainingScene.includes("const showDomVolumeScan = !useGpuRenderer || !gpuVolumeScansReady") && trainingScene.includes('data-gpu-volume-scans-ready='), "The four object volume scans must switch atomically to the DOM fallback.");
+assert(trainingGroundedActor.includes("training-grounded-actor-base") && trainingGroundedActor.includes("target.wireframeAsset.path") && trainingGroundedActor.includes("target.energyAsset.path"), "Base and tactical object layers must remain in the DOM.");
+assert(trainingScene.includes('name="fennec"') && !trainingGpuVolumeUtils.includes('"fennec"'), "The Fennec must remain outside the GPU object volume subsystem.");
 
 assert(homeDashboard.includes("useState<HomeViewId>(viewModel.selectedView)"), "Dashboard must initialize from the selected home view.");
 assert(homeDashboard.includes('selectedView === "statistics"'), "Statistics panel must be the default right context.");
@@ -242,10 +263,13 @@ assert(trainingParticleField.includes('aria-hidden="true"') && trainingParticleF
 for (const radarProp of ["active: boolean", "passKey: number"]) {
   assert(trainingParticleField.includes(radarProp), `Radar particle field missing synchronization prop: ${radarProp}.`);
 }
-assert(trainingParticleField.includes("TRAINING_RADAR_SWEEP") && trainingParticleField.includes("getTrainingRadarDelayForProgress"), "Particle delays must derive from the same central linear sweep geometry as the radar.");
 assert(
-  trainingParticleField.includes("getParticleScanDelayMs") &&
-    trainingParticleField.includes("getRadarCoreOffset…379 tokens truncated… && trainingParticleField.includes("--particle-fragment-rise-end"), "Particle trail must expose lift, glow decay and disintegration fragments.");
+  trainingParticleField.includes("getTrainingParticleBirthDelayMs") &&
+    trainingParticleTiming.includes("TRAINING_RADAR_SWEEP") &&
+    trainingParticleTiming.includes("getTrainingRadarDelayForProgress"),
+  "Particle delays must derive from the same central linear sweep geometry as the radar.",
+);
+assert(trainingParticleField.includes("--particle-rise-end") && trainingParticleField.includes("--particle-fragment-rise-end") && css.includes("--particle-glow-soft"), "Particle trail must expose lift, glow decay and disintegration fragments.");
 assert(trainingScene.includes("active={running}") && trainingScene.includes("passKey={passKey}") && !trainingScene.includes("direction={passDirection}"), "All particle depths must receive the live LTR radar pass without a direction branch.");
 assert(!/(<img|<video|<canvas|\.png|\.gif|requestAnimationFrame)/.test(trainingParticleField + trainingParticlePresets), "Particle rendering must stay HTML/CSS-only without a per-frame React loop.");
 assert(trainingRadarOverlay.includes('id="training-radar-terrain-core-mask"') && trainingRadarOverlay.includes('className="training-tactical-terrain-core"'), "The tactical mesh must receive a dedicated high-intensity reveal under the radar core.");
