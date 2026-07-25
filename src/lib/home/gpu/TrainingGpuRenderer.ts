@@ -101,6 +101,13 @@ function getRadarVisibility(progress: number) {
   return 0;
 }
 
+function getWebGl2Context(canvas: HTMLCanvasElement) {
+  return canvas.getContext(
+    "webgl2",
+    TRAINING_GPU_CONTEXT_ATTRIBUTES,
+  ) as WebGL2RenderingContext | null;
+}
+
 export class TrainingGpuRenderer {
   private animationFrameId: number | null = null;
   private frameState = INITIAL_FRAME_STATE;
@@ -292,7 +299,7 @@ export class TrainingGpuRenderer {
     const target: TrainingGpuRadarTarget = {
       canvas,
       contextLost: false,
-      gl: canvas.getContext("webgl2", TRAINING_GPU_CONTEXT_ATTRIBUTES),
+      gl: getWebGl2Context(canvas),
       onContextLost: (_event: Event) => undefined,
       onContextRestored: () => undefined,
       plane,
@@ -311,7 +318,7 @@ export class TrainingGpuRenderer {
       canvas,
       contextLost: false,
       depth,
-      gl: canvas.getContext("webgl2", TRAINING_GPU_CONTEXT_ATTRIBUTES),
+      gl: getWebGl2Context(canvas),
       onContextLost: (_event: Event) => undefined,
       onContextRestored: () => undefined,
       resources: null,
@@ -684,10 +691,7 @@ export class TrainingGpuRenderer {
   }
 
   private restoreRadarTarget(target: TrainingGpuRadarTarget) {
-    target.gl = target.canvas.getContext(
-      "webgl2",
-      TRAINING_GPU_CONTEXT_ATTRIBUTES,
-    );
+    target.gl = getWebGl2Context(target.canvas);
     target.contextLost = target.gl === null;
 
     if (!target.gl) {
@@ -708,10 +712,7 @@ export class TrainingGpuRenderer {
   }
 
   private restoreParticleTarget(target: TrainingGpuParticleTarget) {
-    target.gl = target.canvas.getContext(
-      "webgl2",
-      TRAINING_GPU_CONTEXT_ATTRIBUTES,
-    );
+    target.gl = getWebGl2Context(target.canvas);
     target.contextLost = target.gl === null;
 
     if (!target.gl) {

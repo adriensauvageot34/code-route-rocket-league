@@ -91,6 +91,27 @@ const VOLUME_OBJECT_IDS = [
   "ball",
 ] as const satisfies readonly TrainingGpuPreparedObjectId[];
 
+const reportedVolumeFailures = new Set<string>();
+
+function reportVolumeFailureOnce(scope: string, error: unknown) {
+  if (
+    process.env.NODE_ENV === "production" ||
+    reportedVolumeFailures.has(scope)
+  ) {
+    return;
+  }
+
+  reportedVolumeFailures.add(scope);
+  console.warn(`[Training GPU volume] ${scope}`, error);
+}
+
+function getWebGl2Context(canvas: HTMLCanvasElement) {
+  return canvas.getContext(
+    "webgl2",
+    TRAINING_GPU_CONTEXT_ATTRIBUTES,
+  ) as WebGL2RenderingContext | null;
+}
+
 function compileShader(
   gl: WebGL2RenderingContext,
   type: number,
@@ -114,31 +135,38 @@ function createProgram(gl: WebGL2RenderingContext) {
     gl.VERTEX_SHADER,
     TRAINING_GPU_VOLUME_VERTEX_SHADER,
   );
-  const fragmentShader = compileShader(
-    gl,
-    gl.FRAGMENT_SHADER,
-    TRAINING_GPU_VOLUME_FRAGMENT_SHADER,
-  );
-  const program = gl.createProgram();
-  if (!program) {
+  let fragmentShader: WebGLShader | null = null;
+  let program: WebGLProgram | null = null;
+
+  try {
+    fragmentShader = compileShader(
+      gl,
+      gl.FRAGMENT_SHADER,
+      TRAINING_GPU_VOLUME_FRAGMENT_SHADER,
+    );
+    program = gl.createProgram();
+    if (!program) {
+      throw new Error("Unable to create Training volume program.");
+    }
+
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+    gl.linkProgram(program);
+
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      const message =
+        gl.getProgramInfoLog(program) ??
+        "Unknown volume program link error.";
+      throw new Error(message);
+    }
+    return program;
+  } catch (error) {
+    gl.deleteProgram(program);
+    throw error;
+  } finally {
     gl.deleteShader(vertexShader);
     gl.deleteShader(fragmentShader);
-    throw new Error("Unable to create Training volume program.");
   }
-
-  gl.attachShader(program, vertexShader);
-  gl.attachShader(program, fragmentShader);
-  gl.linkProgram(program);
-  gl.deleteShader(vertexShader);
-  gl.deleteShader(fragmentShader);
-
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    const message =
-      gl.getProgramInfoLog(program) ?? "Unknown volume program link error.";
-    gl.deleteProgram(program);
-    throw new Error(message);
-  }
-  return program;
 }
 
 function getUniform(
@@ -160,24 +188,30 @@ function createTexture(
   const texture = gl.createTexture();
   if (!texture) throw new Error("Unable to create Training volume texture.");
 
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-  gl.texImage2D(
-    gl.TEXTURE_2D,
-    0,
-    gl.RGBA,
-    gl.RGBA,
-    gl.UNSIGNED_BYTE,
-    asset.image,
-  );
-  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
-  gl.bindTexture(gl.TEXTURE_2D, null);
-  return texture;
+  try {
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      asset.image,
+    );
+    return texture;
+  } catch (error) {
+    gl.deleteTexture(texture);
+    throw error;
+  } finally {
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+  }
 }
 
 function createVolumeResources(
@@ -400,13 +434,18 @@ export class TrainingGpuVolumeSubsystem {
 
   initialize() {
     if (!this.assets) return false;
+    if (this.initialized && this.hasResources()) {
+      this.resize();
+      return true;
+    }
 
     try {
       for (const objectId of VOLUME_OBJECT_IDS) {
         this.initializeTarget(this.targets[objectId]);
       }
       this.initialized = this.hasResources();
-    } catch {
+    } catch (error) {
+      reportVolumeFailureOnce("initialization failed", error);
       this.initialized = false;
       this.releaseResources();
       this.setReady(false);
@@ -434,7 +473,8 @@ export class TrainingGpuVolumeSubsystem {
       }
       this.setReady(true);
       return true;
-    } catch {
+    } catch (error) {
+      reportVolumeFailureOnce("render failed", error);
       this.setReady(false);
       this.clear();
       return false;
@@ -475,7 +515,7 @@ export class TrainingGpuVolumeSubsystem {
     const target: TrainingGpuVolumeTarget = {
       objectId,
       canvas,
-      gl: canvas.getContext("webgl2", TRAINING_GPU_CONTEXT_ATTRIBUTES),
+      gl: getWebGl2Context(canvas),
       contextLost: false,
       viewport: null,
       resources: null,
@@ -698,10 +738,7 @@ export class TrainingGpuVolumeSubsystem {
   }
 
   private restoreTarget(target: TrainingGpuVolumeTarget) {
-    target.gl = target.canvas.getContext(
-      "webgl2",
-      TRAINING_GPU_CONTEXT_ATTRIBUTES,
-    );
+    target.gl = getWebGl2Context(target.canvas);
     target.contextLost = target.gl === null;
     if (!target.gl) {
       this.setReady(false);
@@ -712,7 +749,11 @@ export class TrainingGpuVolumeSubsystem {
       this.initializeTarget(target);
       this.initialized = this.hasResources();
       this.options.onContextRestored();
-    } catch {
+    } catch (error) {
+      reportVolumeFailureOnce(
+        `context restoration failed for ${target.objectId}`,
+        error,
+      );
       target.resources = null;
       this.initialized = false;
       this.setReady(false);

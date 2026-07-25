@@ -112,6 +112,18 @@ export function TrainingGpuCanvas({
       return;
     }
 
+    const mountedCanvases = {
+      stack,
+      surfaceCanvas,
+      sweepCanvas,
+      farParticlesCanvas,
+      midParticlesCanvas,
+      nearParticlesCanvas,
+      leftCarVolumeCanvas,
+      backRightCarVolumeCanvas,
+      frontRightCarVolumeCanvas,
+      ballVolumeCanvas,
+    };
     let cancelled = false;
     let resizeObserver: ResizeObserver | null = null;
     onRadarReadyChange(false);
@@ -119,6 +131,19 @@ export function TrainingGpuCanvas({
     onVolumeScansReadyChange(false);
 
     async function initializeRenderer() {
+      const {
+        stack,
+        surfaceCanvas,
+        sweepCanvas,
+        farParticlesCanvas,
+        midParticlesCanvas,
+        nearParticlesCanvas,
+        leftCarVolumeCanvas,
+        backRightCarVolumeCanvas,
+        frontRightCarVolumeCanvas,
+        ballVolumeCanvas,
+      } = mountedCanvases;
+
       try {
         let fieldMaskPixels: Uint8Array | null = null;
         let terrainImage: HTMLImageElement | null = null;
