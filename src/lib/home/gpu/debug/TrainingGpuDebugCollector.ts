@@ -163,6 +163,7 @@ export class TrainingGpuDebugCollector {
     radar: createSubsystemState(),
     particles: createSubsystemState(),
     volume: createSubsystemState(),
+    tactical: createSubsystemState(),
   };
   private global = { ...INITIAL_GLOBAL };
   private assets = { ...INITIAL_ASSETS };
@@ -289,6 +290,7 @@ export class TrainingGpuDebugCollector {
     if (kind === "manifest") this.assets.manifestsInError += 1;
     else this.assets.assetsInError += 1;
     this.subsystems.volume.lastError = errorMessage(error);
+    this.subsystems.tactical.lastError = errorMessage(error);
   }
 
   setLongTasksAvailable(available: boolean) {
@@ -345,10 +347,15 @@ export class TrainingGpuDebugCollector {
     ) as TrainingGpuDebugSnapshot["subsystems"];
 
     const resources = (
-      Object.values(subsystemSnapshots) as TrainingGpuDebugSubsystemSnapshot[]
+      Object.entries(subsystemSnapshots) as [
+        TrainingGpuDebugSubsystemName,
+        TrainingGpuDebugSubsystemSnapshot,
+      ][]
     ).reduce<TrainingGpuDebugResourceCounts>(
-      (total, subsystem) => ({
-        contexts: total.contexts + subsystem.resources.contexts,
+      (total, [name, subsystem]) => ({
+        contexts:
+          total.contexts +
+          (name === "tactical" ? 0 : subsystem.resources.contexts),
         programs: total.programs + subsystem.resources.programs,
         buffers: total.buffers + subsystem.resources.buffers,
         vertexArrays:

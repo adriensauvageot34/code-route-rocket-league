@@ -26,6 +26,7 @@ type TrainingGpuCanvasProps = {
   onParticlesReadyChange: (ready: boolean) => void;
   onRadarReadyChange: (ready: boolean) => void;
   onVolumeScansReadyChange: (ready: boolean) => void;
+  onTacticalReadyChange: (ready: boolean) => void;
   radarClock: TrainingRadarClock;
   running: boolean;
   volumeAssets: Partial<
@@ -65,6 +66,7 @@ export function TrainingGpuCanvas({
   onParticlesReadyChange,
   onRadarReadyChange,
   onVolumeScansReadyChange,
+  onTacticalReadyChange,
   radarClock,
   running,
   volumeAssets,
@@ -132,6 +134,7 @@ export function TrainingGpuCanvas({
     onRadarReadyChange(false);
     onParticlesReadyChange(false);
     onVolumeScansReadyChange(false);
+    onTacticalReadyChange(false);
 
     async function initializeRenderer() {
       const {
@@ -192,6 +195,7 @@ export function TrainingGpuCanvas({
             onParticlesReadyChange,
             onRadarReadyChange,
             onVolumeScansReadyChange,
+            onTacticalReadyChange,
             terrainImage,
           },
         );
@@ -251,6 +255,7 @@ export function TrainingGpuCanvas({
           onRadarReadyChange(false);
           onParticlesReadyChange(false);
           onVolumeScansReadyChange(false);
+          onTacticalReadyChange(false);
           return;
         }
 
@@ -266,6 +271,7 @@ export function TrainingGpuCanvas({
           onRadarReadyChange(false);
           onParticlesReadyChange(false);
           onVolumeScansReadyChange(false);
+          onTacticalReadyChange(false);
         }
       }
     }
@@ -280,6 +286,7 @@ export function TrainingGpuCanvas({
       onRadarReadyChange(false);
       onParticlesReadyChange(false);
       onVolumeScansReadyChange(false);
+      onTacticalReadyChange(false);
     };
   }, [
     backRightCarVolumeCanvasRef,
@@ -290,6 +297,7 @@ export function TrainingGpuCanvas({
     onParticlesReadyChange,
     onRadarReadyChange,
     onVolumeScansReadyChange,
+    onTacticalReadyChange,
     radarClock,
   ]);
 

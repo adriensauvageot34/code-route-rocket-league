@@ -35,6 +35,9 @@ const expectedFiles = [
   "src/lib/home/gpu/TrainingGpuObjectAssetLoader.ts",
   "src/lib/home/gpu/debug/TrainingGpuDebugCollector.ts",
   "src/lib/home/gpu/debug/trainingGpuDebugTypes.ts",
+  "src/lib/home/gpu/trainingGpuTacticalShaders.ts",
+  "src/lib/home/gpu/trainingGpuTacticalTiming.ts",
+  "src/lib/home/gpu/trainingGpuTacticalUtils.ts",
   "src/lib/home/gpu/trainingGpuVolumeUtils.ts",
   "src/hooks/useParallaxController.ts",
   "src/hooks/useTrainingRendererDebug.ts",
@@ -97,6 +100,8 @@ const trainingGpuRenderer = files["src/lib/home/gpu/TrainingGpuRenderer.ts"];
 const trainingGpuObjectAssetLoader = files["src/lib/home/gpu/TrainingGpuObjectAssetLoader.ts"];
 const trainingGpuDebugCollector = files["src/lib/home/gpu/debug/TrainingGpuDebugCollector.ts"];
 const trainingGpuDebugTypes = files["src/lib/home/gpu/debug/trainingGpuDebugTypes.ts"];
+const trainingGpuTacticalTiming = files["src/lib/home/gpu/trainingGpuTacticalTiming.ts"];
+const trainingGpuTacticalUtils = files["src/lib/home/gpu/trainingGpuTacticalUtils.ts"];
 const trainingRendererDebugHook = files["src/hooks/useTrainingRendererDebug.ts"];
 const trainingRendererModeHook = files["src/hooks/useTrainingRendererMode.ts"];
 const trainingGpuVolumeUtils = files["src/lib/home/gpu/trainingGpuVolumeUtils.ts"];
@@ -147,16 +152,25 @@ assert(!modePreview.includes("ModeIllustration"), "Mode detail cards must not co
 
 assert(trainingGpuCanvas.includes("const mountedCanvases = {") && trainingGpuCanvas.includes("} = mountedCanvases;"), "GPU canvas refs must be captured as mounted non-null nodes before asynchronous initialization.");
 assert(trainingGpuRenderer.includes("function getWebGl2Context") && trainingGpuVolumeUtils.includes("function getWebGl2Context"), "All GPU subsystems must retain an explicitly typed WebGL2 context boundary.");
-assert(trainingGpuVolumeUtils.includes("if (this.initialized && this.hasResources())") && trainingGpuVolumeUtils.includes("this.resize();"), "Volume initialization must be idempotent and must not recreate textures after assets are installed.");
+assert(trainingGpuVolumeUtils.includes("if (assets === this.assets) return") && trainingGpuVolumeUtils.includes("this.initializeVolumeSubsystem()") && trainingGpuVolumeUtils.includes("this.initializeTacticalSubsystem()"), "Repeated object asset installation must be idempotent without recreating volume or tactical textures.");
 assert(trainingGpuVolumeUtils.includes('reportVolumeFailureOnce("initialization failed"') && trainingGpuVolumeUtils.includes('reportVolumeFailureOnce("render failed"') && trainingGpuVolumeUtils.includes('process.env.NODE_ENV === "production"'), "Volume failures must expose one development-only diagnostic without production noise.");
-assert(!trainingGpuVolumeUtils.includes("requestAnimationFrame") && !trainingGpuVolumeUtils.includes("setTimeout") && !trainingGpuVolumeUtils.includes("setInterval"), "Object volume scans must stay on the renderer MasterClock without their own loop or timers.");
-assert(trainingGpuVolumeUtils.includes("target.contextLost = true") && trainingGpuVolumeUtils.includes("this.setReady(false)") && trainingGpuVolumeUtils.includes("this.options.onContextRestored()"), "A lost volume context must restore the global DOM fallback until a restored frame is rendered.");
-assert(trainingGpuVolumeUtils.includes("cssWidth <= 0") && trainingGpuVolumeUtils.includes("target.viewport = null") && trainingGpuVolumeUtils.includes("if (!this.hasViewports()) this.setReady(false)"), "Zero-sized object canvases must never be reported ready.");
-assert(trainingGpuVolumeUtils.includes('removeEventListener(\n        "webglcontextlost"') && trainingGpuVolumeUtils.includes("this.releaseResources();"), "Volume teardown must release resources and context listeners.");
-assert(trainingGpuVolumeUtils.includes("finally {\n    gl.deleteShader(vertexShader);") && trainingGpuVolumeUtils.includes("gl.deleteTexture(texture);") && trainingGpuVolumeUtils.includes("gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);"), "Failed shader and texture creation must release partial GPU resources and restore upload state.");
+assert(!trainingGpuVolumeUtils.includes("requestAnimationFrame") && !trainingGpuVolumeUtils.includes("setTimeout") && !trainingGpuVolumeUtils.includes("setInterval"), "Object effects must stay on the renderer MasterClock without their own loop or timers.");
+assert(!trainingGpuTacticalTiming.includes("requestAnimationFrame") && !trainingGpuTacticalTiming.includes("setTimeout") && !trainingGpuTacticalTiming.includes("setInterval") && trainingGpuTacticalTiming.includes("frameState.passMode") && trainingGpuTacticalTiming.includes("frameState.elapsedMs") && trainingGpuTacticalTiming.includes("target.tacticalDelayMs"), "GPU tactical timing must be an absolute MasterClock snapshot without timers.");
+assert(trainingGpuTacticalTiming.includes('"hidden"') && trainingGpuTacticalTiming.includes('"contact"') && trainingGpuTacticalTiming.includes('"active"') && trainingGpuTacticalTiming.includes('"hold"') && trainingGpuTacticalTiming.includes('"fade"') && trainingGpuTacticalTiming.includes("getTrainingGpuTacticalSnapshot"), "Tactical snapshots must cover contact, stable activation, global hold and next-volume fade.");
+assert(trainingGpuVolumeUtils.includes("target.contextLost = true") && trainingGpuVolumeUtils.includes("this.setVolumeReady(false)") && trainingGpuVolumeUtils.includes("this.setTacticalReady(false)") && trainingGpuVolumeUtils.includes("this.options.onContextRestored()"), "A shared object context loss must restore both independent DOM fallbacks until current-time rendering succeeds.");
+assert(trainingGpuVolumeUtils.includes("cssWidth <= 0") && trainingGpuVolumeUtils.includes("target.viewport = null") && trainingGpuVolumeUtils.includes("if (!this.hasViewports())"), "Zero-sized object canvases must never be reported ready.");
+assert(trainingGpuVolumeUtils.includes('removeEventListener(\n        "webglcontextlost"') && trainingGpuVolumeUtils.includes("this.releaseVolumeResources();") && trainingGpuVolumeUtils.includes("this.releaseTacticalResources();"), "Object teardown must release volume and tactical resources plus context listeners.");
+assert(trainingGpuVolumeUtils.includes("finally {\n    gl.deleteShader(vertexShader);") && trainingGpuTacticalUtils.includes("gl.deleteTexture(texture);") && trainingGpuTacticalUtils.includes("gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);"), "Failed tactical shader and texture creation must release partial GPU resources and restore upload state.");
 assert(trainingScene.includes("const showDomVolumeScan = !useGpuRenderer || !gpuVolumeScansReady") && trainingScene.includes('data-gpu-volume-scans-ready='), "The four object volume scans must switch atomically to the DOM fallback.");
-assert(trainingGroundedActor.includes("training-grounded-actor-base") && trainingGroundedActor.includes("target.wireframeAsset.path") && trainingGroundedActor.includes("target.energyAsset.path"), "Base and tactical object layers must remain in the DOM.");
-assert(trainingScene.includes('name="fennec"') && !trainingGpuVolumeUtils.includes('"fennec"'), "The Fennec must remain outside the GPU object volume subsystem.");
+assert(trainingScene.includes("const showDomTactical = !useGpuRenderer || !gpuTacticalReady") && trainingScene.includes('data-gpu-tactical-ready=') && trainingGpuCanvas.includes("onTacticalReadyChange"), "Tactical readiness and its four-object DOM fallback must remain independent from volume readiness.");
+assert(trainingGroundedActor.includes("showDomTactical") && trainingGroundedActor.includes("target.wireframeAsset.path") && trainingGroundedActor.includes("target.glowAsset.path") && trainingGroundedActor.includes("target.energyAsset.path"), "Wireframe, glow and tactical-energy images must remain available as DOM fallbacks.");
+assert(trainingGroundedActor.includes("training-grounded-actor-base") && trainingGroundedActor.includes("training-ball-launch-energy") && css.includes('.training-radar-car-target[data-tactical-phase="contact"]::before'), "Bases, launch energy and the procedural DOM contact pulse must remain intact.");
+assert((trainingGroundedActor.match(/<canvas/g) ?? []).length === 2 && !trainingGroundedActor.includes("tacticalCanvas") && !trainingGpuCanvas.includes("tacticalCanvas"), "Tactical rendering must reuse the four mounted object canvases without adding a tactical canvas.");
+assert(!trainingGpuTacticalUtils.includes("getContext(") && !trainingGpuTacticalUtils.includes("requestAnimationFrame"), "Tactical resources must reuse existing WebGL2 contexts and the renderer RAF.");
+assert(trainingGpuTacticalUtils.includes('"left-car": ["tacticalWireframe", "tacticalGlow"]') && trainingGpuTacticalUtils.includes('"back-right-car": ["tacticalWireframe", "tacticalGlow"]') && trainingGpuTacticalUtils.includes('"front-right-car": ["tacticalWireframe", "tacticalGlow"]') && trainingGpuTacticalUtils.includes('ball: ["tacticalEnergy"]'), "Exactly six car tactical textures and one ball tactical texture must be installed.");
+assert(trainingGpuTacticalUtils.includes('fitMode = registration.kind === "ball" ? "cover" : "contain"') && trainingGpuTacticalUtils.includes("getTrainingGpuObjectLocalQuad(asset.entry"), "Every tactical role must derive its local quad independently from its validated manifest entry.");
+assert(trainingRadarTargets.includes("contactDurationMs: 360") && trainingRadarTargets.includes("tacticalHoldDurationMs: 1800") && trainingRadarTargets.includes("fadeDurationMs: 800"), "Central tactical timings must remain unchanged.");
+assert(trainingScene.includes('name="fennec"') && !trainingGpuVolumeUtils.includes('"fennec"') && !trainingGpuTacticalUtils.includes('"fennec"'), "The Fennec must remain outside the GPU object effects subsystem.");
 
 assert(
   trainingRendererDebugHook.includes('TRAINING_RENDERER_DEBUG_PARAM = "debugRenderer"') &&
@@ -170,6 +184,13 @@ assert(
     trainingGpuDebugPanel.includes("window.clearInterval(panelTimerId)"),
   "The React diagnostics panel must poll at four hertz and clean up its timer.",
 );
+assert(
+  trainingGpuDebugTypes.includes('| "tactical"') &&
+    trainingGpuDebugCollector.includes("tactical: createSubsystemState()") &&
+    trainingGpuDebugPanel.includes('"tactical"'),
+  "Local renderer diagnostics must expose tactical readiness, CPU, resources, errors and shared context events.",
+);
+
 assert(
   trainingGpuDebugCollector.includes("new Float64Array(capacity)") &&
     trainingGpuDebugCollector.includes("FRAME_SAMPLE_CAPACITY = 240") &&
@@ -222,6 +243,7 @@ assert(
   trainingGpuRenderer.includes('recordSubsystemCpu(\n        "radar"') &&
     trainingGpuRenderer.includes('recordSubsystemCpu(\n        "particles"') &&
     trainingGpuRenderer.includes('recordSubsystemCpu(\n      "volume"') &&
+    trainingGpuRenderer.includes('recordSubsystemCpu(\n      "tactical"') &&
     !trainingGpuRenderer.includes("TrainingGpuDebugPanel"),
   "The renderer must report each GPU subsystem without importing React presentation.",
 );
@@ -241,7 +263,8 @@ assert(
   trainingRendererModeHook.includes('useState<TrainingRendererMode>("dom")') &&
     trainingScene.includes("const showDomRadar = !useGpuRenderer || !gpuRadarReady") &&
     trainingScene.includes("const showDomParticles = !useGpuRenderer || !gpuParticlesReady") &&
-    trainingScene.includes("const showDomVolumeScan = !useGpuRenderer || !gpuVolumeScansReady"),
+    trainingScene.includes("const showDomVolumeScan = !useGpuRenderer || !gpuVolumeScansReady") &&
+    trainingScene.includes("const showDomTactical = !useGpuRenderer || !gpuTacticalReady"),
   "DOM mode and every existing DOM fallback must remain the default.",
 );
 assert(

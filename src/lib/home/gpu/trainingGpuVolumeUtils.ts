@@ -26,6 +26,15 @@ import type {
 import type { TrainingGpuViewport } from "@/lib/home/gpu/trainingGpuTypes";
 import type { TrainingGpuDebugCollector } from "@/lib/home/gpu/debug/TrainingGpuDebugCollector";
 import type { TrainingGpuVolumeScanState } from "@/lib/home/gpu/trainingGpuVolumeScanTiming";
+import type { TrainingGpuTacticalSnapshot } from "@/lib/home/gpu/trainingGpuTacticalTiming";
+import {
+  createTrainingGpuTacticalResources,
+  destroyTrainingGpuTacticalResources,
+  getTrainingGpuTacticalTextureBytes,
+  getTrainingGpuTacticalTextureCount,
+  renderTrainingGpuTacticalTarget,
+  type TrainingGpuTacticalResources,
+} from "@/lib/home/gpu/trainingGpuTacticalUtils";
 
 export type TrainingGpuVolumeCanvases = Record<
   TrainingGpuPreparedObjectId,
@@ -63,13 +72,15 @@ export type TrainingGpuVolumeTarget = {
   contextLost: boolean;
   viewport: TrainingGpuViewport | null;
   resources: TrainingGpuVolumeResources | null;
+  tacticalResources: TrainingGpuTacticalResources | null;
   onContextLost: (event: Event) => void;
   onContextRestored: () => void;
 };
 
 type TrainingGpuVolumeSubsystemOptions = {
   debugCollector: TrainingGpuDebugCollector | null;
-  onReadyChange: (ready: boolean) => void;
+  onVolumeReadyChange: (ready: boolean) => void;
+  onTacticalReadyChange: (ready: boolean) => void;
   onContextRestored: () => void;
 };
 
@@ -391,8 +402,10 @@ export class TrainingGpuVolumeSubsystem {
     Record<TrainingGpuPreparedObjectId, TrainingGpuDecodedObjectAssetSet>
   > | null = null;
 
-  private initialized = false;
-  private ready = false;
+  private volumeInitialized = false;
+  private volumeReady = false;
+  private tacticalInitialized = false;
+  private tacticalReady = false;
   private readonly targets: Record<
     TrainingGpuPreparedObjectId,
     TrainingGpuVolumeTarget
@@ -419,12 +432,20 @@ export class TrainingGpuVolumeSubsystem {
     this.updateDebugState();
   }
 
-  isInitialized() {
-    return this.initialized;
+  isVolumeInitialized() {
+    return this.volumeInitialized;
   }
 
-  isReady() {
-    return this.ready;
+  isVolumeReady() {
+    return this.volumeReady;
+  }
+
+  isTacticalInitialized() {
+    return this.tacticalInitialized;
+  }
+
+  isTacticalReady() {
+    return this.tacticalReady;
   }
 
   setAssets(
@@ -433,10 +454,13 @@ export class TrainingGpuVolumeSubsystem {
     > | null,
   ) {
     if (assets === this.assets) return;
-    this.releaseResources();
+    this.releaseVolumeResources();
+    this.releaseTacticalResources();
     this.assets = assets;
-    this.initialized = false;
-    this.setReady(false);
+    this.volumeInitialized = false;
+    this.tacticalInitialized = false;
+    this.setVolumeReady(false);
+    this.setTacticalReady(false);
     this.clear();
     if (assets) this.initialize();
     this.updateDebugState();
@@ -444,53 +468,117 @@ export class TrainingGpuVolumeSubsystem {
 
   initialize() {
     if (!this.assets) return false;
-    if (this.initialized && this.hasResources()) {
-      this.resize();
-      return true;
-    }
+    this.initializeVolumeSubsystem();
+    this.initializeTacticalSubsystem();
+    this.resize();
+    return this.volumeInitialized || this.tacticalInitialized;
+  }
+
+  private initializeVolumeSubsystem() {
+    if (this.volumeInitialized && this.hasVolumeResources()) return true;
 
     try {
       for (const objectId of VOLUME_OBJECT_IDS) {
-        this.initializeTarget(this.targets[objectId]);
+        this.initializeVolumeTarget(this.targets[objectId]);
       }
-      this.initialized = this.hasResources();
+      this.volumeInitialized = this.hasVolumeResources();
     } catch (error) {
       reportVolumeFailureOnce("initialization failed", error);
       this.options.debugCollector?.recordSubsystemError("volume", error);
-      this.initialized = false;
-      this.releaseResources();
-      this.setReady(false);
+      this.volumeInitialized = false;
+      this.releaseVolumeResources();
+      this.setVolumeReady(false);
     }
     this.updateDebugState();
-    return this.initialized;
+    return this.volumeInitialized;
+  }
+
+  private initializeTacticalSubsystem() {
+    if (this.tacticalInitialized && this.hasTacticalResources()) return true;
+
+    try {
+      for (const objectId of VOLUME_OBJECT_IDS) {
+        this.initializeTacticalTarget(this.targets[objectId]);
+      }
+      this.tacticalInitialized = this.hasTacticalResources();
+    } catch (error) {
+      reportVolumeFailureOnce("tactical initialization failed", error);
+      this.options.debugCollector?.recordSubsystemError("tactical", error);
+      this.tacticalInitialized = false;
+      this.releaseTacticalResources();
+      this.setTacticalReady(false);
+    }
+    this.updateDebugState();
+    return this.tacticalInitialized;
   }
 
   resize() {
     for (const target of Object.values(this.targets)) {
       this.resizeTarget(target);
     }
-    if (!this.hasViewports()) this.setReady(false);
+    if (!this.hasViewports()) {
+      this.setVolumeReady(false);
+      this.setTacticalReady(false);
+    }
     this.updateDebugState();
   }
 
-  render(snapshot: TrainingGpuVolumeSnapshot, running: boolean) {
-    if (!this.initialized || !this.hasResources() || !this.hasViewports()) {
-      this.setReady(false);
-      this.clear();
+  beginFrame() {
+    this.clear();
+  }
+
+  renderVolume(snapshot: TrainingGpuVolumeSnapshot, running: boolean) {
+    if (
+      !this.volumeInitialized ||
+      !this.hasVolumeResources() ||
+      !this.hasViewports()
+    ) {
+      this.setVolumeReady(false);
       return false;
     }
 
     try {
       for (const objectId of VOLUME_OBJECT_IDS) {
-        this.renderTarget(this.targets[objectId], snapshot[objectId], running);
+        this.renderVolumeTarget(
+          this.targets[objectId],
+          snapshot[objectId],
+          running,
+        );
       }
-      this.setReady(true);
+      this.setVolumeReady(true);
       return true;
     } catch (error) {
       reportVolumeFailureOnce("render failed", error);
       this.options.debugCollector?.recordSubsystemError("volume", error);
-      this.setReady(false);
-      this.clear();
+      this.setVolumeReady(false);
+      return false;
+    }
+  }
+
+  renderTactical(snapshot: TrainingGpuTacticalSnapshot, running: boolean) {
+    if (
+      !this.tacticalInitialized ||
+      !this.hasTacticalResources() ||
+      !this.hasViewports()
+    ) {
+      this.setTacticalReady(false);
+      return false;
+    }
+
+    try {
+      for (const objectId of VOLUME_OBJECT_IDS) {
+        this.renderTacticalTarget(
+          this.targets[objectId],
+          snapshot[objectId],
+          running,
+        );
+      }
+      this.setTacticalReady(true);
+      return true;
+    } catch (error) {
+      reportVolumeFailureOnce("tactical render failed", error);
+      this.options.debugCollector?.recordSubsystemError("tactical", error);
+      this.setTacticalReady(false);
       return false;
     }
   }
@@ -504,8 +592,10 @@ export class TrainingGpuVolumeSubsystem {
   }
 
   destroy() {
-    this.setReady(false);
-    this.releaseResources();
+    this.setVolumeReady(false);
+    this.setTacticalReady(false);
+    this.releaseTacticalResources();
+    this.releaseVolumeResources();
     for (const target of Object.values(this.targets)) {
       target.canvas.removeEventListener(
         "webglcontextlost",
@@ -519,7 +609,8 @@ export class TrainingGpuVolumeSubsystem {
       target.viewport = null;
     }
     this.assets = null;
-    this.initialized = false;
+    this.volumeInitialized = false;
+    this.tacticalInitialized = false;
     this.updateDebugState();
   }
 
@@ -534,6 +625,7 @@ export class TrainingGpuVolumeSubsystem {
       contextLost: false,
       viewport: null,
       resources: null,
+      tacticalResources: null,
       onContextLost: (_event: Event) => undefined,
       onContextRestored: () => undefined,
     };
@@ -543,7 +635,7 @@ export class TrainingGpuVolumeSubsystem {
     return target;
   }
 
-  private initializeTarget(target: TrainingGpuVolumeTarget) {
+  private initializeVolumeTarget(target: TrainingGpuVolumeTarget) {
     const assets = this.assets?.[target.objectId];
     if (!target.gl || target.contextLost || !assets) {
       throw new Error(`Training volume target unavailable: ${target.objectId}.`);
@@ -554,6 +646,29 @@ export class TrainingGpuVolumeSubsystem {
 
     destroyVolumeResources(target.gl, target.resources);
     target.resources = createVolumeResources(
+      target.gl,
+      assets,
+      this.options.debugCollector,
+    );
+    this.resizeTarget(target);
+  }
+
+  private initializeTacticalTarget(target: TrainingGpuVolumeTarget) {
+    const assets = this.assets?.[target.objectId];
+    if (!target.gl || target.contextLost || !assets || !target.resources) {
+      throw new Error(
+        `Training tactical target unavailable: ${target.objectId}.`,
+      );
+    }
+    if (assets.objectId !== target.objectId) {
+      throw new Error(`Training tactical asset mismatch: ${target.objectId}.`);
+    }
+
+    destroyTrainingGpuTacticalResources(
+      target.gl,
+      target.tacticalResources,
+    );
+    target.tacticalResources = createTrainingGpuTacticalResources(
       target.gl,
       assets,
       this.options.debugCollector,
@@ -602,7 +717,7 @@ export class TrainingGpuVolumeSubsystem {
     target.gl?.viewport(0, 0, pixelWidth, pixelHeight);
   }
 
-  private renderTarget(
+  private renderVolumeTarget(
     target: TrainingGpuVolumeTarget,
     state: TrainingGpuVolumeScanState,
     running: boolean,
@@ -614,7 +729,6 @@ export class TrainingGpuVolumeSubsystem {
     }
 
     gl.viewport(0, 0, viewport.pixelWidth, viewport.pixelHeight);
-    gl.clear(gl.COLOR_BUFFER_BIT);
     if (!running) return;
 
     gl.useProgram(resources.program);
@@ -623,6 +737,38 @@ export class TrainingGpuVolumeSubsystem {
     this.renderLayer(target, assetSet, state, "contour");
     gl.bindVertexArray(null);
     gl.useProgram(null);
+  }
+
+  private renderTacticalTarget(
+    target: TrainingGpuVolumeTarget,
+    state: TrainingGpuTacticalSnapshot[TrainingGpuPreparedObjectId],
+    running: boolean,
+  ) {
+    const { gl, resources, tacticalResources, viewport } = target;
+    const assetSet = this.assets?.[target.objectId];
+    if (
+      !gl ||
+      !resources ||
+      !tacticalResources ||
+      !viewport ||
+      !assetSet ||
+      target.contextLost
+    ) {
+      throw new Error(
+        `Training tactical target is not renderable: ${target.objectId}.`,
+      );
+    }
+
+    gl.viewport(0, 0, viewport.pixelWidth, viewport.pixelHeight);
+    if (!running) return;
+    renderTrainingGpuTacticalTarget(
+      gl,
+      viewport,
+      resources.vertexArray,
+      tacticalResources,
+      assetSet,
+      state,
+    );
   }
 
   private renderLayer(
@@ -719,10 +865,20 @@ export class TrainingGpuVolumeSubsystem {
     gl.drawArrays(gl.TRIANGLES, 0, 6);
   }
 
-  private hasResources() {
+  private hasVolumeResources() {
     return Object.values(this.targets).every(
       (target) =>
         target.gl !== null && !target.contextLost && target.resources !== null,
+    );
+  }
+
+  private hasTacticalResources() {
+    return Object.values(this.targets).every(
+      (target) =>
+        target.gl !== null &&
+        !target.contextLost &&
+        target.resources !== null &&
+        target.tacticalResources !== null,
     );
   }
 
@@ -732,14 +888,21 @@ export class TrainingGpuVolumeSubsystem {
     );
   }
 
-  private setReady(ready: boolean) {
-    if (this.ready === ready) return;
-    this.ready = ready;
-    this.options.onReadyChange(ready);
+  private setVolumeReady(ready: boolean) {
+    if (this.volumeReady === ready) return;
+    this.volumeReady = ready;
+    this.options.onVolumeReadyChange(ready);
     this.updateDebugState();
   }
 
-  private releaseResources() {
+  private setTacticalReady(ready: boolean) {
+    if (this.tacticalReady === ready) return;
+    this.tacticalReady = ready;
+    this.options.onTacticalReadyChange(ready);
+    this.updateDebugState();
+  }
+
+  private releaseVolumeResources() {
     for (const target of Object.values(this.targets)) {
       if (target.gl && !target.contextLost) {
         destroyVolumeResources(target.gl, target.resources);
@@ -749,13 +912,30 @@ export class TrainingGpuVolumeSubsystem {
     this.updateDebugState();
   }
 
+  private releaseTacticalResources() {
+    for (const target of Object.values(this.targets)) {
+      if (target.gl && !target.contextLost) {
+        destroyTrainingGpuTacticalResources(
+          target.gl,
+          target.tacticalResources,
+        );
+      }
+      target.tacticalResources = null;
+    }
+    this.updateDebugState();
+  }
+
   private loseTarget(target: TrainingGpuVolumeTarget, event: Event) {
     event.preventDefault();
     target.contextLost = true;
     target.resources = null;
-    this.initialized = false;
+    target.tacticalResources = null;
+    this.volumeInitialized = false;
+    this.tacticalInitialized = false;
     this.options.debugCollector?.recordContextLost("volume");
-    this.setReady(false);
+    this.options.debugCollector?.recordContextLost("tactical");
+    this.setVolumeReady(false);
+    this.setTacticalReady(false);
     this.clear();
     this.updateDebugState();
   }
@@ -764,27 +944,43 @@ export class TrainingGpuVolumeSubsystem {
     target.gl = getWebGl2Context(target.canvas);
     target.contextLost = target.gl === null;
     if (!target.gl) {
-      this.setReady(false);
+      this.setVolumeReady(false);
+      this.setTacticalReady(false);
       return;
     }
 
     try {
-      this.initializeTarget(target);
-      this.initialized = this.hasResources();
+      this.initializeVolumeTarget(target);
+      this.volumeInitialized = this.hasVolumeResources();
       this.options.debugCollector?.recordContextRestored("volume");
-      this.updateDebugState();
-      this.options.onContextRestored();
     } catch (error) {
       reportVolumeFailureOnce(
-        `context restoration failed for ${target.objectId}`,
+        `volume context restoration failed for ${target.objectId}`,
         error,
       );
       this.options.debugCollector?.recordSubsystemError("volume", error);
       target.resources = null;
-      this.initialized = false;
-      this.setReady(false);
-      this.updateDebugState();
+      this.volumeInitialized = false;
+      this.setVolumeReady(false);
     }
+
+    try {
+      this.initializeTacticalTarget(target);
+      this.tacticalInitialized = this.hasTacticalResources();
+      this.options.debugCollector?.recordContextRestored("tactical");
+    } catch (error) {
+      reportVolumeFailureOnce(
+        `tactical context restoration failed for ${target.objectId}`,
+        error,
+      );
+      this.options.debugCollector?.recordSubsystemError("tactical", error);
+      target.tacticalResources = null;
+      this.tacticalInitialized = false;
+      this.setTacticalReady(false);
+    }
+
+    this.updateDebugState();
+    this.options.onContextRestored();
   }
 
   private updateDebugState() {
@@ -795,8 +991,11 @@ export class TrainingGpuVolumeSubsystem {
     const activeContexts = targets.filter(
       (target) => target.gl !== null && !target.contextLost,
     );
-    const resourceTargets = targets.filter(
+    const volumeResourceTargets = targets.filter(
       (target) => target.resources !== null,
+    );
+    const tacticalResourceTargets = targets.filter(
+      (target) => target.tacticalResources !== null,
     );
     const contextState = targets.some(
       (target) => target.contextLost && target.gl !== null,
@@ -805,32 +1004,40 @@ export class TrainingGpuVolumeSubsystem {
       : activeContexts.length > 0
         ? "available"
         : "unavailable";
-    let estimatedTextureBytes = 0;
-    for (const target of resourceTargets) {
+    let volumeTextureBytes = 0;
+    for (const target of volumeResourceTargets) {
       const assetSet = this.assets?.[target.objectId];
       for (const role of ["volumeSurface", "volumeContour"] as const) {
         const asset = assetSet?.assets[role];
         if (asset) {
-          estimatedTextureBytes +=
+          volumeTextureBytes +=
             asset.entry.outputSize.width * asset.entry.outputSize.height * 4;
         }
       }
     }
+    const tacticalTextureBytes = tacticalResourceTargets.reduce(
+      (total, target) =>
+        total +
+        getTrainingGpuTacticalTextureBytes(
+          this.assets?.[target.objectId],
+        ),
+      0,
+    );
 
     debugCollector.setSubsystemState("volume", {
-      initialized: this.initialized,
-      ready: this.ready,
+      initialized: this.volumeInitialized,
+      ready: this.volumeReady,
       contextState,
     });
     debugCollector.setSubsystemResources(
       "volume",
       {
         contexts: activeContexts.length,
-        programs: resourceTargets.length,
-        buffers: resourceTargets.length,
-        vertexArrays: resourceTargets.length,
-        textures: resourceTargets.length * 2,
-        estimatedTextureBytes,
+        programs: volumeResourceTargets.length,
+        buffers: volumeResourceTargets.length,
+        vertexArrays: volumeResourceTargets.length,
+        textures: volumeResourceTargets.length * 2,
+        estimatedTextureBytes: volumeTextureBytes,
       },
       targets.flatMap((target) =>
         target.viewport
@@ -838,6 +1045,42 @@ export class TrainingGpuVolumeSubsystem {
               {
                 id: `volume-${target.objectId}`,
                 subsystem: "volume" as const,
+                cssWidth: target.viewport.cssWidth,
+                cssHeight: target.viewport.cssHeight,
+                pixelWidth: target.viewport.pixelWidth,
+                pixelHeight: target.viewport.pixelHeight,
+              },
+            ]
+          : [],
+      ),
+    );
+
+    debugCollector.setSubsystemState("tactical", {
+      initialized: this.tacticalInitialized,
+      ready: this.tacticalReady,
+      contextState,
+    });
+    debugCollector.setSubsystemResources(
+      "tactical",
+      {
+        contexts: activeContexts.length,
+        programs: tacticalResourceTargets.length,
+        buffers: 0,
+        vertexArrays: 0,
+        textures: tacticalResourceTargets.reduce(
+          (total, target) =>
+            total +
+            getTrainingGpuTacticalTextureCount(target.tacticalResources),
+          0,
+        ),
+        estimatedTextureBytes: tacticalTextureBytes,
+      },
+      targets.flatMap((target) =>
+        target.viewport
+          ? [
+              {
+                id: `tactical-${target.objectId}`,
+                subsystem: "tactical" as const,
                 cssWidth: target.viewport.cssWidth,
                 cssHeight: target.viewport.cssHeight,
                 pixelWidth: target.viewport.pixelWidth,
