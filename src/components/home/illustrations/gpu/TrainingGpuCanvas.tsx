@@ -23,6 +23,7 @@ import { homeIllustrationAssets } from "@/lib/home/homeIllustrationAssets";
 type TrainingGpuCanvasProps = {
   active: boolean;
   debugCollector: TrainingGpuDebugCollector | null;
+  onBasesReadyChange: (ready: boolean) => void;
   onParticlesReadyChange: (ready: boolean) => void;
   onRadarReadyChange: (ready: boolean) => void;
   onVolumeScansReadyChange: (ready: boolean) => void;
@@ -63,6 +64,7 @@ function createGpuFrameState(
 export function TrainingGpuCanvas({
   active,
   debugCollector,
+  onBasesReadyChange,
   onParticlesReadyChange,
   onRadarReadyChange,
   onVolumeScansReadyChange,
@@ -131,6 +133,8 @@ export function TrainingGpuCanvas({
     };
     let cancelled = false;
     let resizeObserver: ResizeObserver | null = null;
+    let resizeCanvases: (() => void) | null = null;
+    onBasesReadyChange(false);
     onRadarReadyChange(false);
     onParticlesReadyChange(false);
     onVolumeScansReadyChange(false);
@@ -192,6 +196,7 @@ export function TrainingGpuCanvas({
               ),
             debugCollector,
             fieldMaskPixels,
+            onBasesReadyChange,
             onParticlesReadyChange,
             onRadarReadyChange,
             onVolumeScansReadyChange,
@@ -202,7 +207,7 @@ export function TrainingGpuCanvas({
         rendererRef.current = renderer;
         renderer.setVolumeAssets(volumeAssetsRef.current);
 
-        const resizeCanvases = () => {
+        const handleResize = () => {
           const { width: cssWidth, height: cssHeight } =
             stack.getBoundingClientRect();
 
@@ -234,14 +239,16 @@ export function TrainingGpuCanvas({
           });
           renderer.resizeVolumeTargets();
         };
+        resizeCanvases = handleResize;
 
-        resizeObserver = new ResizeObserver(resizeCanvases);
+        resizeObserver = new ResizeObserver(handleResize);
         resizeObserver.observe(stack);
         resizeObserver.observe(leftCarVolumeCanvas);
         resizeObserver.observe(backRightCarVolumeCanvas);
         resizeObserver.observe(frontRightCarVolumeCanvas);
         resizeObserver.observe(ballVolumeCanvas);
-        resizeCanvases();
+        window.addEventListener("resize", handleResize);
+        handleResize();
 
         renderer.setFrameState(
           createGpuFrameState(lifecycleRef.current, radarClock, 0),
@@ -250,8 +257,11 @@ export function TrainingGpuCanvas({
         if (!renderer.initialize()) {
           resizeObserver.disconnect();
           resizeObserver = null;
+          window.removeEventListener("resize", handleResize);
+          resizeCanvases = null;
           renderer.destroy();
           rendererRef.current = null;
+          onBasesReadyChange(false);
           onRadarReadyChange(false);
           onParticlesReadyChange(false);
           onVolumeScansReadyChange(false);
@@ -265,9 +275,14 @@ export function TrainingGpuCanvas({
       } catch {
         resizeObserver?.disconnect();
         resizeObserver = null;
+        if (resizeCanvases) {
+          window.removeEventListener("resize", resizeCanvases);
+          resizeCanvases = null;
+        }
         rendererRef.current?.destroy();
         rendererRef.current = null;
         if (!cancelled) {
+          onBasesReadyChange(false);
           onRadarReadyChange(false);
           onParticlesReadyChange(false);
           onVolumeScansReadyChange(false);
@@ -281,8 +296,13 @@ export function TrainingGpuCanvas({
     return () => {
       cancelled = true;
       resizeObserver?.disconnect();
+      if (resizeCanvases) {
+        window.removeEventListener("resize", resizeCanvases);
+        resizeCanvases = null;
+      }
       rendererRef.current?.destroy();
       rendererRef.current = null;
+      onBasesReadyChange(false);
       onRadarReadyChange(false);
       onParticlesReadyChange(false);
       onVolumeScansReadyChange(false);
@@ -294,6 +314,7 @@ export function TrainingGpuCanvas({
     debugCollector,
     frontRightCarVolumeCanvasRef,
     leftCarVolumeCanvasRef,
+    onBasesReadyChange,
     onParticlesReadyChange,
     onRadarReadyChange,
     onVolumeScansReadyChange,

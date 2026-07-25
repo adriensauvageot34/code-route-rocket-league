@@ -258,6 +258,13 @@ export function renderTrainingGpuTacticalTarget(
   const frame = { width: viewport.cssWidth, height: viewport.cssHeight };
   const fitMode = registration.kind === "ball" ? "cover" : "contain";
 
+  gl.enable(gl.BLEND);
+  gl.blendFuncSeparate(
+    gl.ONE,
+    gl.ONE_MINUS_SRC_COLOR,
+    gl.ONE,
+    gl.ONE_MINUS_SRC_ALPHA,
+  );
   gl.useProgram(resources.program);
   gl.bindVertexArray(vertexArray);
   gl.uniform2f(
@@ -292,8 +299,15 @@ export function renderTrainingGpuTacticalTarget(
     gl.drawArrays(gl.TRIANGLES, 0, 6);
   }
 
+  gl.bindTexture(gl.TEXTURE_2D, null);
   gl.bindVertexArray(null);
   gl.useProgram(null);
+  gl.blendFuncSeparate(
+    gl.ONE,
+    gl.ONE_MINUS_SRC_ALPHA,
+    gl.ONE,
+    gl.ONE_MINUS_SRC_ALPHA,
+  );
 }
 
 export function getTrainingGpuTacticalTextureCount(

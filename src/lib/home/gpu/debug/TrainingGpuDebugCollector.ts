@@ -55,6 +55,7 @@ type MutableSubsystemState = {
   lastError: string | null;
   contextLosses: number;
   contextRestorations: number;
+  staticRenders: number;
   resources: TrainingGpuDebugResourceCounts;
   canvases: TrainingGpuDebugCanvasMetrics[];
   cpuSamples: TrainingGpuDebugRingBuffer;
@@ -111,6 +112,7 @@ function createSubsystemState(): MutableSubsystemState {
     lastError: null,
     contextLosses: 0,
     contextRestorations: 0,
+    staticRenders: 0,
     resources: { ...EMPTY_RESOURCES },
     canvases: [],
     cpuSamples: new TrainingGpuDebugRingBuffer(CPU_SAMPLE_CAPACITY),
@@ -160,6 +162,7 @@ export class TrainingGpuDebugCollector {
     TrainingGpuDebugSubsystemName,
     MutableSubsystemState
   > = {
+    bases: createSubsystemState(),
     radar: createSubsystemState(),
     particles: createSubsystemState(),
     volume: createSubsystemState(),
@@ -198,6 +201,11 @@ export class TrainingGpuDebugCollector {
     const state = this.subsystems[subsystem];
     state.lastCpuMs = Math.max(0, durationMs);
     state.cpuSamples.push(state.lastCpuMs);
+  }
+
+  recordStaticRender(subsystem: TrainingGpuDebugSubsystemName) {
+    if (this.destroyed) return;
+    this.subsystems[subsystem].staticRenders += 1;
   }
 
   setSubsystemState(
@@ -289,6 +297,7 @@ export class TrainingGpuDebugCollector {
     if (this.destroyed) return;
     if (kind === "manifest") this.assets.manifestsInError += 1;
     else this.assets.assetsInError += 1;
+    this.subsystems.bases.lastError = errorMessage(error);
     this.subsystems.volume.lastError = errorMessage(error);
     this.subsystems.tactical.lastError = errorMessage(error);
   }
@@ -339,6 +348,7 @@ export class TrainingGpuDebugCollector {
             lastError: state.lastError,
             contextLosses: state.contextLosses,
             contextRestorations: state.contextRestorations,
+            staticRenders: state.staticRenders,
             resources: { ...state.resources },
             canvases: state.canvases.map((canvas) => ({ ...canvas })),
           },
@@ -355,7 +365,9 @@ export class TrainingGpuDebugCollector {
       (total, [name, subsystem]) => ({
         contexts:
           total.contexts +
-          (name === "tactical" ? 0 : subsystem.resources.contexts),
+          (name === "bases" || name === "tactical"
+            ? 0
+            : subsystem.resources.contexts),
         programs: total.programs + subsystem.resources.programs,
         buffers: total.buffers + subsystem.resources.buffers,
         vertexArrays:

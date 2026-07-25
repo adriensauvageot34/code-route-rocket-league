@@ -2,6 +2,7 @@ import type { TrainingRendererMode } from "@/lib/home/gpu/trainingGpuTypes";
 import type { TrainingRadarPassMode } from "@/lib/home/trainingRadarClock";
 
 export type TrainingGpuDebugSubsystemName =
+  | "bases"
   | "radar"
   | "particles"
   | "volume"
@@ -51,6 +52,7 @@ export type TrainingGpuDebugSubsystemSnapshot = {
   lastError: string | null;
   contextLosses: number;
   contextRestorations: number;
+  staticRenders: number;
   resources: TrainingGpuDebugResourceCounts;
   canvases: TrainingGpuDebugCanvasMetrics[];
 };

@@ -17,6 +17,7 @@ import type { TrainingRadarClock } from "@/lib/home/trainingRadarClock";
 
 const PANEL_REFRESH_MS = 250;
 const SUBSYSTEM_NAMES = [
+  "bases",
   "radar",
   "particles",
   "volume",
@@ -240,6 +241,9 @@ export function TrainingGpuDebugPanel({
               CPU {formatNumber(subsystem.lastCpuMs, 3)}/
               {formatNumber(subsystem.averageCpuMs, 3)} ms · restaurations{" "}
               {subsystem.contextRestorations}
+              {name === "bases"
+                ? ` · rendus statiques ${subsystem.staticRenders}`
+                : ""}
               {subsystem.lastError ? ` · erreur: ${subsystem.lastError}` : ""}
             </span>
           );
