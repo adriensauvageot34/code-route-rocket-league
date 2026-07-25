@@ -30,6 +30,7 @@ import {
 } from "@/lib/home/gpu/trainingGpuVolumeUtils";
 import { getTrainingGpuVolumeScanSnapshot } from "@/lib/home/gpu/trainingGpuVolumeScanTiming";
 import type { TrainingRadarPassMode } from "@/lib/home/trainingRadarClock";
+import type { TrainingGpuDebugCollector } from "@/lib/home/gpu/debug/TrainingGpuDebugCollector";
 import {
   TRAINING_RADAR_SWEEP,
   TRAINING_RADAR_TIMING,
@@ -74,6 +75,7 @@ type TrainingGpuParticleTarget = {
 
 type TrainingGpuRendererOptions = {
   createFrameState: TrainingGpuFrameStateFactory;
+  debugCollector: TrainingGpuDebugCollector | null;
   fieldMaskPixels: Uint8Array | null;
   onParticlesReadyChange: (ready: boolean) => void;
   onRadarReadyChange: (ready: boolean) => void;
@@ -142,6 +144,7 @@ export class TrainingGpuRenderer {
       near: this.createParticleTarget("near", canvases.particles.near),
     };
     this.volumeSubsystem = new TrainingGpuVolumeSubsystem(canvases.volume, {
+      debugCollector: options.debugCollector,
       onReadyChange: options.onVolumeScansReadyChange,
       onContextRestored: () => {
         this.completeFirstRender();
@@ -164,6 +167,9 @@ export class TrainingGpuRenderer {
       );
     }
     document.addEventListener("visibilitychange", this.handleVisibilityChange);
+    this.updateRadarDebugState();
+    this.updateParticleDebugState();
+    this.updateGlobalDebugState();
   }
 
   initialize() {
@@ -181,6 +187,14 @@ export class TrainingGpuRenderer {
 
   resize(viewport: TrainingGpuViewport) {
     this.viewport = viewport;
+    this.options.debugCollector?.setGlobal({
+      dpr: viewport.effectiveDpr,
+      renderScale: viewport.renderScale,
+      viewportCssWidth: viewport.cssWidth,
+      viewportCssHeight: viewport.cssHeight,
+      viewportPixelWidth: viewport.pixelWidth,
+      viewportPixelHeight: viewport.pixelHeight,
+    });
 
     for (const target of [
       ...Object.values(this.radarTargets),
@@ -202,6 +216,8 @@ export class TrainingGpuRenderer {
     } else {
       this.clear();
     }
+    this.updateRadarDebugState();
+    this.updateParticleDebugState();
   }
 
   resizeVolumeTargets() {
@@ -222,11 +238,13 @@ export class TrainingGpuRenderer {
   setFrameState(state: TrainingGpuFrameState) {
     this.frameState = state;
     if (!state.active || !state.running) this.resetParticlePasses();
+    this.updateGlobalDebugState();
     this.syncAnimationLoop();
   }
 
   start() {
     this.shouldRun = true;
+    this.updateGlobalDebugState();
     this.syncAnimationLoop();
   }
 
@@ -235,6 +253,7 @@ export class TrainingGpuRenderer {
     this.cancelAnimationFrame();
     this.resetParticlePasses();
     this.clear();
+    this.updateGlobalDebugState();
   }
 
   render(nowMs: number) {
@@ -246,6 +265,8 @@ export class TrainingGpuRenderer {
 
     const frameState = this.options.createFrameState(nowMs);
     this.frameState = frameState;
+    this.options.debugCollector?.recordFrame(nowMs);
+    this.updateGlobalDebugState();
     this.renderFrame(frameState);
   }
 
@@ -290,6 +311,9 @@ export class TrainingGpuRenderer {
     this.viewport = null;
     this.radarInitialized = false;
     this.particlesInitialized = false;
+    this.updateRadarDebugState();
+    this.updateParticleDebugState();
+    this.updateGlobalDebugState();
   }
 
   private createRadarTarget(
@@ -334,11 +358,13 @@ export class TrainingGpuRenderer {
         this.initializeRadarTarget(target);
       }
       this.radarInitialized = this.hasRadarResources();
-    } catch {
+    } catch (error) {
+      this.options.debugCollector?.recordSubsystemError("radar", error);
       this.radarInitialized = false;
       this.releaseRadarResources();
       this.setRadarReady(false);
     }
+    this.updateRadarDebugState();
   }
 
   private initializeParticleSubsystem() {
@@ -347,11 +373,13 @@ export class TrainingGpuRenderer {
         this.initializeParticleTarget(this.particleTargets[depth]);
       }
       this.particlesInitialized = this.hasParticleResources();
-    } catch {
+    } catch (error) {
+      this.options.debugCollector?.recordSubsystemError("particles", error);
       this.particlesInitialized = false;
       this.releaseParticleResources();
       this.setParticlesReady(false);
     }
+    this.updateParticleDebugState();
   }
 
   private initializeRadarTarget(target: TrainingGpuRadarTarget) {
@@ -437,12 +465,32 @@ export class TrainingGpuRenderer {
   private renderFrame(frameState: TrainingGpuFrameState) {
     if (!this.viewport) return;
 
+    const debugCollector = this.options.debugCollector;
     this.updateParticlePassHistory(frameState);
-    if (this.radarReady) this.renderRadarFrame(frameState);
-    if (this.particlesReady) this.renderParticleFrame(frameState);
+    if (this.radarReady) {
+      const startedAtMs = debugCollector ? performance.now() : 0;
+      this.renderRadarFrame(frameState);
+      debugCollector?.recordSubsystemCpu(
+        "radar",
+        performance.now() - startedAtMs,
+      );
+    }
+    if (this.particlesReady) {
+      const startedAtMs = debugCollector ? performance.now() : 0;
+      this.renderParticleFrame(frameState);
+      debugCollector?.recordSubsystemCpu(
+        "particles",
+        performance.now() - startedAtMs,
+      );
+    }
+    const volumeStartedAtMs = debugCollector ? performance.now() : 0;
     this.volumeSubsystem.render(
       getTrainingGpuVolumeScanSnapshot(frameState),
       frameState.active && frameState.running,
+    );
+    debugCollector?.recordSubsystemCpu(
+      "volume",
+      performance.now() - volumeStartedAtMs,
     );
   }
 
@@ -609,6 +657,7 @@ export class TrainingGpuRenderer {
         this.handleAnimationFrame,
       );
     }
+    this.updateGlobalDebugState();
   }
 
   private cancelAnimationFrame() {
@@ -616,6 +665,7 @@ export class TrainingGpuRenderer {
 
     window.cancelAnimationFrame(this.animationFrameId);
     this.animationFrameId = null;
+    this.updateGlobalDebugState();
   }
 
   private resetParticlePasses() {
@@ -644,12 +694,14 @@ export class TrainingGpuRenderer {
     if (this.radarReady === ready) return;
     this.radarReady = ready;
     this.options.onRadarReadyChange(ready);
+    this.updateRadarDebugState();
   }
 
   private setParticlesReady(ready: boolean) {
     if (this.particlesReady === ready) return;
     this.particlesReady = ready;
     this.options.onParticlesReadyChange(ready);
+    this.updateParticleDebugState();
   }
 
   private releaseRadarResources() {
@@ -659,6 +711,7 @@ export class TrainingGpuRenderer {
       }
       target.resources = null;
     }
+    this.updateRadarDebugState();
   }
 
   private releaseParticleResources() {
@@ -668,6 +721,7 @@ export class TrainingGpuRenderer {
       }
       target.resources = null;
     }
+    this.updateParticleDebugState();
   }
 
   private loseRadarTarget(target: TrainingGpuRadarTarget, event: Event) {
@@ -675,6 +729,7 @@ export class TrainingGpuRenderer {
     target.contextLost = true;
     target.resources = null;
     this.radarInitialized = false;
+    this.options.debugCollector?.recordContextLost("radar");
     this.setRadarReady(false);
     this.clearRadarCanvases();
     this.syncAnimationLoop();
@@ -685,6 +740,7 @@ export class TrainingGpuRenderer {
     target.contextLost = true;
     target.resources = null;
     this.particlesInitialized = false;
+    this.options.debugCollector?.recordContextLost("particles");
     this.setParticlesReady(false);
     this.clearParticleCanvases();
     this.syncAnimationLoop();
@@ -702,9 +758,12 @@ export class TrainingGpuRenderer {
     try {
       this.initializeRadarTarget(target);
       this.radarInitialized = this.hasRadarResources();
+      this.options.debugCollector?.recordContextRestored("radar");
+      this.updateRadarDebugState();
       this.completeFirstRender();
       this.syncAnimationLoop();
-    } catch {
+    } catch (error) {
+      this.options.debugCollector?.recordSubsystemError("radar", error);
       target.resources = null;
       this.radarInitialized = false;
       this.setRadarReady(false);
@@ -723,9 +782,12 @@ export class TrainingGpuRenderer {
     try {
       this.initializeParticleTarget(target);
       this.particlesInitialized = this.hasParticleResources();
+      this.options.debugCollector?.recordContextRestored("particles");
+      this.updateParticleDebugState();
       this.completeFirstRender();
       this.syncAnimationLoop();
-    } catch {
+    } catch (error) {
+      this.options.debugCollector?.recordSubsystemError("particles", error);
       target.resources = null;
       this.particlesInitialized = false;
       this.setParticlesReady(false);
@@ -750,9 +812,130 @@ export class TrainingGpuRenderer {
         this.handleAnimationFrame,
       );
     }
+    this.updateGlobalDebugState();
   };
 
+  private updateGlobalDebugState() {
+    const debugCollector = this.options.debugCollector;
+    if (!debugCollector) return;
+    const active = this.canAnimate();
+    debugCollector.setGlobal({
+      rendererActive: active,
+      rendererSuspended: !active,
+      rafActive: this.animationFrameId !== null,
+      illustrationActive: this.frameState.active,
+      radarRunning: this.frameState.running,
+      tabVisibility: document.visibilityState,
+      passMode: this.frameState.passMode,
+      passProgress: this.frameState.radarProgress,
+      passKey: this.frameState.passKey,
+      masterClockNowMs: this.frameState.nowMs,
+    });
+  }
+
+  private updateRadarDebugState() {
+    const debugCollector = this.options.debugCollector;
+    if (!debugCollector) return;
+    const targets = Object.values(this.radarTargets);
+    const activeContexts = targets.filter(
+      (target) => target.gl !== null && !target.contextLost,
+    );
+    const resourceTargets = targets.filter(
+      (target) => target.resources !== null,
+    );
+    const contextState = targets.some((target) => target.contextLost)
+      ? "lost"
+      : activeContexts.length > 0
+        ? "available"
+        : "unavailable";
+    let textureBytes = resourceTargets.length *
+      TRAINING_GPU_LOGICAL_WIDTH * TRAINING_GPU_LOGICAL_HEIGHT * 4;
+    if (this.radarTargets.surface.resources?.terrainTexture) {
+      const terrain = this.options.terrainImage;
+      textureBytes +=
+        (terrain?.naturalWidth ?? 0) * (terrain?.naturalHeight ?? 0) * 4;
+    }
+    const viewport = this.viewport;
+
+    debugCollector.setSubsystemState("radar", {
+      initialized: this.radarInitialized,
+      ready: this.radarReady,
+      contextState,
+    });
+    debugCollector.setSubsystemResources(
+      "radar",
+      {
+        contexts: activeContexts.length,
+        programs: resourceTargets.length,
+        buffers: resourceTargets.length,
+        vertexArrays: resourceTargets.length,
+        textures: resourceTargets.reduce(
+          (count, target) =>
+            count + (target.resources?.terrainTexture ? 2 : 1),
+          0,
+        ),
+        estimatedTextureBytes: textureBytes,
+      },
+      viewport
+        ? targets.map((target) => ({
+            id: `radar-${target.plane}`,
+            subsystem: "radar" as const,
+            cssWidth: viewport.cssWidth,
+            cssHeight: viewport.cssHeight,
+            pixelWidth: viewport.pixelWidth,
+            pixelHeight: viewport.pixelHeight,
+          }))
+        : [],
+    );
+  }
+
+  private updateParticleDebugState() {
+    const debugCollector = this.options.debugCollector;
+    if (!debugCollector) return;
+    const targets = Object.values(this.particleTargets);
+    const activeContexts = targets.filter(
+      (target) => target.gl !== null && !target.contextLost,
+    );
+    const resourceTargets = targets.filter(
+      (target) => target.resources !== null,
+    );
+    const contextState = targets.some((target) => target.contextLost)
+      ? "lost"
+      : activeContexts.length > 0
+        ? "available"
+        : "unavailable";
+    const viewport = this.viewport;
+
+    debugCollector.setSubsystemState("particles", {
+      initialized: this.particlesInitialized,
+      ready: this.particlesReady,
+      contextState,
+    });
+    debugCollector.setSubsystemResources(
+      "particles",
+      {
+        contexts: activeContexts.length,
+        programs: resourceTargets.length,
+        buffers: resourceTargets.length * 2,
+        vertexArrays: resourceTargets.length,
+        textures: 0,
+        estimatedTextureBytes: 0,
+      },
+      viewport
+        ? targets.map((target) => ({
+            id: `particles-${target.depth}`,
+            subsystem: "particles" as const,
+            cssWidth: viewport.cssWidth,
+            cssHeight: viewport.cssHeight,
+            pixelWidth: viewport.pixelWidth,
+            pixelHeight: viewport.pixelHeight,
+          }))
+        : [],
+    );
+  }
+
   private readonly handleVisibilityChange = () => {
+    this.updateGlobalDebugState();
     this.syncAnimationLoop();
   };
 }

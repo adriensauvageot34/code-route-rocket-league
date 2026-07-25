@@ -1,18 +1,26 @@
 "use client";
 
-import { useCallback, useRef, useState, type CSSProperties } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import { SceneGroup, SceneLayer } from "@/components/home/illustrations/SceneGroup";
 import {
   TrainingGroundedBall,
   TrainingGroundedCar,
 } from "@/components/home/illustrations/TrainingGroundedActor";
 import { TrainingGpuCanvas } from "@/components/home/illustrations/gpu/TrainingGpuCanvas";
+import { TrainingGpuDebugPanel } from "@/components/home/illustrations/gpu/TrainingGpuDebugPanel";
 import { TrainingRadarOverlay } from "@/components/home/illustrations/TrainingRadarOverlay";
 import { useTrainingRadarSequence } from "@/components/home/illustrations/TrainingRadarSequence";
 import { TrainingParticleField } from "@/components/home/illustrations/TrainingParticleField";
 import { useTrainingGpuObjectAssets } from "@/hooks/useTrainingGpuObjectAssets";
 import { useTrainingRadarClock } from "@/hooks/useTrainingRadarClock";
 import { useTrainingRendererMode } from "@/hooks/useTrainingRendererMode";
+import { useTrainingRendererDebug } from "@/hooks/useTrainingRendererDebug";
 import { homeIllustrationAssets } from "@/lib/home/homeIllustrationAssets";
 import {
   getTrainingRadarRangeTiming,
@@ -78,6 +86,7 @@ function getTrainingFennecScanStyle(): TrainingFennecScanStyle {
 
 export function TrainingScene({ active, launching }: TrainingSceneProps) {
   const trainingRendererMode = useTrainingRendererMode();
+  const { debugEnabled, debugCollector } = useTrainingRendererDebug();
   const {
     fennecSurfaceMode,
     fennecTacticalActive,
@@ -106,7 +115,10 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
     setGpuVolumeScansReady(ready);
   }, []);
   const useGpuRenderer = trainingRendererMode === "gpu";
-  const gpuObjectAssetState = useTrainingGpuObjectAssets(useGpuRenderer);
+  const gpuObjectAssetState = useTrainingGpuObjectAssets(
+    useGpuRenderer,
+    debugCollector,
+  );
   const showDomRadar = !useGpuRenderer || !gpuRadarReady;
   const showDomParticles = !useGpuRenderer || !gpuParticlesReady;
   const showDomVolumeScan = !useGpuRenderer || !gpuVolumeScansReady;
@@ -119,6 +131,14 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
   const getVolumeScanPhase = (targetId: TrainingVolumeScanTargetId) =>
     volumeScanPhases[targetId];
   const trainingFennecScanStyle = getTrainingFennecScanStyle();
+
+  useEffect(() => {
+    debugCollector?.setGlobal({
+      mode: trainingRendererMode,
+      illustrationActive: active,
+      radarRunning: running,
+    });
+  }, [active, debugCollector, running, trainingRendererMode]);
 
   return (
     <div
@@ -195,6 +215,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       {useGpuRenderer ? (
         <TrainingGpuCanvas
           active={active}
+          debugCollector={debugCollector}
           onParticlesReadyChange={handleGpuParticlesReadyChange}
           onRadarReadyChange={handleGpuRadarReadyChange}
           onVolumeScansReadyChange={handleGpuVolumeScansReadyChange}
@@ -332,6 +353,16 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       <SceneGroup blendMode="screen" depth="foreground" future layer={18} name="transition">
         <SceneLayer asset={assets.transitionWaveGold} className="training-transition-wave-local" />
       </SceneGroup>
+
+      {debugEnabled && debugCollector ? (
+        <TrainingGpuDebugPanel
+          collector={debugCollector}
+          illustrationActive={active}
+          mode={trainingRendererMode}
+          radarClock={radarClock}
+          radarRunning={running}
+        />
+      ) : null}
     </div>
   );
 }

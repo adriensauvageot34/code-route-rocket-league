@@ -14,6 +14,7 @@ import {
   TRAINING_GPU_RENDER_SCALE,
 } from "@/lib/home/gpu/trainingGpuConstants";
 import type { TrainingGpuFrameState } from "@/lib/home/gpu/trainingGpuTypes";
+import type { TrainingGpuDebugCollector } from "@/lib/home/gpu/debug/TrainingGpuDebugCollector";
 import type { TrainingGpuPreparedObjectId } from "@/lib/home/gpu/trainingGpuObjectAssetCatalog";
 import type { TrainingGpuDecodedObjectAssetSet } from "@/lib/home/gpu/TrainingGpuObjectAssetLoader";
 import type { TrainingRadarClock } from "@/lib/home/trainingRadarClock";
@@ -21,6 +22,7 @@ import { homeIllustrationAssets } from "@/lib/home/homeIllustrationAssets";
 
 type TrainingGpuCanvasProps = {
   active: boolean;
+  debugCollector: TrainingGpuDebugCollector | null;
   onParticlesReadyChange: (ready: boolean) => void;
   onRadarReadyChange: (ready: boolean) => void;
   onVolumeScansReadyChange: (ready: boolean) => void;
@@ -59,6 +61,7 @@ function createGpuFrameState(
 
 export function TrainingGpuCanvas({
   active,
+  debugCollector,
   onParticlesReadyChange,
   onRadarReadyChange,
   onVolumeScansReadyChange,
@@ -184,6 +187,7 @@ export function TrainingGpuCanvas({
                 radarClock,
                 nowMs,
               ),
+            debugCollector,
             fieldMaskPixels,
             onParticlesReadyChange,
             onRadarReadyChange,
@@ -280,6 +284,7 @@ export function TrainingGpuCanvas({
   }, [
     backRightCarVolumeCanvasRef,
     ballVolumeCanvasRef,
+    debugCollector,
     frontRightCarVolumeCanvasRef,
     leftCarVolumeCanvasRef,
     onParticlesReadyChange,

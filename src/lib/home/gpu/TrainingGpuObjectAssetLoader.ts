@@ -8,6 +8,7 @@ import {
   type TrainingGpuObjectAssetManifest,
 } from "@/lib/home/gpu/trainingGpuObjectManifest";
 import type { TrainingGpuObjectAssetRole } from "@/lib/home/gpu/trainingGpuObjectTypes";
+import type { TrainingGpuDebugCollector } from "@/lib/home/gpu/debug/TrainingGpuDebugCollector";
 
 export type TrainingGpuDecodedObjectAsset = {
   role: TrainingGpuObjectAssetRole;
@@ -113,7 +114,9 @@ function decodeTrainingGpuObjectImage(
 async function loadTrainingGpuObjectAssetSet(
   manifestUrl: string,
   signal: AbortSignal,
+  debugCollector: TrainingGpuDebugCollector | null,
 ): Promise<TrainingGpuDecodedObjectAssetSet> {
+  const manifestStartedAtMs = debugCollector ? performance.now() : 0;
   const response = await fetch(manifestUrl, { signal });
   if (!response.ok) {
     throw new Error(
@@ -145,21 +148,35 @@ async function loadTrainingGpuObjectAssetSet(
     TrainingGpuObjectAssetRole,
     TrainingGpuObjectAssetEntry | undefined,
   ][];
+  debugCollector?.recordManifestLoaded(
+    manifestUrl,
+    performance.now() - manifestStartedAtMs,
+    entries.filter(([, entry]) => Boolean(entry)).length,
+  );
 
   await Promise.all(
     entries.map(async ([role, entry]) => {
       if (!entry) return;
       const url = resolveTrainingGpuObjectAssetUrl(manifestUrl, entry.file);
-      const image = await decodeTrainingGpuObjectImage(url, signal);
-
-      if (
-        image.naturalWidth !== entry.outputSize.width ||
-        image.naturalHeight !== entry.outputSize.height
-      ) {
-        image.src = "";
-        throw new Error(
-          `Training GPU object asset dimensions do not match manifest for ${url}: expected ${entry.outputSize.width}x${entry.outputSize.height}, received ${image.naturalWidth}x${image.naturalHeight}.`,
+      const decodeStartedAtMs = debugCollector ? performance.now() : 0;
+      let image: HTMLImageElement;
+      try {
+        image = await decodeTrainingGpuObjectImage(url, signal);
+        if (
+          image.naturalWidth !== entry.outputSize.width ||
+          image.naturalHeight !== entry.outputSize.height
+        ) {
+          image.src = "";
+          throw new Error(
+            `Training GPU object asset dimensions do not match manifest for ${url}: expected ${entry.outputSize.width}x${entry.outputSize.height}, received ${image.naturalWidth}x${image.naturalHeight}.`,
+          );
+        }
+        debugCollector?.recordImageDecoded(
+          performance.now() - decodeStartedAtMs,
         );
+      } catch (error) {
+        debugCollector?.recordAssetError("image", error);
+        throw error;
       }
 
       assets[role] = { role, entry, url, image };
@@ -175,6 +192,14 @@ async function loadTrainingGpuObjectAssetSet(
 }
 
 export class TrainingGpuObjectAssetLoader {
+  constructor(
+    private debugCollector: TrainingGpuDebugCollector | null = null,
+  ) {}
+
+  setDebugCollector(debugCollector: TrainingGpuDebugCollector | null) {
+    this.debugCollector = debugCollector;
+  }
+
   private readonly completed = new Map<
     string,
     TrainingGpuDecodedObjectAssetSet
@@ -198,10 +223,21 @@ export class TrainingGpuObjectAssetLoader {
     const pending = this.pending.get(manifestUrl);
     if (pending) return pending;
 
-    const request = loadTrainingGpuObjectAssetSet(manifestUrl, signal)
+    const request = loadTrainingGpuObjectAssetSet(
+      manifestUrl,
+      signal,
+      this.debugCollector,
+    )
       .then((assetSet) => {
         this.completed.set(manifestUrl, assetSet);
         return assetSet;
+      })
+      .catch((error: unknown) => {
+        const message = error instanceof Error ? error.message : String(error);
+        if (!message.includes("Training GPU object asset")) {
+          this.debugCollector?.recordAssetError("manifest", error);
+        }
+        throw error;
       })
       .finally(() => {
         this.pending.delete(manifestUrl);
