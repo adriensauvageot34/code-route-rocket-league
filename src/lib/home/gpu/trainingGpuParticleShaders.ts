@@ -502,18 +502,48 @@ void main() {
   float shapeAlpha;
   vec3 shapeColor = primaryColor;
   float colorCoverage = 1.0;
+  float glowCoverage = 1.0;
 
   if (v_component > 0.5 && v_component < 1.5) {
-    vec2 normalized = abs(v_local_px) / max(v_shape_size * 0.5, vec2(0.001));
+    vec2 halfSize = max(v_shape_size * 0.5, vec2(0.001));
+    float halfLength = halfSize.x;
+    float halfThickness = max(halfSize.y, 0.5);
+    float closestX = clamp(
+      v_local_px.x,
+      -halfLength,
+      halfLength
+    );
     signedDistance =
-      (max(normalized.x, normalized.y) - 1.0) *
-      max(min(v_shape_size.x, v_shape_size.y) * 0.5, 0.25);
-    float horizontalAlpha = smoothstep(0.0, 0.48, uv.x) *
-      (1.0 - smoothstep(0.52, 1.0, uv.x));
-    shapeAlpha = horizontalAlpha * (1.0 - smoothstep(-0.04, 0.08, signedDistance));
-    shapeColor = uv.x < 0.5
-      ? mix(vec3(0.0), vec3(${colors.warmWhite}), smoothstep(0.0, 0.48, uv.x))
-      : mix(primaryColor, vec3(0.0), smoothstep(0.52, 1.0, uv.x));
+      length(v_local_px - vec2(closestX, 0.0)) -
+      halfThickness;
+    float flashUvX = clamp(
+      v_local_px.x / max(v_shape_size.x, 0.001) + 0.5,
+      0.0,
+      1.0
+    );
+    float flashEnvelope =
+      smoothstep(0.0, 0.48, flashUvX) *
+      (1.0 - smoothstep(0.52, 1.0, flashUvX));
+    float antialias = max(fwidth(signedDistance), 0.35);
+    shapeAlpha =
+      flashEnvelope *
+      (1.0 - smoothstep(
+        -antialias,
+        antialias + max(v_blur, 0.0),
+        signedDistance
+      ));
+    glowCoverage = flashEnvelope;
+    shapeColor = flashUvX < 0.5
+      ? mix(
+          vec3(0.0),
+          vec3(${colors.warmWhite}),
+          smoothstep(0.0, 0.48, flashUvX)
+        )
+      : mix(
+          primaryColor,
+          vec3(0.0),
+          smoothstep(0.52, 1.0, flashUvX)
+        );
   } else {
     signedDistance = particleShapeDistance(uv) * minimumSize;
     float antialias = max(fwidth(signedDistance), 0.35);
@@ -551,6 +581,7 @@ void main() {
   float glowAlpha = v_glow > 0.001
     ? exp(-2.0 * pow(positiveDistance / v_glow, 2.0)) * 0.48
     : 0.0;
+  glowAlpha *= glowCoverage;
   float particleAlpha = clamp(
     (shapeAlpha + glowAlpha) *
       v_opacity *
