@@ -737,7 +737,7 @@ export class TrainingGpuSceneRenderer {
       progress,
     );
     const angleDegrees =
-      registration.kind === "car"
+      registration.target.type === "car"
         ? Number.parseFloat(registration.target.objectScan.angle)
         : 0;
     const maskKind =
