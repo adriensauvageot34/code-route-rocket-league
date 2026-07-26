@@ -82,6 +82,7 @@ type TrainingGpuRendererOptions = {
   debugCollector: TrainingGpuDebugCollector | null;
   fieldMaskPixels: Uint8Array | null;
   onBasesReadyChange: (ready: boolean) => void;
+  onFennecBaseReadyChange: (ready: boolean) => void;
   onFennecEffectsReadyChange: (ready: boolean) => void;
   onFennecVolumeReadyChange: (ready: boolean) => void;
   onParticlesReadyChange: (ready: boolean) => void;
@@ -156,6 +157,7 @@ export class TrainingGpuRenderer {
       canvases.fennec,
       {
         debugCollector: options.debugCollector,
+        onBaseReadyChange: options.onFennecBaseReadyChange,
         onEffectsReadyChange: options.onFennecEffectsReadyChange,
         onReadyChange: options.onFennecVolumeReadyChange,
         onContextRestored: () => {
@@ -205,6 +207,7 @@ export class TrainingGpuRenderer {
     return (
       this.radarInitialized ||
       this.particlesInitialized ||
+      this.fennecVolumeSubsystem.isBaseInitialized() ||
       this.fennecVolumeSubsystem.isEffectsInitialized() ||
       this.fennecVolumeSubsystem.isInitialized() ||
       this.volumeSubsystem.isBaseInitialized() ||
@@ -242,6 +245,7 @@ export class TrainingGpuRenderer {
     if (
       this.radarInitialized ||
       this.particlesInitialized ||
+      this.fennecVolumeSubsystem.isBaseInitialized() ||
       this.fennecVolumeSubsystem.isEffectsInitialized() ||
       this.fennecVolumeSubsystem.isInitialized() ||
       this.volumeSubsystem.isBaseInitialized()
@@ -297,6 +301,7 @@ export class TrainingGpuRenderer {
     if (
       !this.radarReady &&
       !this.particlesReady &&
+      !this.fennecVolumeSubsystem.isBaseReady() &&
       !this.fennecVolumeSubsystem.isEffectsReady() &&
       !this.fennecVolumeSubsystem.isReady() &&
       !this.volumeSubsystem.isBaseReady() &&
@@ -513,13 +518,16 @@ export class TrainingGpuRenderer {
       getTrainingGpuTacticalSnapshot(firstFrameState),
       firstFrameState.active && firstFrameState.running,
     );
+    const fennecEffectsState =
+      getTrainingGpuFennecEffectsState(firstFrameState);
     this.fennecVolumeSubsystem.beginFrame();
+    this.fennecVolumeSubsystem.renderBase(fennecEffectsState, true);
     this.fennecVolumeSubsystem.render(
       getTrainingGpuVolumeScanSnapshot(firstFrameState).fennec,
       firstFrameState.active && firstFrameState.running,
     );
     this.fennecVolumeSubsystem.renderEffects(
-      getTrainingGpuFennecEffectsState(firstFrameState),
+      fennecEffectsState,
     );
   }
 
@@ -569,7 +577,15 @@ export class TrainingGpuRenderer {
       "tactical",
       performance.now() - tacticalStartedAtMs,
     );
+    const fennecEffectsState =
+      getTrainingGpuFennecEffectsState(frameState);
     this.fennecVolumeSubsystem.beginFrame();
+    const fennecBaseStartedAtMs = debugCollector ? performance.now() : 0;
+    this.fennecVolumeSubsystem.renderBase(fennecEffectsState);
+    debugCollector?.recordSubsystemCpu(
+      "fennec-base",
+      performance.now() - fennecBaseStartedAtMs,
+    );
     const fennecVolumeStartedAtMs = debugCollector ? performance.now() : 0;
     this.fennecVolumeSubsystem.render(
       getTrainingGpuVolumeScanSnapshot(frameState).fennec,
@@ -581,7 +597,7 @@ export class TrainingGpuRenderer {
     );
     const fennecEffectsStartedAtMs = debugCollector ? performance.now() : 0;
     this.fennecVolumeSubsystem.renderEffects(
-      getTrainingGpuFennecEffectsState(frameState),
+      fennecEffectsState,
     );
     debugCollector?.recordSubsystemCpu(
       "fennec-effects",
@@ -781,16 +797,21 @@ export class TrainingGpuRenderer {
       performance.now() - startedAtMs,
     );
     this.fennecVolumeSubsystem.beginFrame();
+    const fennecEffectsState = getTrainingGpuFennecEffectsState({
+      ...this.frameState,
+      running: false,
+    });
+    const fennecBaseStartedAtMs = debugCollector ? performance.now() : 0;
+    this.fennecVolumeSubsystem.renderBase(fennecEffectsState, true);
+    debugCollector?.recordSubsystemCpu(
+      "fennec-base",
+      performance.now() - fennecBaseStartedAtMs,
+    );
     this.fennecVolumeSubsystem.render(
       getTrainingGpuVolumeScanSnapshot(this.frameState).fennec,
       false,
     );
-    this.fennecVolumeSubsystem.renderEffects(
-      getTrainingGpuFennecEffectsState({
-        ...this.frameState,
-        running: false,
-      }),
-    );
+    this.fennecVolumeSubsystem.renderEffects(fennecEffectsState);
   }
 
   private clearAnimatedCanvases() {

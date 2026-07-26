@@ -107,6 +107,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
   const [gpuRadarReady, setGpuRadarReady] = useState(false);
   const [gpuParticlesReady, setGpuParticlesReady] = useState(false);
   const [gpuVolumeScansReady, setGpuVolumeScansReady] = useState(false);
+  const [gpuFennecBaseReady, setGpuFennecBaseReady] = useState(false);
   const [gpuFennecEffectsReady, setGpuFennecEffectsReady] = useState(false);
   const [gpuFennecVolumeReady, setGpuFennecVolumeReady] = useState(false);
   const [gpuTacticalReady, setGpuTacticalReady] = useState(false);
@@ -124,6 +125,9 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
   }, []);
   const handleGpuFennecVolumeReadyChange = useCallback((ready: boolean) => {
     setGpuFennecVolumeReady(ready);
+  }, []);
+  const handleGpuFennecBaseReadyChange = useCallback((ready: boolean) => {
+    setGpuFennecBaseReady(ready);
   }, []);
   const handleGpuFennecEffectsReadyChange = useCallback((ready: boolean) => {
     setGpuFennecEffectsReady(ready);
@@ -171,6 +175,9 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         useGpuRenderer && gpuParticlesReady ? "true" : "false"
       }
       data-gpu-object-assets-status={gpuObjectAssetState.status}
+      data-gpu-fennec-base-ready={
+        useGpuRenderer && gpuFennecBaseReady ? "true" : "false"
+      }
       data-gpu-fennec-effects-ready={
         useGpuRenderer && gpuFennecEffectsReady ? "true" : "false"
       }
@@ -247,6 +254,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
           active={active}
           debugCollector={debugCollector}
           onBasesReadyChange={handleGpuBasesReadyChange}
+          onFennecBaseReadyChange={handleGpuFennecBaseReadyChange}
           onFennecEffectsReadyChange={handleGpuFennecEffectsReadyChange}
           onFennecVolumeReadyChange={handleGpuFennecVolumeReadyChange}
           onParticlesReadyChange={handleGpuParticlesReadyChange}
