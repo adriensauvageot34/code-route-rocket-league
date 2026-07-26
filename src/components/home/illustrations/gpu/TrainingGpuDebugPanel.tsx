@@ -236,6 +236,39 @@ export function TrainingGpuDebugPanel({
           {formatNumber(global.domChangedValuesPerFrame, 1)}
         </span>
         <span>
+          caméra {global.cameraSource} · phase {global.cameraPhase} ·
+          événement {global.cameraSourceEvent}
+        </span>
+        <span>
+          cam x {formatNumber(global.cameraX, 4)} · y{" "}
+          {formatNumber(global.cameraY, 4)} · scale{" "}
+          {formatNumber(global.cameraScale, 5)}
+        </span>
+        <span>
+          cible {formatNumber(global.cameraTargetX, 4)} /{" "}
+          {formatNumber(global.cameraTargetY, 4)} /{" "}
+          {formatNumber(global.cameraTargetScale, 5)} · segment{" "}
+          {formatNumber(global.cameraSegmentStartedAtMs, 0)} ms
+        </span>
+        <span>
+          caméra{" "}
+          {global.cameraStabilized ? "stabilisée" : "en mouvement"} · profil{" "}
+          {global.cameraDepthProfile} · contacts{" "}
+          {global.cameraContactsObserved}
+        </span>
+        <span>
+          CSS {global.cameraCssWrites} écrites /{" "}
+          {global.cameraCssWritesAvoided} évitées · GPU{" "}
+          {global.cameraGpuUpdates} mises à jour /{" "}
+          {global.cameraGpuUpdatesAvoided} évitées
+        </span>
+        <span>
+          frames manquées {global.cameraMissedFrames} · reprise absolue{" "}
+          {global.cameraAbsoluteResumeCorrect ? "oui" : "non"} · listeners
+          pointeur {global.pointerListenersActive} · RAF parallaxe{" "}
+          {global.additionalParallaxRafCount}
+        </span>
+        <span>
           canvases {global.canvasCount} · contextes {global.contextCount} ·
           draws {global.drawCallsPerFrame} · clears{" "}
           {global.clearCallsPerFrame}

@@ -9,6 +9,10 @@ import {
 } from "react";
 import type { TrainingGpuDebugCollector } from "@/lib/home/gpu/debug/TrainingGpuDebugCollector";
 import type { TrainingRendererMode } from "@/lib/home/gpu/trainingGpuTypes";
+import type {
+  TrainingCameraApplyMetrics,
+  TrainingCameraFrameApplier,
+} from "@/lib/home/trainingCamera";
 import type { TrainingRadarClock } from "@/lib/home/trainingRadarClock";
 import {
   TrainingDomRadarApplier,
@@ -22,6 +26,7 @@ import {
 
 type UseTrainingDomRadarDriverInput = {
   active: boolean;
+  applyCameraSnapshot: TrainingCameraFrameApplier;
   debugCollector: TrainingGpuDebugCollector | null;
   mode: TrainingRendererMode;
   radarClock: TrainingRadarClock;
@@ -34,8 +39,39 @@ const EMPTY_METRICS: TrainingDomApplyMetrics = {
   updates: 0,
 };
 
+function publishCameraDebug(
+  debugCollector: TrainingGpuDebugCollector | null,
+  metrics: TrainingCameraApplyMetrics,
+) {
+  const camera = metrics.cameraSnapshot;
+  debugCollector?.setGlobal({
+    cameraAbsoluteResumeCorrect: metrics.absoluteResumeCorrect,
+    cameraContactsObserved: camera.contactCount,
+    cameraCssWrites: metrics.cssWrites,
+    cameraCssWritesAvoided: metrics.cssWritesAvoided,
+    cameraDepthProfile: "multi-depth",
+    cameraGpuUpdates: metrics.gpuUpdates,
+    cameraGpuUpdatesAvoided: metrics.gpuUpdatesAvoided,
+    cameraMissedFrames: metrics.missedFrames,
+    cameraPhase: camera.phase,
+    cameraScale: camera.scale,
+    cameraSegmentStartedAtMs: camera.startedAtMs,
+    cameraSource: "master-clock",
+    cameraSourceEvent: camera.sourceEvent,
+    cameraStabilized: camera.stabilized,
+    cameraTargetScale: camera.targetScale,
+    cameraTargetX: camera.targetX,
+    cameraTargetY: camera.targetY,
+    cameraX: camera.x,
+    cameraY: camera.y,
+    additionalParallaxRafCount: 0,
+    pointerListenersActive: 0,
+  });
+}
+
 export function useTrainingDomRadarDriver({
   active,
+  applyCameraSnapshot,
   debugCollector,
   mode,
   radarClock,
@@ -70,15 +106,18 @@ export function useTrainingDomRadarDriver({
   useEffect(() => {
     if (mode !== "dom" || !active || !running) {
       const clockSnapshot = radarClock.sample(performance.now());
-      applySnapshot(
-        getTrainingRadarTemporalSnapshot(
-          createTrainingRadarFrameState(
-            active,
-            running,
-            clockSnapshot,
-          ),
+      const snapshot = getTrainingRadarTemporalSnapshot(
+        createTrainingRadarFrameState(
+          active,
+          running,
+          clockSnapshot,
         ),
       );
+      publishCameraDebug(
+        debugCollector,
+        applyCameraSnapshot(snapshot),
+      );
+      applySnapshot(snapshot);
       debugCollector?.setGlobal({
         activeDriver: "none",
         trainingRafCount: 0,
@@ -95,6 +134,10 @@ export function useTrainingDomRadarDriver({
       const clockSnapshot = radarClock.sample(nowMs);
       const snapshot = getTrainingRadarTemporalSnapshot(
         createTrainingRadarFrameState(active, running, clockSnapshot),
+      );
+      publishCameraDebug(
+        debugCollector,
+        applyCameraSnapshot(snapshot),
       );
       applySnapshot(snapshot);
       debugCollector?.recordFrame(nowMs);
@@ -130,6 +173,7 @@ export function useTrainingDomRadarDriver({
     };
   }, [
     active,
+    applyCameraSnapshot,
     applySnapshot,
     debugCollector,
     mode,

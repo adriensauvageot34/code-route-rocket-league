@@ -406,6 +406,7 @@
 }
 
 .scene-canvas,
+.scene-camera,
 .home-scene,
 .scene-group,
 .scene-transform {
@@ -413,6 +414,11 @@
   inset: 0;
   width: 100%;
   height: 100%;
+}
+
+.scene-camera {
+  transform-origin: 50% 55%;
+  transform: scale(var(--training-camera-scale, 1));
 }
 
 .scene-group {
@@ -439,6 +445,10 @@
 }
 
 .mode-illustration[data-motion-active="true"] .scene-parallax {
+  will-change: transform;
+}
+
+.mode-illustration[data-motion-active="true"] .scene-camera {
   will-change: transform;
 }
 
@@ -3347,6 +3357,7 @@
   .home-primary-action,
   .accessible-tooltip-content,
   .scene-canvas,
+  .scene-camera,
   .scene-parallax,
   .scene-idle,
   .scene-launch,
@@ -3383,6 +3394,10 @@
   .home-launch-cover {
     animation: none;
     transition: none;
+  }
+
+  .scene-camera {
+    transform: none;
   }
 
   .training-particle-field {

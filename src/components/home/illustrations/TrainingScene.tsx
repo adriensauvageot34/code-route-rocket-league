@@ -22,6 +22,7 @@ import { useTrainingRadarClock } from "@/hooks/useTrainingRadarClock";
 import { useTrainingRendererMode } from "@/hooks/useTrainingRendererMode";
 import { useTrainingRendererDebug } from "@/hooks/useTrainingRendererDebug";
 import { homeIllustrationAssets } from "@/lib/home/homeIllustrationAssets";
+import type { TrainingCameraFrameApplier } from "@/lib/home/trainingCamera";
 import {
   getTrainingRadarRangeTiming,
   TRAINING_VOLUME_SCAN_TIMING,
@@ -35,6 +36,7 @@ const assets = homeIllustrationAssets.training;
 
 type TrainingSceneProps = {
   active: boolean;
+  applyCameraSnapshot: TrainingCameraFrameApplier;
   launching: boolean;
 };
 
@@ -82,7 +84,11 @@ function getTrainingFennecScanStyle(): TrainingFennecScanStyle {
   };
 }
 
-export function TrainingScene({ active, launching }: TrainingSceneProps) {
+export function TrainingScene({
+  active,
+  applyCameraSnapshot,
+  launching,
+}: TrainingSceneProps) {
   const trainingRendererMode = useTrainingRendererMode();
   const { debugEnabled, debugCollector } = useTrainingRendererDebug();
   const {
@@ -152,6 +158,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
     !useGpuRenderer || !gpuTacticalReady || launching;
   const applyDomSnapshot = useTrainingDomRadarDriver({
     active,
+    applyCameraSnapshot,
     debugCollector,
     mode: trainingRendererMode,
     radarClock,
@@ -277,6 +284,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       {useGpuRenderer ? (
         <TrainingGpuCanvas
           active={active}
+          applyCameraSnapshot={applyCameraSnapshot}
           applyDomSnapshot={applyDomSnapshot}
           debugCollector={debugCollector}
           onBasesReadyChange={handleGpuBasesReadyChange}

@@ -20,6 +20,10 @@ import type {
 import type { TrainingGpuPreparedObjectId } from "@/lib/home/gpu/trainingGpuObjectAssetCatalog";
 import type { TrainingGpuDecodedObjectAssetSet } from "@/lib/home/gpu/TrainingGpuObjectAssetLoader";
 import type { TrainingGpuDebugCollector } from "@/lib/home/gpu/debug/TrainingGpuDebugCollector";
+import type {
+  TrainingCameraApplyMetrics,
+  TrainingCameraFrameApplier,
+} from "@/lib/home/trainingCamera";
 import {
   TRAINING_RADAR_SWEEP,
   TRAINING_RADAR_TIMING,
@@ -50,6 +54,7 @@ type TrainingGpuRadarTarget = {
 };
 
 type TrainingGpuConsolidatedRendererOptions = {
+  applyCameraSnapshot: TrainingCameraFrameApplier;
   applyDomSnapshot:
     | ((snapshot: TrainingRadarTemporalSnapshot) => void)
     | null;
@@ -214,6 +219,9 @@ export class TrainingGpuConsolidatedRenderer {
     const frameState = this.options.createFrameState(nowMs);
     const snapshot = getTrainingRadarTemporalSnapshot(frameState);
     this.frameState = frameState;
+    this.publishCameraDebug(
+      this.options.applyCameraSnapshot(snapshot),
+    );
     this.options.applyDomSnapshot?.(snapshot);
     this.options.debugCollector?.recordFrame(nowMs);
 
@@ -355,6 +363,9 @@ export class TrainingGpuConsolidatedRenderer {
       this.options.createFrameState(performance.now()),
     );
     this.frameState = snapshot.frameState;
+    this.publishCameraDebug(
+      this.options.applyCameraSnapshot(snapshot),
+    );
     this.options.applyDomSnapshot?.(snapshot);
     if (
       this.viewport &&
@@ -452,6 +463,9 @@ export class TrainingGpuConsolidatedRenderer {
       running: false,
     };
     const snapshot = getTrainingRadarTemporalSnapshot(staticState);
+    this.publishCameraDebug(
+      this.options.applyCameraSnapshot(snapshot),
+    );
     this.options.applyDomSnapshot?.(snapshot);
     this.sceneRenderer.render(snapshot, false, true);
     this.publishFrameMetrics(
@@ -588,6 +602,33 @@ export class TrainingGpuConsolidatedRenderer {
       blendChangesPerFrame: scene.blendChanges,
       framebufferChangesPerFrame:
         scene.framebufferChanges,
+    });
+  }
+
+  private publishCameraDebug(metrics: TrainingCameraApplyMetrics) {
+    const camera = metrics.cameraSnapshot;
+    this.options.debugCollector?.setGlobal({
+      cameraAbsoluteResumeCorrect: metrics.absoluteResumeCorrect,
+      cameraContactsObserved: camera.contactCount,
+      cameraCssWrites: metrics.cssWrites,
+      cameraCssWritesAvoided: metrics.cssWritesAvoided,
+      cameraDepthProfile: "multi-depth",
+      cameraGpuUpdates: metrics.gpuUpdates,
+      cameraGpuUpdatesAvoided: metrics.gpuUpdatesAvoided,
+      cameraMissedFrames: metrics.missedFrames,
+      cameraPhase: camera.phase,
+      cameraScale: camera.scale,
+      cameraSegmentStartedAtMs: camera.startedAtMs,
+      cameraSource: "master-clock",
+      cameraSourceEvent: camera.sourceEvent,
+      cameraStabilized: camera.stabilized,
+      cameraTargetScale: camera.targetScale,
+      cameraTargetX: camera.targetX,
+      cameraTargetY: camera.targetY,
+      cameraX: camera.x,
+      cameraY: camera.y,
+      additionalParallaxRafCount: 0,
+      pointerListenersActive: 0,
     });
   }
 
