@@ -48,6 +48,10 @@ type TrainingGpuLifecycleState = Pick<
   "active" | "running"
 >;
 
+type TrainingGpuConsolidatedCanvases = ConstructorParameters<
+  typeof TrainingGpuConsolidatedRenderer
+>[0];
+
 const tacticalTerrainPath =
   homeIllustrationAssets.training.tacticalTerrain.path;
 
@@ -104,6 +108,14 @@ export function TrainingGpuCanvas({
       return;
     }
 
+    const canvases: TrainingGpuConsolidatedCanvases = {
+      radar: {
+        surface: surfaceCanvas,
+        sweep: sweepCanvas,
+      },
+      scene: sceneCanvas,
+    };
+
     let cancelled = false;
     let resizeObserver: ResizeObserver | null = null;
     let resizeCanvases: (() => void) | null = null;
@@ -134,13 +146,7 @@ export function TrainingGpuCanvas({
         if (cancelled) return;
 
         const renderer = new TrainingGpuConsolidatedRenderer(
-          {
-            radar: {
-              surface: surfaceCanvas,
-              sweep: sweepCanvas,
-            },
-            scene: sceneCanvas,
-          },
+          canvases,
           {
             applyDomSnapshot,
             createFrameState: (nowMs) =>
