@@ -172,4 +172,611 @@ assert(trainingGpuVolumeUtils.includes("finally {\n    gl.deleteShader(vertexSha
 assert(trainingScene.includes("const showDomBase = !useGpuRenderer || !gpuBasesReady") && trainingScene.includes('data-gpu-bases-ready=') && (trainingScene.match(/showDomBase=\{showDomBase\}/g) ?? []).length === 4 && (trainingGroundedActor.match(/showDomBase \? \(/g) ?? []).length === 2, "The four object bases must switch atomically to their preserved DOM Image fallbacks.");
 assert(trainingScene.includes("const showDomVolumeScan = !useGpuRenderer || !gpuVolumeScansReady") && trainingScene.includes('data-gpu-volume-scans-ready='), "The four object volume scans must switch atomically to the DOM fallback.");
 assert(trainingScene.includes("const showDomTactical = !useGpuRenderer || !gpuTacticalReady") && trainingScene.includes('data-gpu-tactical-ready=') && trainingGpuCanvas.includes("onTacticalReadyChange"), "Tactical readiness and its four-object DOM fallback must remain independent from volume readiness.");
-assert(trainingGroundedActor.includes("showDomTactical") && trainingGroundedActor.includes("target.wireframeAsset.path") && trainingGroundedActor.includes("target.glowA×Í¶òÚ$z{-®éÜj×C²÷2çFW7B†772’Â$6"föÇVÖR66ç2×W7B†öÆBF†V—"f–æÂ7W&f6RæB6öçF÷W"'&–VfÇ’gFW"G&fW'6Ââ"“°¦76W'B‚õÂçG&–æ–ær×&F"Ö&ÆÂ×F&vWEÅ¶FF×föÇVÖR×66â×†6SÒ&†öÆB%ÅÕµÇ5Å5Ò£õÂçG&–æ–ær×&F"Ö&ÆÂ×föÇVÖR×7W&f6UÇ2¥ÇµµÇ5Å5Ò£ö÷6—G“¥Ç2£Âã3#µµÇ5Å5Ò£öæ–ÖF–öã¥Ç2¦æöæSµµÇ5Å5Ò£öÖ6²×÷6—F–öã¥Ç2£"RSS²÷2çFW7B†772’bbõÂçG&–æ–ær×&F"Ö&ÆÂ×F&vWEÅ¶FF×föÇVÖR×66â×†6SÒ&†öÆB%ÅÕµÇ5Å5Ò£õÂçG&–æ–ær×&F"Ö&ÆÂ×föÇVÖRÖ6öçF÷W%Ç2¥ÇµµÇ5Å5Ò£ö÷6—G“¥Ç2£Âã#²÷2çFW7B†772’Â$&ÆÂföÇVÖR66ç2×W7B†öÆBF†V—"Æ–væVBf–æÂg&ÖR&Vf÷&RfF–ærâ"“°¦76W'B‚ô¶W–g&ÖW2G&–æ–ærÖö&¦V7B×7W&f6R×66âÖÇG%Ç2¥ÇµµÇ5Å5Ò£óUÇ2¥ÇµÇ2¦÷6—G“¥Ç2£Âã##²÷2çFW7B†772’bbô¶W–g&ÖW2G&–æ–ærÖö&¦V7BÖ6öçF÷W"×66âÖÇG%Ç2¥ÇµµÇ5Å5Ò£óUÇ2¥ÇµÇ2¦÷6—G“¥Ç2£ÂãC²÷2çFW7B†772’bbô¶W–g&ÖW2G&–æ–ærÖ&ÆÂ×föÇVÖR×7W&f6RÖÇG%Ç2¥ÇµµÇ5Å5Ò£óUÇ2¥ÇµÇ2¦÷6—G“¥Ç2£Âã3#²÷2çFW7B†772’bbô¶W–g&ÖW2G&–æ–ærÖ&ÆÂ×föÇVÖRÖ6öçF÷W"ÖÇG%Ç2¥ÇµµÇ5Å5Ò£óUÇ2¥ÇµÇ2¦÷6—G“¥Ç2£Âã#²÷2çFW7B†772’Â$7F—fRföÇVÖR¶W–g&ÖW2×W7BVæBB†öÆB÷6—G’–ç7FVBöbF—6V&–ær–ÖÖVF–FVÇ’â"“°¦76W'B‚õÂçG&–æ–ær×&F"Ö&ÆÂ×föÇVÖR×7W&f6UÇ2¥ÇµµÇ5Å5Ò£÷G&ç7&VçB3•ÂãRRÅµÇ5Å5Ò£ö&Æ6²CrRS2RÅµÇ5Å5Ò£÷G&ç7&VçBcÂãRR÷2çFW7B†772’Â%F†R7—7FVÖF–2&ÆÂ7W&f6R66â×W7BW‡÷6R&VF&ÆRföÇVÖWG&–2v–æF÷rv—F†÷WBgVÆÂ&WfVÂâ"“°¦76W'B‚õÂçG&–æ–ær×&F"Ö&ÆÂ×föÇVÖRÖ6öçF÷W%Ç2¥ÇµµÇ5Å5Ò£÷G&ç7&VçBCÂãRRÅµÇ5Å5Ò£ö&Æ6²CuÂãRRS%ÂãRRÅµÇ5Å5Ò£÷G&ç7&VçBS…ÂãRR÷2çFW7B†772’Â%F†R7—7FVÖF–2&ÆÂ6öçF÷W"66â×W7B&V–æf÷&6RF†R&VF&ÆRÖ÷f–ærv–æF÷rv—F†÷WBgVÆÂ&WfVÂâ"“°¦76W'B‚772æ–æ6ÇVFW2‚&&Æ6²CbR"’bb772æ–æ6ÇVFW2‚&&Æ6²C"RcbR"’Â%F†R&ÆÂföÇVÖR66â×W7BæWfW"&WW6R'&öBgVÆÂÖÆ–W"&WfVÂÖ6²â"“°¦76W'B†772æ–æ6ÇVFW2‚&÷6—G“¢ãc‚"’bb772æ–æ6ÇVFW2‚&÷6—G“¢ãS‚"’bb772æ–æ6ÇVFW2‚&Ö6²×÷6—F–öã¢ƒ‚RSR"’bb772æ–æ6ÇVFW2‚&Ö6²×÷6—F–öã¢"RSR"’Â%F†RÆ–væVB&ÆÂ76WG2×W7BW‡÷6R&VF&ÆRF—&V7F–öæÂ7W&f6RæB6öçF÷W"72â"“°¦76W'B‚õÂçG&–æ–ær×&F"Ö&ÆÂ×föÇVÖR×7W&f6RÅµÇ5Å5Ò£õÂçG&–æ–ær×&F"Ö&ÆÂ×föÇVÖRÖ6öçF÷W%Ç2¥ÇµµÇ5Å5Ò£ö–ç6WC¥Ç2£µµÇ5Å5Ò£÷v–GFƒ¥Ç2£R–×÷'FçCµµÇ5Å5Ò£ö†V–v‡C¥Ç2£R–×÷'FçCµµÇ5Å5Ò£öö&¦V7BÖf—C¥Ç2¦6öçF–ã²÷2çFW7B†772’Â%7V&R&ÆÂ66â76WG2×W7B&W6W'fRF†V—"–çG&–ç6–26çf2v—F†÷WB6÷fW"VæÆ&vVÖVçBâ"“°¦76W'B†772æ–æ6ÇVFW2‚"Ò×G&–æ–ærÖ&ÆÂ×föÇVÖR×66ÆR×ƒ¢ãB"’bb772æ–æ6ÇVFW2‚"Ò×G&–æ–ærÖ&ÆÂ×föÇVÖR×66ÆR×“¢ãCR"’bb772æ–æ6ÇVFW2‚"Ò×G&–æ–ærÖ&ÆÂ×föÇVÖR×66ÆR×ƒ¢ã3sR"’bb772æ–æ6ÇVFW2‚"Ò×G&–æ–ærÖ&ÆÂ×föÇVÖR×66ÆR×“¢ã3ƒR"’Â%7W&f6RæB6öçF÷W"76WG2×W7B&WF–âF†V—"ÖV7W&VB66ÆR6Æ–'&F–öâv–ç7BF†R&6R&ÆÂâ"“°¦76W'B†772æ–æ6ÇVFW2‚"Ò×G&–æ–ærÖ&ÆÂ×föÇVÖR×G&ç6ÆFR×ƒ¢ãC‚R"’bb772æ–æ6ÇVFW2‚"Ò×G&–æ–ærÖ&ÆÂ×föÇVÖR×G&ç6ÆFR×“¢Ó2ã2R"’bb772æ–æ6ÇVFW2‚"Ò×G&–æ–ærÖ&ÆÂ×föÇVÖR×G&ç6ÆFR×“¢Ó2ãRR"’Â$&ÆÂ66â76WG2×W7B&WF–âF†V—"ÖV7W&VB6VçFW"6Æ–'&F–öâv–ç7BF†R&6R&ÆÂâ"“°¦76W'B‚772æ–æ6ÇVFW2‚'v–GFƒ¢‚ãbR"’bb772æ–æ6ÇVFW2‚'G&ç6ÆFR‚ÓSRÂÓƒ‚R’"’Â%F†Rö'6öÆWFRVæFW'6—¦VBæBöfg6WB&ÆÂfÆÆ&6²×W7B7F’&VÖ÷fVBâ"“°¦6öç7B&ÆÅföÇVÖT¶W–g&ÖW2Ò772ç6Æ–6R†772æ–æFW„öb‚$¶W–g&ÖW2G&–æ–ærÖ&ÆÂ×föÇVÖR×7W&f6RÖÇG""’Â772æ–æFW„öb‚$¶W–g&ÖW2G&–æ–ærÖö&¦V7B×F7F–6Â×v—&Vg&ÖR"’“°¦76W'B‚&ÆÅföÇVÖT¶W–g&ÖW2æ–æ6ÇVFW2‚'66ÆR‚"’bb&ÆÅföÇVÖT¶W–g&ÖW2æ–æ6ÇVFW2‚'v–GFƒ¢"’Â%F†R7—7FVÖF–2&ÆÂföÇVÖR66â×W7Bæ÷B&W6—¦R÷"F—7Æ6RF†R&ÆÂâ"“°¦6öç7BF7F–6ÅF&vWD6öÆÆV7F–öâÒG&–æ–æu&F%F&vWG2ç6Æ–6R‡G&–æ–æu&F%F&vWG2æ–æFW„öb‚&W‡÷'B6öç7BG&–æ–æu&F%F&vWG2"’ÂG&–æ–æu&F%F&vWG2æ–æFW„öb‚&W‡÷'B6öç7BG&–æ–ætfVææV5föÇVÖU66åF&vWB"’“°¦76W'B‚F7F–6ÅF&vWD6öÆÆV7F–öâæ–æ6ÇVFW2‚v–C¢&fVææV2"r’bbG&–æ–æu&F%F&vWG2æ–æ6ÇVFW2‚v–C¢&fVææV2"r’Â%F†RfVææV2×W7B&V6V—fR7—7FVÖF–2föÇVÖR66ç2v—F†÷WB¦ö–æ–ærF7F–6ÂF&vWB6VÆV7F–öââ"“°¦6öç7BfVææV566VæRÒG&–æ–æu66VæRç6Æ–6R‡G&–æ–æu66VæRæ–æFW„öb‚væÖSÒ&fVææV2"r’ÂG&–æ–æu66VæRæ–æFW„öb‚væÖSÒ&fVææV2ÖÆ–v‡G2ÖvÆ÷r"r’“°¦6öç7BfVææV566ä772Ò772ç6Æ–6R†772æ–æFW„öb‚"çG&–æ–ær×&F"ÖfVææV2×F&vWB"’Â772æ–æFW„öb‚rç66VæRÖw&÷W¶FF×66VæRÖw&÷WÒ&fVææV2ÖÆ–v‡G2ÖvÆ÷r%Òr’“°¦6öç7BfVææV57W&f6TÖ6´772Ò772ç6Æ–6R†772æ–æFW„öb‚"çG&–æ–ær×&F"ÖfVææV2×7W&f6RÖÖ6²²"’Â772æ–æFW„öb‚"çG&–æ–ær×&F"ÖfVææV2×7W&f6RÖg&ÖR²"’“°¦6öç7BfVææV57W&f6T¶W–g&ÖW2Ò772ç6Æ–6R†772æ–æFW„öb‚$¶W–g&ÖW2G&–æ–ærÖfVææV2×föÇVÖR×7W&f6RÖÇG""’Â772æ–æFW„öb‚$¶W–g&ÖW2G&–æ–ærÖfVææV2×föÇVÖRÖFWF–ÂÖÇG""’“°¦76W'B‚fVææV566VæRæ–æ6ÇVFW2‚'G&–æ–ærÖö&¦V7BÖÆö6Â×66âÖÆ–æR"’bbfVææV566ä772æ–æ6ÇVFW2‚#£¦&Vf÷&R"’bbfVææV566ä772æ–æ6ÇVFW2‚#£¦gFW""’Â%F†RfVææV2föÇVÖR66â×W7BæWfW"&VæFW"Æö6ÂÆ–æR÷"6WVFòÖÆ–æRâ"“°¦76W'B†fVææV566VæRæ–æ6ÇVFW2‚v6Æ74æÖSÒ'G&–æ–ær×&F"ÖfVææV2×7W&f6RÖÖ6²"r’bbfVææV566VæRæ–æ6ÇVFW2‚v6Æ74æÖSÒ'G&–æ–ær×&F"ÖfVææV2×7W&f6RÖg&ÖR"r’Â%F†R6Æ–'&FVBfVææV2–ÖvR×W7B&RæW7FVB–ç6–FR6W&FRgVÆÂÖ6çf2&F"Ö6²â"“°¦76W'B‚õÂçG&–æ–ær×&F"ÖfVææV2×7W&f6RÖÖ6µÇ2¥ÇµµÇ5Å5Ò£òÒ×G&–æ–ærÖfVææV2×7W&f6RÖÖ6²ÖævÆS¥Ç2£“FVsµµÇ5Å5Ò£÷÷6—F–öã¥Ç2¦'6öÇWFSµµÇ5Å5Ò£ö–ç6WC¥Ç2£µµÇ5Å5Ò£÷v–GFƒ¥Ç2£SµµÇ5Å5Ò£ö†V–v‡C¥Ç2£SµµÇ5Å5Ò£ö÷6—G“¥Ç2£µµÇ5Å5Ò£öÆ–æV"Öw&F–VçEÂ…Ç2§f%Â‚Ò×G&–æ–ærÖfVææV2×7W&f6RÖÖ6²ÖævÆUÂ•µÇ5Å5Ò£ö&Æ6²SRÅµÇ5Å5Ò£÷G&ç7&VçBS2UµÇ5Å5Ò£öÖ6²×6—¦S¥Ç2£#RS²÷2çFW7B†772’Â%F†RFV×÷&'’&F"Ö6²×W7B&VÖ–âgVÆÂÖ6çf2v—F‚öæRf—†VB“ÖFVw&VR÷&–VçFF–öââ"“°¦76W'B‚fVææV57W&f6TÖ6´772æ–æ6ÇVFW2‚"Ò×G&–æ–ærÖfVææV2×föÇVÖRÖÖ6²ÖævÆR"’Â%F†RfVææV27W&f6RÖ6²×W7B¶VW—G2f—†VBÅE"÷&–VçFF–öââ"“°¦76W'B‚õÂçG&–æ–ær×&F"ÖfVææV2×7W&f6RÖg&ÖUÇ2¥ÇµµÇ5Å5Ò£öÆVgC¥Ç2£UÂãƒƒRSµµÇ5Å5Ò£÷F÷¥Ç2£eÂãs#"SµµÇ5Å5Ò£÷v–GFƒ¥Ç2£ƒÂãC“SBSµµÇ5Å5Ò£ö†V–v‡C¥Ç2£ƒ…Âã“#BS²÷2çFW7B†772’Â%F†R7W&f6Rg&ÖR×W7B&W6W'fRF†RÆFW7BÖ–â6Æ–'&F–öââ"“°¦76W'B‚õÂçG&–æ–ær×&F"ÖfVææV2×7W&f6UÇ2¥ÇµµÇ5Å5Ò£÷v–GFƒ¥Ç2£R–×÷'FçCµµÇ5Å5Ò£ö†V–v‡C¥Ç2£R–×÷'FçCµµÇ5Å5Ò£öö&¦V7BÖf—C¥Ç2¦f–ÆÃµµÇ5Å5Ò£öö&¦V7B×÷6—F–öã¥Ç2¦6VçFW#µµÇ5Å5Ò£ö÷6—G“¥Ç2£µµÇ5Å5Ò£ö'&–v‡FæW75ÂƒÂã…Â’6öçG&7EÂƒÂã3EÂ’6GW&FUÂƒÂã%Â“µµÇ5Å5Ò£÷G&ç6—F–öã¥Ç2¦æöæS²÷2çFW7B†772’Â%F†R6Æ–'&FVB7W&f6R–ÖvR×W7B&W6W'fR—G2ÖV7W&VBæöâ×Væ–f÷&Ò‚õ’g&ÖRv—F‚ö&¦V7BÖf—Bf–ÆÂâ"“°¦76W'B‚fVææV566ä772æ–æ6ÇVFW2‚wW&Â‚"÷V’÷G&–æ–ærÖfVææV2Ö&6Rçær"’r’bbfVææV566ä772æ–æ6ÇVFW2‚&Ö6²Ö6ö×÷6—FR"’Â%F†R&6RfVææV2–ÖvR×W7BæWfW"&R&WW6VB2552Ö6²f÷"F†R7W&f6R×66ââ"“°¦76W'B‚õÂçG&–æ–ær×&F"ÖfVææV2Ö6öçF÷W%Ç2¥ÇµµÇ5Å5Ò£òÒ×G&–æ–ærÖfVææV2ÖFWF–Â×V³¥Ç2£ÂãƒµµÇ5Å5Ò£òÒ×G&–æ–ærÖfVææV2ÖFWF–Â×F–Ã¥Ç2£µµÇ5Å5Ò£÷G&ç7&VçBCBRÅµÇ5Å5Ò£ö&Æ6²C’RS"RÅµÇ5Å5Ò£÷G&ç7&VçBSbR÷2çFW7B†772’Â%F†RfVææV26öçF÷W"×W7B&VÖ–âÆ–v‡FW"&V–æf÷&6VÖVçB&V†–æBF†R7W&f6R&WfVÂâ"“°¦76W'B‡G&–æ–æu66VæRæ–æ6ÇVFW2‚v6Æ74æÖSÒ'G&–æ–ær×&F"ÖfVææV2Ö–×7BÖg&ÖR"r’bbõÂçG&–æ–ær×&F"ÖfVææV2Ö–×7BÖg&ÖUÇ2¥ÇµµÇ5Å5Ò£öÆVgC¥Ç2£3•ÂãƒƒRSµµÇ5Å5Ò£÷F÷¥Ç2£3UÂãs#"SµµÇ5Å5Ò£÷v–GFƒ¥Ç2£SeÂãC“SBSµµÇ5Å5Ò£ö†V–v‡C¥Ç2£S‚SµµÇ5Å5Ò£÷¢Ö–æFWƒ¥Ç2£#µµÇ5Å5Ò£÷ö–çFW"ÖWfVçG3¥Ç2¦æöæS²÷2çFW7B†772’Â%F†R–ÒÖÆ–v‡B×W7B&W6W'fRF†RW†7B6Æ–'&F–öâ7W'&VçFÇ’öâÖ–âv†–ÆR7F––ær&VÆ÷rF†R7W&f6R66ââ"“°¦76W'B‚õÂçG&–æ–ær×&F"ÖfVææV2Ö–×7EÇ2¥ÇµµÇ5Å5Ò£÷÷6—F–öã¥Ç2¦'6öÇWFSµµÇ5Å5Ò£ö–ç6WC¥Ç2£µµÇ5Å5Ò£÷v–GFƒ¥Ç2£R–×÷'FçCµµÇ5Å5Ò£ö†V–v‡C¥Ç2£R–×÷'FçCµµÇ5Å5Ò£öö&¦V7BÖf—C¥Ç2¦f–ÆÃµµÇ5Å5Ò£öö&¦V7B×÷6—F–öã¥Ç2¦6VçFW#²÷2çFW7B†772’bbõÂçG&–æ–ær×&F"ÖfVææV2Ö–×7EÇ2¥ÇµµÇ5Å5Ò£ö6Æ—×Fƒ¢÷2çFW7B†fVææV566ä772’Â%F†R6Æ–'&FVB–ÒÖÆ–v‡B×W7Bf–ÆÂöæÇ’—G2÷vâg&ÖRv—F†÷WBF†Rö'6öÆWFR7&÷â"“°¦76W'B‚õÂçG&–æ–ær×&F"ÖfVææV2×7W&f6RÖÖ6µÇ2¥ÇµµÇ5Å5Ò£÷¢Ö–æFWƒ¥Ç2£3²÷2çFW7B†772’bbõÂçG&–æ–ær×&F"ÖfVææV2Ö6öçF÷W%Ç2¥ÇµµÇ5Å5Ò£÷¢Ö–æFWƒ¥Ç2£C²÷2çFW7B†772’Â%F†R6Æ–'&FVB–ÒÖÆ–v‡B×W7B7F’&VÆ÷rF†R7W&f6R66âæB6öçF÷W"â"“°¦76W'B‚ô¶W–g&ÖW2G&–æ–ærÖfVææV2×föÇVÖR×7W&f6RÖÇG%Ç2¥ÇµµÇ5Å5Ò£öÖ6²×÷6—F–öã¥Ç2§f%Â‚Ò×G&–æ–ærÖfVææV2ÖÖ6²×7F'B×÷6—F–öåÂ’SSµµÇ5Å5Ò£öÖ6²×÷6—F–öã¥Ç2§f%Â‚Ò×G&–æ–ærÖfVææV2ÖÖ6²ÖVæB×÷6—F–öåÂ’SS²÷2çFW7B†772’bbfVææV57W&f6T¶W–g&ÖW2æ–æ6ÇVFW2‚&÷6—G“¢"’Â%F†RFV×÷&'’fVææV2föÇVÖR72×W7Bæ–ÖFRöæÇ’—G2ÅE"Ö6²÷6—F–öââ"“°¦76W'B‡G&–æ–æu&F%F&vWG2æ–æ6ÇVFW2‚&vWEG&–æ–æu&F%&ævUF–Ö–ær"’bbG&–æ–æu&F%F&vWG2æ–æ6ÇVFW2‚'7F'E&öw&W73¢ãc2"’bbG&–æ–æu&F%F&vWG2æ–æ6ÇVFW2‚&VæE&öw&W73¢ã“#B"’bbG&–æ–æu&F%F&vWG2æ–æ6ÇVFW2‚'66äFVÆ”×3¢sƒ2"’bbG&–æ–æu&F%6WVVæ6Ræ–æ6ÇVFW2‚&fVææV5&ævUF–Ö–æsòæGW&F–öä×2"’Â%F†RfVææV2föÇVÖRÆ–fV7–6ÆR×W7BW6R—G26Æ–'&FVB7F'BFVÆ’æBW†7BÆ–æV"GW&F–öâ7&÷72—G2ÖV7W&VBv–GF‚â"“°¦76W'B‡G&–æ–æu66VæRæ–æ6ÇVFW2‚"Ò×G&–æ–ær×föÇVÖR×66âÖV6–ær"’bbG&–æ–æu66VæRæ–æ6ÇVFW2‚"Ò×G&–æ–ærÖfVææV2ÖÖ6²×7F'B×÷6—F–öâ"’bbG&–æ–æu66VæRæ–æ6ÇVFW2‚&FF×7W&f6R×66âÖÖöFS×¶fVææV57W&f6TÖöFWÒ"’Â%F†RFV×÷&'’fVææV27W&f6R66â×W7B6öç7VÖRF†R6VçG&ÂÅE"&ævRF–Ö–ærâ"“°¦76W'B‚öFF×7W&f6R×66âÖÖöFSÒ'&WfVÂ%µÇ5Å5Ò£÷G&–æ–ær×&F"ÖfVææV2×7W&f6RÖÖ6µµÇ5Å5Ò£ö÷6—G“¥Ç2£ÂãCƒµµÇ5Å5Ò£÷G&–æ–ærÖfVææV2×föÇVÖR×7W&f6RÖÇG"÷2çFW7B†fVææV566ä772’bböFF×föÇVÖR×66â×†6SÒ&fFR%µÇ5Å5Ò£÷G&–æ–ær×&F"ÖfVææV2×7W&f6RÖÖ6µµÇ5Å5Ò£ö÷6—G“¥Ç2£²÷2çFW7B†fVææV566ä772’Â%F†RfVææV27W&f6R66â×W7B&WfVÂF†VâfFRGW&–ærF†RföÇVÖR72öæÇ’â"“°¦76W'B‚öFF×föÇVÖR×66â×†6SÒ&†öÆB%µÇ5Å5Ò£÷G&–æ–ær×&F"ÖfVææV2×7W&f6RÖÖ6µµÇ5Å5Ò£ö÷6—G“¥Ç2£ÂãCƒµµÇ5Å5Ò£öæ–ÖF–öã¥Ç2¦æöæSµµÇ5Å5Ò£öÖ6²×÷6—F–öã¥Ç2§f%Â‚Ò×G&–æ–ærÖfVææV2ÖÖ6²ÖVæB×÷6—F–öåÂ’SS²÷2çFW7B†fVææV566ä772’bböFF×föÇVÖR×66â×†6SÒ&†öÆB%µÇ5Å5Ò£÷G&–æ–ær×&F"ÖfVææV2Ö6öçF÷W%µÇ5Å5Ò£ö÷6—G“¥Ç2£ÂãCµµÇ5Å5Ò£öæ–ÖF–öã¥Ç2¦æöæS²÷2çFW7B†fVææV566ä772’Â%F†RfVææV2föÇVÖR66â×W7B†öÆB—G2gVÆÇ’&WfVÆVB7W&f6RæBF—67&VWB6öçF÷W"&Vf÷&RfF–ærâ"“°¦76W'B‡G&–æ–æu66VæRæ–æ6ÇVFW2‚v6Æ74æÖSÒ'G&–æ–ærÖfVææV2Ö&6RÖg&ÖR"r’bbG&–æ–æu66VæRæ–æ6ÇVFW2‚v6Æ74æÖSÒ'G&–æ–ærÖfVææV2Ö&6R"r’bbG&–æ–æu66VæRæ–æ6ÇVFW2‚vFF×F7F–6ÂÖ7F—fS×¶fVææV5F7F–6Ä7F—fRò'G'VR"¢&fÇ6R'Òr’Â%F†RfVææV2&6RæB–ÒÖÆ–v‡B×W7BW‡÷6RF†R6W&FRF7F–6Â7FFRâ"“°¦76W'B‚õÂçG&–æ–ær×&F"ÖfVææV2Ö–×7EÇ2¥ÇµµÇ5Å5Ò£òÒ×G&–æ–ærÖfVææV2ÖFWF–Â×V³¥Ç2£Âã3µµÇ5Å5Ò£öf–ÇFW#¥Ç2¦æöæS²÷2çFW7B†772’Â%F†R–ÒÖÆ–v‡B×W7B&VÖ–â&VF&ÆRv—F†÷WBF–fgW6RvÆ÷râ"“°¦76W'B‚õÂçG&–æ–ærÖfVææV2Ö&6RÖg&ÖUÅ¶FF×F7F–6ÂÖ7F—fSÒ&fÇ6R%ÅÕÇ2¥ÇµµÇ5Å5Ò£ö÷6—G“¥Ç2£µµÇ5Å5Ò£öæ–ÖF–öã¥Ç2¦æöæS²÷2çFW7B†772’bböFF×F7F–6ÂÖ7F—fSÒ&fÇ6R%µÇ5Å5Ò£õÂçG&–æ–ær×&F"ÖfVææV2Ö–×7EÇ2¥ÇµµÇ5Å5Ò£ö÷6—G“¥Ç2£µµÇ5Å5Ò£öæ–ÖF–öã¥Ç2¦æöæS²÷2çFW7B†fVææV566ä772’Â$–æ7F—fRF7F–6Â7FFR×W7B&W7F÷&RF†RfVææV2&6RæB†–FR–ÒÖÆ–v‡B–ÖÖVF–FVÇ’â"“°¦76W'B‚õÂçG&–æ–ærÖfVææV2Ö&6RÖg&ÖUÅ¶FF×F7F–6ÂÖ7F—fSÒ'G'VR%ÅÕÇ2¥ÇµµÇ5Å5Ò£÷G&–æ–ærÖfVææV2×F7F–6ÂÖ&6RÖ7F—fFRcS×2Æ–æV"&÷Fƒ²÷2çFW7B†772’bböFF×F7F–6ÂÖ7F—fSÒ'G'VR%µÇ5Å5Ò£õÂçG&–æ–ær×&F"ÖfVææV2Ö–×7EÇ2¥ÇµµÇ5Å5Ò£÷G&–æ–ærÖfVææV2×F7F–6ÂÖ–×7BÖ7F—fFRcS×2Æ–æV"&÷FƒµµÇ5Å5Ò£öÖ6²Ö–ÖvS¥Ç2¦æöæS²÷2çFW7B†fVææV566ä772’Â$7F—fRF7F–6Â7FFR×W7BG&—fRöæR7–æ6‡&öæ—¦VBfVææV2&6Rö–ÒÖÆ–v‡BfÆ–6¶W"â"“°¦76W'B‚ô¶W–g&ÖW2G&–æ–ærÖfVææV2×F7F–6ÂÖ&6RÖ7F—fFUÇ2¥ÇµµÇ5Å5Ò£óUÇ2¥ÇµÇ2¦÷6—G“¥Ç2£µµÇ5Å5Ò£óUÇ2¥ÇµÇ2¦÷6—G“¥Ç2£ÂãC²÷2çFW7B†772’bbô¶W–g&ÖW2G&–æ–ærÖfVææV2×F7F–6ÂÖ–×7BÖ7F—fFUÇ2¥ÇµµÇ5Å5Ò£óUÇ2¥ÇµÇ2¦÷6—G“¥Ç2£µµÇ5Å5Ò£óUÇ2¥ÇµÇ2¦÷6—G“¥Ç2£Âãc²÷2çFW7B†772’Â%F†RfVææV2F7F–6Â7F—fF–öâ×W7B6WGFÆRB&6RãBæB–ÒÖÆ–v‡Bãbâ"“°¦76W'B‚772æ–æ6ÇVFW2‚'G&–æ–ærÖfVææV2Ö&6R×W'6—7FVBÖ7&÷76fFR"’bb772æ–æ6ÇVFW2‚'G&–æ–ærÖfVææV2Ö–×7B×W'6—7FVBÖ7&÷76fFR"’bb772æ–æ6ÇVFW2‚vFF×7W&f6R×66âÖÖöFSÒ'W'6—7FVB"r’bb772æ–æ6ÇVFW2‚vFF×7W&f6R×66âÖÖöFSÒ&W&6R"r’Â$ÆVv7’W'6—7FVBæB%DÂW&6R7&÷76fFR6öçG&öÇ2×W7B&R&VÖ÷fVBâ"“°¦76W'B‚fVææV566ä772æ–æ6ÇVFW2‚&&ÇW"‚"’bbfVææV566ä772æ–æ6ÇVFW2‚&G&÷×6†F÷r‚"’Â$fVææV2föÇVÖR÷fW&Æ—2×W7B7F’7&—7v—F†÷WBF–fgW6R&ÇW"÷"vÆ÷r7&VBâ"“°¦76W'B‚fVææV566ä772æ–æ6ÇVFW2‚#C’ã"RSã‚R"’bbfVææV566ä772æ–æ6ÇVFW2‚#C’ãRRSãRR"’bbfVææV566ä772æ–æ6ÇVFW2‚#C’ãrRSã2R"’Â$fVææV2Ö6·2×W7Bæ÷B&Vw&W72FòVÇG&×F†–âÆ–æR6÷&W2â"“°¦76W'B‚G&–æ–æu66VæRæ–æ6ÇVFW2‚&fVææV5&VfÆV7F–öâ"’bbG&–æ–æu&F%F&vWG2æ–æ6ÇVFW2‚'v—&Vg&ÖT76WC¢76WG2æfVææV2"’bbG&–æ–æu&F%F&vWG2æ–æ6ÇVFW2‚&vÆ÷t76WC¢76WG2æfVææV2"’Â%F†RfVææV2föÇVÖR66â×W7Bæ÷B&W7F÷&R&VfÆV7F–öâ÷"F7F–6ÂF&vWB÷fW&Æ—2â"“°¦76W'B‚õÂçG&–æ–ærÖfVææV2×&V"Ö66VçEÇ2¥ÇµµÇ5Å5Ò£ö÷6—G“¥Ç2£Âãƒ²÷2çFW7B†772’Â$fVææV2&V"66VçB×W7B&VÖ–âfW'’7V'FÆRâ"“°¦76W'B†772æ–æ6ÇVFW2‚"çG&–æ–ær×&F"Ö&ÆÂ×F&vWC£¦&Vf÷&R"’bb772æ–æ6ÇVFW2‚&F—7Æ“¢æöæR"’Â%F†R&ÆÂ×W7Bæ÷B&VæFW"F†RgVÆÂÖ6çf26öçF7B&–ærâ"“°¦76W'B†772æ–æ6ÇVFW2‚ræÖöFRÖ–ÆÇW7G&F–öå¶FFÖ7F—fSÒ&fÇ6R%ÒçG&–æ–ær×'F–6ÆRÖ6÷&Rr’bb772æ–æ6ÇVFW2‚ræÖöFRÖ–ÆÇW7G&F–öå¶FFÖÖ÷F–öâÖ7F—fSÒ&fÇ6R%ÒçG&–æ–ær×'F–6ÆRÖ6÷&S£¦gFW"r’Â$–æ7F—fRæBöfg67&VVâ'F–6ÆRæBg&vÖVçBæ–ÖF–öç2×W7BW6Râ"“°¦76W'B†772æ–æ6ÇVFW2‚rçG&–æ–ær×66VæU¶FFÖÆVæ6†–æsÒ'G'VR%ÒçG&–æ–ær×'F–6ÆRÖf–VÆBr’bb772æ–æ6ÇVFW2‚'G&ç6—F–öã¢÷6—G’#C×2V6RÖ÷WB"’Â%'F–6ÆW2×W7BfFRæBW6RGW&–ærÆVæ6‚â"“°¦76W'B†772æ–æ6ÇVFW2‚'G&ç7&VçBCBR"’bb772æ–æ6ÇVFW2‚'&v"ƒòã#"’CrR"’bb772æ–æ6ÇVFW2‚'&v"ƒòãs‚’s2R"’bb772æ–æ6ÇVFW2‚&&Æ6²R"’Â%&F"'F–6ÆW2×W7B&R†–FFVâBF†R†÷&—¦öâÂ&VF&ÆR–âF†RÖ–FFÆRæB7G&öævW7B–âF†Rf÷&Vw&÷VæBâ"“°¦76W'B†772æ–æ6ÇVFW2‚&'&–v‡FæW72ƒ"ã"’"’bb772æ–æ6ÇVFW2‚'f"‚Ò×'F–6ÆRÖFVÆ’’f÷'v&G2"’Â%&F"'F–6ÆW2×W7BfÆ6‚–ÖÖVF–FVÇ’BVÖ—76–öâv†–ÆR7F––ær†–FFVâ&Vf÷&RF†R66âÆ–æR'&—fW2â"“°¦76W'B‚ôÖVF–Â‡&VfW'2×&VGV6VBÖÖ÷F–öã¢&VGV6UÂ•µÇ5Å5Ò£õÂçG&–æ–ær×'F–6ÆRÖf–VÆEÇ2¥ÇµÇ2¦F—7Æ“¥Ç2¦æöæS²÷2çFW7B†772’Â%&VGV6VBÖ÷F–öâ×W7B†–FRF†R&F"'F–6ÆRG&–ÂFövWF†W"v—F‚F†R&F"â"“° ¦76W'B†772æ–æ6ÇVFW2‚$¶W–g&ÖW2G&–æ–ær×&F"×G&fW'6R"’bb772æ–æ6ÇVFW2‚$¶W–g&ÖW2G&–æ–ærÖæÇ—6—2×66â"’Â%G&–æ–ær×W7BW6RF†R6Æ—VBf–VÆB&F"–ç7FVBöbÆVv7’6—&6ÆW2â"“°¦76W'B†772æ–æ6ÇVFW2‚$¶W–g&ÖW2G&–æ–ærÖÆVæ6‚Ö&ÆÂÖVæW&w’"’bb772æ–æ6ÇVFW2‚$¶W–g&ÖW2†öÖR×G&–æ–ærÖÆVæ6‚×vfR"’Â%G&–æ–ærÆVæ6‚¶W–g&ÖW2×W7B&VÖ–âVçF÷V6†VBâ"“°¦76W'B†772æ–æ6ÇVFW2‚$¶W–g&ÖW26ö×WF—F—fRÖÆVæ6‚ÖfVææV2"’Â$6ö×WF—F—fR&W&VBÆVæ6‚¶W–g&ÖW2×W7B&VÖ–ââ"“° ¦f÷"†6öç7BÆVv7•F‚öbÆVv7”†öÖTf–ÆW2’°¢76W'B‚W†—7G57–æ2†ÆVv7•F‚’ÂÆVv7’†öÖR6ö×öæVçB×W7B&R&VÖ÷fVC¢G¶ÆVv7•F‡Ö“°§Ğ ¦6öç7Bf÷&&–FFVåf—6–&ÆUv÷&F–ærÒ°¢&ÖöFRfW'&÷V–ÆÆR"À¢'W&Ö—2fW'&÷V–ÆÆR"À¢'F÷ÖöæF–Â"À¢&6Æ76VÖVçBÖöæF–Â"À¢&fW‚&ær"À¢##‚6W76–öç2"À¢#CV‚"À¢#s‚R"À¢#c‚R"À¥Ó°¦f÷"†6öç7B·F‚Â6öçFVçEÒöbö&¦V7BæVçG&–W2†f–ÆW2’’°¢6öç7BÆ÷vW"Ò6öçFVçBçFôÆ÷vW$66R‚“°¢f÷"†6öç7Bv÷&F–æröbf÷&&–FFVåf—6–&ÆUv÷&F–ær’°¢76W'B‚Æ÷vW"æ–æ6ÇVFW2‡v÷&F–ær’Âf÷&&–FFVâ†öÖRv÷&F–ærf÷VæB–âG·F‡Ó¢G·v÷&F–æwÖ“°¢Ğ§Ğ ¦f÷"†6öç7B·F‚Â6öçFVçEÒöbö&¦V7BæVçG&–W2†f–ÆW2’’°¢f÷"†6öç7Bf÷&&–FFVâöb²&6öçFVçBæ§6öâ"Â$öÆ–"÷VW7F–öç2"Â&vWEVW7F–öå7VÖÖ&–W2"Â&vWD7F—fUVW7F–öç2"Â&W'&÷%÷Fw2%Ò’°¢76W'B‚6öçFVçBæ–æ6ÇVFW2†f÷&&–FFVâ’Â†öÖRÆ–W"×W7Bæ÷B&VBVFvöv–6Â–çFW&æÇ2–âG·F‡Ó¢G¶f÷&&–FFVçÖ“°¢Ğ§Ğ ¦6öç6öÆRæÆör‚$†öÖRF6†&ö&BfÆ–FF–öâô²"“°¦6öç6öÆRæÆör‚$6÷fW&VB7FFW3¢7FF—7F–72FVfVÇBÂG&–æ–ærÆVæ6‚Â6ö×WF—F—fRÆö6¶VB&Wf–WrÂW&Ö—BÓÂvVV¶Ç’fö7W2Æ–fV7–6ÆRÂV×G’–ç6–v‡G2ÂF&vWFVB6W76–öç2Æö6¶VBÂWFòF‡&VR&VÂ6W76–öç2â"“° 
+assert(trainingGroundedActor.includes("showDomTactical") && trainingGroundedActor.includes("target.wireframeAsset.path") && trainingGroundedActor.includes("target.glowAsset.path") && trainingGroundedActor.includes("target.energyAsset.path"), "Wireframe, glow and tactical-energy images must remain available as DOM fallbacks.");
+assert(trainingGroundedActor.includes("training-grounded-actor-base") && trainingGroundedActor.includes("training-ball-launch-energy") && css.includes('.training-radar-car-target[data-tactical-phase="contact"]::before'), "Bases, launch energy and the procedural DOM contact pulse must remain intact.");
+assert((trainingGroundedActor.match(/<canvas/g) ?? []).length === 2 && !trainingGroundedActor.includes("tacticalCanvas") && !trainingGpuCanvas.includes("tacticalCanvas"), "Tactical rendering must reuse the four mounted object canvases without adding a tactical canvas.");
+assert(!trainingGpuTacticalUtils.includes("getContext(") && !trainingGpuTacticalUtils.includes("requestAnimationFrame"), "Tactical resources must reuse existing WebGL2 contexts and the renderer RAF.");
+assert(trainingGpuTacticalUtils.includes('"left-car": ["tacticalWireframe", "tacticalGlow"]') && trainingGpuTacticalUtils.includes('"back-right-car": ["tacticalWireframe", "tacticalGlow"]') && trainingGpuTacticalUtils.includes('"front-right-car": ["tacticalWireframe", "tacticalGlow"]') && trainingGpuTacticalUtils.includes('ball: ["tacticalEnergy"]'), "Exactly six car tactical textures and one ball tactical texture must be installed.");
+assert(trainingGpuTacticalUtils.includes('fitMode = registration.kind === "ball" ? "cover" : "contain"') && trainingGpuTacticalUtils.includes("getTrainingGpuObjectLocalQuad(asset.entry"), "Every tactical role must derive its local quad independently from its validated manifest entry.");
+assert(trainingGpuBaseUtils.includes("createTrainingGpuBaseResources") && trainingGpuBaseUtils.includes("assets.assets.base") && trainingGpuBaseUtils.includes("gl.ONE_MINUS_SRC_ALPHA") && !trainingGpuBaseUtils.includes("requestAnimationFrame") && !trainingGpuBaseUtils.includes("getContext("), "Four independent base textures must reuse the object contexts, shared VAOs and renderer lifecycle with normal premultiplied blending.");
+assert(trainingGpuObjectPlacement.includes("getTrainingGpuObjectBaseQuadInCanvasSpace") && trainingGpuObjectPlacement.includes("convertTrainingGpuSceneRectToLocalCanvasRect") && trainingGpuObjectPlacement.includes("getTrainingGpuObjectRenderRect(registration, baseEntry)") && !trainingGpuObjectPlacement.includes("getBoundingClientRect"), "Grounded-scene base crops must be converted mechanically into cached local canvas rectangles without DOM layout reads.");
+assert(trainingGpuVolumeUtils.includes("target.baseQuad = baseAsset") && trainingGpuVolumeUtils.includes("this.renderBaseTarget(this.targets[objectId])") && trainingGpuVolumeUtils.indexOf("this.renderBaseTarget(this.targets[objectId])") < trainingGpuVolumeUtils.indexOf("renderVolume(snapshot"), "Base quads must be cached during geometry updates and rendered before object effects.");
+const trainingGpuAnimatedObjectFrame = trainingGpuRenderer.slice(trainingGpuRenderer.indexOf("private renderFrame("), trainingGpuRenderer.indexOf("private renderRadarFrame("));
+assert(trainingGpuAnimatedObjectFrame.includes("this.volumeSubsystem.renderBases();") && trainingGpuAnimatedObjectFrame.indexOf("this.volumeSubsystem.renderBases();") < trainingGpuAnimatedObjectFrame.indexOf("this.volumeSubsystem.renderVolume(") && trainingGpuAnimatedObjectFrame.indexOf("this.volumeSubsystem.renderVolume(") < trainingGpuAnimatedObjectFrame.indexOf("this.volumeSubsystem.renderTactical(") && trainingGpuRenderer.includes("renderStaticObjectFrame") && !trainingGpuRenderer.slice(trainingGpuRenderer.indexOf("private canAnimate()"), trainingGpuRenderer.indexOf("private syncAnimationLoop()")).includes("isBaseReady"), "Animated frames must draw bases before volume and tactical effects while static bases never keep the RAF alive.");
+assert(trainingGpuVolumeUtils.includes('textures: baseResourceTargets.length') && trainingGpuVolumeUtils.includes('programs: baseResourceTargets.length') && trainingGpuBaseUtils.includes("getTrainingGpuBaseTextureBytes"), "Base diagnostics must report exactly one texture and one program per prepared object.");
+assert(css.includes(".training-gpu-volume-canvas") && /\.training-gpu-volume-canvas\s*\{[\s\S]*?z-index:\s*0;[\s\S]*?mix-blend-mode:\s*normal;/s.test(css) && css.includes('.training-scene[data-gpu-bases-ready="false"] .training-gpu-volume-canvas') && trainingGpuVolumeUtils.includes("gl.ONE_MINUS_SRC_COLOR") && trainingGpuTacticalUtils.includes("gl.ONE_MINUS_SRC_COLOR"), "The shared object canvas must composite GPU bases normally, preserve screen blending over a DOM-base fallback, and restore screen-style effect blending in WebGL.");
+assert(trainingGroundedActor.includes("target.baseAsset.path") && trainingGroundedActor.includes("training-ball-launch-energy") && (trainingGroundedActor.match(/<canvas/g) ?? []).length === 2, "DOM base fallbacks and launch energy must remain intact without any new object canvas.");
+assert(trainingRadarTargets.includes("contactDurationMs: 360") && trainingRadarTargets.includes("tacticalHoldDurationMs: 1800") && trainingRadarTargets.includes("fadeDurationMs: 800"), "Central tactical timings must remain unchanged.");
+assert(trainingScene.includes('name="fennec"') && trainingGpuObjectAssetCatalog.includes('"fennec"') && trainingGpuObjectAssetCatalog.includes("/ui/training-objects/fennec/manifest.json") && !trainingGpuVolumeUtils.includes('"fennec"') && !trainingGpuTacticalUtils.includes('"fennec"') && !trainingGpuBaseUtils.includes('"fennec"'), "The Fennec assets must be prepared without rendering the Fennec in WebGL yet.");
+assert((trainingGpuObjectAssetCatalog.match(/"left-car"|"back-right-car"|"front-right-car"|"ball"|"fennec"/g) ?? []).length >= 10 && trainingGpuObjectAssetLoader.includes("estimatedTextureBytes") && trainingGpuObjectAssetLoader.includes("entry.outputSize.width * entry.outputSize.height * 4"), "The GPU loader must load five prepared manifests and expose their future RGBA texture memory.");
+assert(trainingGpuObjectManifest.includes("crop must stay inside sourceSize") && trainingGpuObjectManifest.includes("outputSize must match crop size exactly") && trainingGpuObjectAssetLoader.includes("image.naturalWidth !== entry.outputSize.width"), "Fennec manifests and decoded image dimensions must retain the shared strict validation.");
+assert(!trainingScene.includes("training-gpu-fennec-canvas") && !trainingGpuRenderer.includes("Fennec") && !trainingGpuObjectAssetLoader.includes("requestAnimationFrame") && !trainingGpuObjectAssetLoader.includes("setTimeout") && !trainingGpuObjectAssetLoader.includes("setInterval"), "Preparing Fennec assets must not add a Fennec canvas, visual renderer, RAF or timer.");
+assert(homeIllustrationAssets.includes("/ui/training-lights-violet-glow-screen.png") && !trainingGpuObjectAssetCatalog.includes("lights-violet-glow-screen") && !trainingGpuObjectAssetCatalog.includes("headlightGlow:") && trainingScene.includes('name="fennec-lights-glow"'), "The full-scene violet screen halo must stay separate from the local Fennec headlight role.");
+
+assert(
+  trainingRendererDebugHook.includes('TRAINING_RENDERER_DEBUG_PARAM = "debugRenderer"') &&
+    trainingRendererDebugHook.includes('=== "1"') &&
+    trainingScene.includes("debugEnabled && debugCollector ? ("),
+  "Renderer diagnostics must activate only with debugRenderer=1 and must not render a panel otherwise.",
+);
+assert(
+  trainingGpuDebugPanel.includes("const PANEL_REFRESH_MS = 250") &&
+    trainingGpuDebugPanel.includes("window.setInterval(refresh, PANEL_REFRESH_MS)") &&
+    trainingGpuDebugPanel.includes("window.clearInterval(panelTimerId)"),
+  "The React diagnostics panel must poll at four hertz and clean up its timer.",
+);
+assert(
+  trainingGpuDebugTypes.includes('| "bases"') &&
+    trainingGpuDebugCollector.includes("bases: createSubsystemState()") &&
+    trainingGpuDebugCollector.includes('recordStaticRender(subsystem: TrainingGpuDebugSubsystemName)') &&
+    trainingGpuDebugPanel.includes('"bases"'),
+  "Local renderer diagnostics must expose base readiness, CPU, resources, errors, shared context events and static renders.",
+);
+assert(
+  trainingGpuDebugTypes.includes('| "tactical"') &&
+    trainingGpuDebugCollector.includes("tactical: createSubsystemState()") &&
+    trainingGpuDebugPanel.includes('"tactical"'),
+  "Local renderer diagnostics must expose tactical readiness, CPU, resources, errors and shared context events.",
+);
+
+assert(
+  trainingGpuDebugCollector.includes("new Float64Array(capacity)") &&
+    trainingGpuDebugCollector.includes("FRAME_SAMPLE_CAPACITY = 240") &&
+    trainingGpuDebugCollector.includes("CPU_SAMPLE_CAPACITY = 120") &&
+    !trainingGpuDebugCollector.includes(".push(..."),
+  "Renderer frame and CPU histories must stay bounded in circular buffers.",
+);
+assert(
+  trainingGpuDebugPanel.includes("new PerformanceObserver") &&
+    trainingGpuDebugPanel.includes('observe({ type: "longtask", buffered: false })') &&
+    trainingGpuDebugPanel.includes("longTaskObserver.disconnect()"),
+  "Long tasks must be observed and disconnected only while the debug panel is mounted.",
+);
+const trainingRendererCoreDebugSources =
+  trainingGpuDebugCollector +
+  trainingGpuDebugTypes +
+  trainingRendererDebugHook;
+const trainingRendererDebugSources =
+  trainingGpuDebugPanel + trainingRendererCoreDebugSources;
+assert(
+  !trainingRendererCoreDebugSources.includes("requestAnimationFrame") &&
+    !trainingRendererCoreDebugSources.includes("new TrainingRadarClock") &&
+    !trainingRendererCoreDebugSources.includes("setTimeout") &&
+    !trainingRendererCoreDebugSources.includes("setInterval("),
+  "Diagnostics must not create an effect clock, RAF loop, or uncontrolled timer.",
+);
+assert(
+  trainingGpuDebugPanel.includes("window.setInterval(") &&
+    !/(fetch\s*\(|XMLHttpRequest|sendBeacon|WebSocket)/.test(
+      trainingRendererDebugSources,
+    ),
+  "Diagnostics may use only the bounded panel timer and must never send telemetry.",
+);
+assert(
+  trainingGpuDebugPanel.includes("Copier le rapport JSON") &&
+    trainingGpuDebugPanel.includes("navigator.clipboard?.writeText") &&
+    trainingGpuDebugPanel.includes("Rapport JSON Ã  copier manuellement") &&
+    trainingGpuDebugPanel.includes("getSafeReportUrl"),
+  "Renderer diagnostics must export a sanitized local JSON report with a manual fallback.",
+);
+assert(
+  trainingGpuDebugCollector.includes('recordSubsystemCpu(') &&
+    trainingGpuDebugCollector.includes("p95FrameMs") &&
+    trainingGpuDebugCollector.includes("over20Ms") &&
+    trainingGpuDebugCollector.includes("over33Ms") &&
+    trainingGpuDebugCollector.includes("over50Ms"),
+  "Diagnostics must expose bounded frame metrics and CPU timings.",
+);
+assert(
+  trainingGpuRenderer.includes('recordSubsystemCpu(\n      "bases"') &&
+    trainingGpuRenderer.includes('recordSubsystemCpu(\n        "radar"') &&
+    trainingGpuRenderer.includes('recordSubsystemCpu(\n        "particles"') &&
+    trainingGpuRenderer.includes('recordSubsystemCpu(\n      "volume"') &&
+    trainingGpuRenderer.includes('recordSubsystemCpu(\n      "tactical"') &&
+    !trainingGpuRenderer.includes("TrainingGpuDebugPanel"),
+  "The renderer must report each GPU subsystem without importing React presentation.",
+);
+assert(
+  trainingGpuObjectAssetLoader.includes("recordManifestLoaded") &&
+    trainingGpuObjectAssetLoader.includes("recordImageDecoded") &&
+    trainingGpuVolumeUtils.includes("recordTextureUpload"),
+  "Manifest, image decode, and texture upload diagnostics must remain passive loading measurements.",
+);
+assert(
+  trainingGpuDebugCollector.includes("recordContextLost") &&
+    trainingGpuDebugCollector.includes("recordContextRestored") &&
+    trainingGpuDebugTypes.includes("estimatedTextureBytes"),
+  "Context events and theoretical texture memory must be present in local reports.",
+);
+assert(
+  trainingRendererModeHook.includes('useState<TrainingRendererMode>("dom")') &&
+    trainingScene.includes("const showDomRadar = !useGpuRenderer || !gpuRadarReady") &&
+    trainingScene.includes("const showDomParticles = !useGpuRenderer || !gpuParticlesReady") &&
+    trainingScene.includes("const showDomVolumeScan = !useGpuRenderer || !gpuVolumeScansReady") &&
+    trainingScene.includes("const showDomTactical = !useGpuRenderer || !gpuTacticalReady"),
+  "DOM mode and every existing DOM fallback must remain the default.",
+);
+assert(
+  !trainingRendererDebugSources.includes("FRAGMENT_SHADER") &&
+    !trainingRendererDebugSources.includes("trainingParticlePresets") &&
+    !trainingRendererDebugSources.includes("trainingRadarTargets"),
+  "Renderer diagnostics must not migrate or redefine a visual effect.",
+);
+
+assert(homeDashboard.includes("useState<HomeViewId>(viewModel.selectedView)"), "Dashboard must initialize from the selected home view.");
+assert(homeDashboard.includes('selectedView === "statistics"'), "Statistics panel must be the default right context.");
+assert(homeDashboard.includes("<HomeStatisticsPanel") && homeDashboard.includes("<ModeIllustration"), "Right context must switch between statistics and one scene.");
+assert(homeDashboard.includes('selectedView !== "training"'), "Only Training may enter the launch flow.");
+assert(!homeDashboard.includes("HomeDashboardModules"), "Legacy lower grid must not render.");
+assert(homeDashboard.includes("resetParallax(200)"), "Training launch must still recenter parallax.");
+assert(homeDashboard.includes("router.push(destination)"), "Training launch must still navigate after its animation.");
+assert((homeDashboard.match(/window\.setTimeout/g) ?? []).length === 1, "Training launch must keep one timer.");
+assert(homeDashboard.includes("clearTimeout(launchTimerRef.current)"), "Training launch timer must clean up.");
+assert(homeDashboard.includes('aria-busy={launchingMode !== null}'), "Launch state must remain accessible.");
+assert(homeLaunch.includes("HOME_LAUNCH_DURATION_MS = 2000"), "Training launch must remain exactly two seconds.");
+assert(!homeLaunchOverlay.includes("setTimeout") && !modeIllustration.includes("setTimeout"), "Scene and overlay must not duplicate the launch timer.");
+
+assert(statisticsPanel.includes("Aucune session pour le moment."), "Statistics must expose an honest empty session state.");
+assert(statisticsPanel.includes("Pas encore assez de donnees."), "Strengths and weaknesses must expose honest empty states.");
+assert(statisticsPanel.includes("statistics.recentSessions.length > 1 && statistics.allSessionsHref"), "All sessions link must require real data and a route.");
+assert(statisticsPanel.includes("session.href ?"), "Session links must render only when a real href exists.");
+assert(statisticsPanel.includes('statistics.targetedSessions.state === "available" && statistics.targetedSessions.href'), "Targeted sessions link must require availability and a real route.");
+assert(statisticsPanel.indexOf("insight.skill") < statisticsPanel.indexOf("insight.cognitiveCause"), "Rocket League skill must precede its cognitive cause.");
+
+assert(homeHeader.includes('role="progressbar"'), "Header must expose a semantic permit progress bar.");
+for (const attribute of ["aria-valuemin", "aria-valuemax", "aria-valuenow"]) {
+  assert(homeHeader.includes(attribute), `Permit progress missing ${attribute}.`);
+}
+assert(homeHeader.includes("permitProgress} %"), "Header must display the ViewModel permit percentage.");
+assert(homeHeader.includes("<AccessibleTooltip"), "Permit progress must have an interactive accessible tooltip.");
+assert(tooltip.includes('event.key !== "Escape"'), "Tooltip must close with Escape.");
+assert(tooltip.includes("onMouseEnter") && tooltip.includes("onFocus") && tooltip.includes("onClick"), "Tooltip must work with hover, focus and touch/click.");
+assert(tooltip.includes("onClick={() => setIsOpen(true)}"), "Touch activation must not immediately toggle the focused tooltip closed.");
+assert(tooltip.includes('role="tooltip"') && tooltip.includes("aria-describedby"), "Tooltip must be programmatically described.");
+assert(tooltip.includes('removeEventListener("pointerdown"'), "Tooltip outside-click listener must clean up.");
+assert(primaryAction.includes("AccessibleTooltip") && !primaryAction.includes(" disabled={isLaunching}"), "Locked Competitive info must stay interactive.");
+assert(primaryAction.includes("event.preventDefault()") && primaryAction.includes("onLaunch(action)"), "Training CTA must retain controlled launch.");
+
+assert(modeIllustration.includes("<TrainingScene active={active} launching={launching} />") && modeIllustration.includes("<CompetitiveScene />"), "One selected scene must render with Training lifecycle state.");
+assert(modeIllustration.includes("getLaunchGeometry") && modeIllustration.includes("resetParallax"), "Scene launch handle must stay intact.");
+assert(sceneGroup.includes("scene-parallax") && sceneGroup.includes("scene-idle") && sceneGroup.includes("scene-launch"), "Scene transform wrappers must stay independent.");
+assert(
+  sceneGroup.includes("homeSceneDepths[depth]") &&
+    sceneGroup.includes('"--scene-parallax-scale-x"') &&
+    sceneGroup.includes('"--scene-parallax-scale-y"'),
+  "Scene transforms must separate horizontal safety scale from vertical scene scale."
+);
+for (const asset of ["parallaxSky", "parallaxFarSkyline", "parallaxMidBuildings", "parallaxNearBuildings", "parallaxGround", "parallaxBarrier"]) {
+  assert(trainingScene.includes(`assets.${asset}`), `Training parallax layer missing: ${asset}`);
+}
+assert(!trainingScene.includes("parallaxGroundBarrier") && homeIllustrationAssets.includes('/ui/parallax-plan-01-sol.png') && homeIllustrationAssets.includes('/ui/parallax-plan-01-barriere.png'), "Training must compose separate pitch and barrier assets.");
+assert(homeIllustrationAssets.includes('/ui/matrice_analyse.png') && !homeIllustrationAssets.includes('/ui/terrain_matrice_analyse.png'), "Training radar must reveal the barrier-free tactical pitch matrix only.");
+assert(!trainingScene.includes("TrainingAnalysisOverlay") && !trainingScene.includes("assets.background"), "Legacy Training background and analysis circles must not render.");
+assert(!trainingScene.includes("distantCarsOcclusion"), "Legacy distant-car occlusion sheet must not render.");
+assert(trainingScene.includes('name={`training-${trainingFarCarTarget.id}`}') && trainingScene.includes("<TrainingGroundedCar"), "Training cars must render as individual grounded scene groups.");
+for (const target of ["left-car", "back-right-car", "front-right-car"]) {
+  assert(trainingRadarTargets.includes(`id: "${target}"`), `Grounded Training car missing: ${target}`);
+}
+assert(trainingScene.includes('name="training-radar-surface"') && trainingScene.includes('name="training-radar-sweep"') && !trainingScene.includes('name="training-radar-targets"'), "Training radar surfaces must stay behind the grounded actors.");
+assert(trainingScene.indexOf('name="training-radar-sweep"') < trainingScene.indexOf('name="training-barrier"') && trainingScene.indexOf('name="training-barrier"') < trainingScene.indexOf('name="training-particles-far"'), "The stable barrier must occlude the ground scan while remaining behind Training actors.");
+assert(trainingScene.includes('depth="trainingMid" layer={2} name="training-atmospheric-haze"') && trainingScene.indexOf('name="training-atmospheric-haze"') < trainingScene.indexOf('name="training-mid-buildings"') && !trainingScene.includes("training-horizon-haze"), "Training haze must move with and remain behind the second skyline plane.");
+assert(trainingScene.includes('name="ball"') && trainingScene.includes('name="fennec"') && trainingScene.includes('name="fennec-lights-glow"'), "Training ball, Fennec and separate light-glow groups must remain.");
+for (const premiumFennecLayer of ["fennecHeadlightGlow", "fennecRearAccent"]) {
+  assert(trainingScene.includes(`assets.${premiumFennecLayer}`), `Missing permanent premium Fennec layer: ${premiumFennecLayer}.`);
+}
+assert(!homeIllustrationAssets.includes("fennec-base reflection overlay.png") && !trainingScene.includes("assets.fennecReflection"), "The parasitic Fennec reflection overlay must never be registered or rendered.");
+assert(trainingScene.includes("assets.lightsVioletGlow") && trainingScene.indexOf('name="fennec"') < trainingScene.indexOf('name="fennec-lights-glow"'), "The violet screen asset must render in a separate group above the Fennec.");
+for (const fennecVolumeAsset of ["fennecSurfaceScan", "fennecContourScan", "fennecRimLight"]) {
+  assert(trainingRadarTargets.includes(fennecVolumeAsset), `Missing Fennec systematic volume asset: ${fennecVolumeAsset}.`);
+}
+for (const fennecAssetPath of ["/ui/training-fennec-base.png", "/ui/fennec-base surface-scan overlay.png", "/ui/fennec-base contour-scan overlay.png", "/ui/fennec-base im light overlay.png"]) {
+  assert(homeIllustrationAssets.includes(fennecAssetPath), `Missing calibrated Fennec asset: ${fennecAssetPath}.`);
+}
+assert(trainingScene.includes("training-radar-fennec-target") && trainingScene.includes("trainingFennecVolumeScanTarget.surfaceAsset") && trainingScene.includes("trainingFennecVolumeScanTarget.contourAsset") && trainingScene.includes("trainingFennecVolumeScanTarget.impactAsset") && trainingScene.includes("data-volume-scan-phase") && trainingScene.includes("data-tactical-active"), "The Fennec volume overlays and separate tactical im-light state must share the calibrated target.");
+assert(trainingScene.includes('className="training-transition-wave-local"'), "Prepared Training transition layer must remain.");
+
+for (const [preset, expectedCount] of Object.entries({ far: 6, mid: 5, near: 3 })) {
+  assert(
+    trainingParticlePresets.includes(`${preset}: ${expectedCount},`),
+    `Training particle count must stay deterministic for ${preset}: ${expectedCount}.`
+  );
+  assert(
+    trainingScene.includes(`depth="trainingParticles${preset[0].toUpperCase()}${preset.slice(1)}"`) &&
+      trainingScene.includes(`preset="${preset}"`),
+    `Training particle trail missing from the ${preset} parallax depth.`
+  );
+}
+assert(trainingParticlePresets.includes("far: 1107") && trainingParticlePresets.includes("mid: 2284") && trainingParticlePresets.includes("near: 3916"), "Training particles must use fixed per-depth seeds.");
+assert(!trainingParticlePresets.includes("Math.random"), "Training particles must not use nondeterministic randomness.");
+for (const visibilityTuning of [
+  "size: [2.2, 3.4]",
+  "opacity: [0.78, 0.94]",
+  "size: [2.8, 4.5]",
+  "opacity: [0.82, 1]",
+  "size: [3.6, 5.4]",
+  "opacity: [0.86, 1]",
+  "glow: [18, 25]",
+]) {
+  assert(trainingParticlePresets.includes(visibilityTuning), `Radar-linked tactical particles lost their calibrated tuning: ${visibilityTuning}.`);
+}
+for (const lifetimeTuning of [
+  "durationMs: [950, 1150]",
+  "durationMs: [1050, 1300]",
+  "durationMs: [1150, 1400]",
+  "rise: [12, 18]",
+  "driftX: [5, 10]",
+]) {
+  assert(trainingParticlePresets.includes(lifetimeTuning), `Radar trail timing or lift missing: ${lifetimeTuning}.`);
+}
+const radarTrailParticleCounts = { "violet-dust": 5, "gold-dot": 2, "tactical-spark": 7 };
+for (const [kind, expectedCount] of Object.entries(radarTrailParticleCounts)) {
+  assert(trainingParticlePresets.includes(`"${kind}": ${expectedCount}`), `Radar trail particle count missing for ${kind}: ${expectedCount}.`);
+}
+assert(Object.values(radarTrailParticleCounts).reduce((total, count) => total + count, 0) === 14, "Training radar trail must render exactly 14 readable particles per pass.");
+assert(trainingParticlePresets.includes("(index + 0.5 + (random() - 0.5) * 0.44) / expectedCount"), "Radar particles must span the sweep from left to right instead of clustering.");
+assert(trainingParticlePresets.includes("exclusionZones") && trainingParticlePresets.includes("isTooClose"), "Particle generation must keep actor exclusions and anti-cluster spacing.");
+assert(trainingParticlePresets.includes("normalizedX ** 2 + normalizedY ** 2 < 1"), "Actor exclusions must use precise elliptical masks.");
+assert(trainingParticleField.includes('aria-hidden="true"') && trainingParticleField.includes('data-particle-kind={particle.kind}'), "Particles must remain decorative and expose their deterministic visual kind.");
+for (const radarProp of ["active: boolean", "passKey: number"]) {
+  assert(trainingParticleField.includes(radarProp), `Radar particle field missing synchronization prop: ${radarProp}.`);
+}
+assert(
+  trainingParticleField.includes("getTrainingParticleBirthDelayMs") &&
+    trainingParticleTiming.includes("TRAINING_RADAR_SWEEP") &&
+    trainingParticleTiming.includes("getTrainingRadarDelayForProgress"),
+  "Particle delays must derive from the same central linear sweep geometry as the radar.",
+);
+assert(trainingParticleField.includes("--particle-rise-end") && trainingParticleField.includes("--particle-fragment-rise-end") && css.includes("--particle-glow-soft"), "Particle trail must expose lift, glow decay and disintegration fragments.");
+assert(trainingScene.includes("active={running}") && trainingScene.includes("passKey={passKey}") && !trainingScene.includes("direction={passDirection}"), "All particle depths must receive the live LTR radar pass without a direction branch.");
+assert(!/(<img|<video|<canvas|\.png|\.gif|requestAnimationFrame)/.test(trainingParticleField + trainingParticlePresets), "Particle rendering must stay HTML/CSS-only without a per-frame React loop.");
+assert(trainingRadarOverlay.includes('id="training-radar-terrain-core-mask"') && trainingRadarOverlay.includes('className="training-tactical-terrain-core"'), "The tactical mesh must receive a dedicated high-intensity reveal under the radar core.");
+assert(trainingRadarOverlay.includes('className="training-radar-core-glow"') && trainingRadarOverlay.includes('className="training-radar-core-line"'), "The radar must separate its soft halo from its sharp central scan line.");
+
+for (const orderedName of [
+  'name="training-radar-sweep"',
+  'name="training-barrier"',
+  'name="training-particles-far"',
+  `name={\`training-${'${trainingFarCarTarget.id}'}\`}`,
+  'name="training-particles-mid"',
+  `name={\`training-${'${trainingMidCarTarget.id}'}\`}`,
+  'name="training-particles-near"',
+  'name="fennec"',
+  'name="fennec-lights-glow"',
+]) {
+  assert(trainingScene.includes(orderedName), `Missing particle depth-order marker: ${orderedName}`);
+}
+const trainingParticleOrder = [
+  'name="training-radar-sweep"',
+  'name="training-barrier"',
+  'name="training-particles-far"',
+  `name={\`training-${'${trainingFarCarTarget.id}'}\`}`,
+  'name="training-particles-mid"',
+  `name={\`training-${'${trainingMidCarTarget.id}'}\`}`,
+  'name="training-particles-near"',
+  'name="fennec"',
+  'name="fennec-lights-glow"',
+].map((marker) => trainingScene.indexOf(marker));
+assert(trainingParticleOrder.every((position, index) => index === 0 || position > trainingParticleOrder[index - 1]), "Particle groups must keep their intended actor occlusion order.");
+assert(trainingScene.includes('data-launching={launching ? "true" : "false"}'), "Training particle lifecycle must receive launch state.");
+assert(trainingGroundedActor.includes("training-grounded-actor-base") && trainingGroundedActor.includes("training-contact-shadow"), "Grounded actors must share one transformed base and contact shadow.");
+assert(trainingGroundedActor.includes("training-radar-car-surface") && trainingGroundedActor.includes("training-radar-car-contour") && trainingGroundedActor.includes("training-radar-car-wireframe") && trainingGroundedActor.includes("training-radar-car-glow"), "Cars must layer surface, contour, wireframe and glow inside their grounded container.");
+assert(!trainingRadarTargets.includes("TRAINING_OBJECT_SCAN_TARGET_ID") && !trainingGroundedActor.includes("usesObjectScanV1"), "No adversary car may remain locked behind the retired car-03 prototype gate.");
+assert(trainingRadarTargets.match(/objectScan: \{/g)?.length === 3 && trainingGroundedActor.includes('data-object-scan="aligned"'), "All three adversary cars must carry their own radar-aligned scan configuration.");
+assert(!trainingGroundedActor.includes("training-object-local-scan-line") && trainingGroundedActor.includes("training-radar-object-surface") && trainingGroundedActor.includes("training-radar-object-contour"), "Every adversary car must render surface and contour volume layers without a decorative local line.");
+assert(trainingGroundedActor.includes("training-ball-contact-shadow") && trainingGroundedActor.includes("training-radar-ball-energy"), "Ball energy and contact treatment must share the grounded ball container.");
+assert(trainingGroundedActor.includes('src={target.surfaceAsset.path}') && trainingGroundedActor.includes('src={target.contourAsset.path}') && !trainingGroundedActor.includes('<span className="training-radar-ball-volume'), "The ball volume scan must render its aligned surface and contour image assets, not CSS spans.");
+assert(homeIllustrationAssets.includes('/ui/training-ball Overlay surface-scan.png') && homeIllustrationAssets.includes('/ui/training-ball overlay contour-scan.png') && homeIllustrationAssets.includes('/ui/training-ball-energy-gold.png'), "Ball volume and tactical energy assets must remain explicitly separate.");
+assert(trainingRadarOverlay.includes('viewBox="0 0 1672 941"') && trainingRadarOverlay.includes("TRAINING_RADAR_FIELD_PATH"), "Training radar must share and clip to the logical field canvas.");
+assert(trainingRadarOverlay.includes('data-radar-direction="ltr"') && !trainingRadarOverlay.includes("TrainingRadarDirection") && !trainingScene.includes("passDirection"), "Both radar layers must be permanently LTR.");
+assert(trainingRadarOverlay.includes('id="training-radar-field-surface-mask"') && trainingRadarOverlay.includes('id="training-radar-field-sweep-mask"'), "Every radar layer must use a field surface mask.");
+assert(!trainingRadarTargets.includes("TRAINING_OBJECT_SCAN_OCCLUSION") && !trainingRadarOverlay.includes("training-radar-object-notch") && !trainingScene.includes("objectTransferActive"), "The fixed car-03 capsule prototype must stay removed from the stable ground radar.");
+assert(!trainingRadarOverlay.includes('clipPath="url(#training-radar-field') && trainingRadarOverlay.includes('M -286 340 L 2 340'), "Training scan must keep the broad legacy reveal zone behind its strict field mask.");
+assert(trainingRadarOverlay.includes('stopColor="black"') && trainingRadarOverlay.includes('offset="0.04" stopColor="#707070"') && trainingRadarOverlay.includes('offset="0.6" stopColor="#e8e8e8"'), "Training radar depth must stay weak at the horizon but remain readable through the car zone.");
+assert(trainingRadarTargets.includes('"M 0 414 C 360 423') && trainingScene.indexOf('name="training-radar-sweep"') < trainingScene.indexOf('name="training-barrier"'), "The radar must be tightly masked to the visible pitch below the stable barrier.");
+assert(trainingRadarOverlay.includes('mix-blend-mode') === false && css.includes("mix-blend-mode: screen"), "Black tactical terrain must be screen blended in CSS.");
+assert(trainingRadarSequence.includes("document.visibilityState") && trainingRadarSequence.includes("IntersectionObserver") && trainingRadarSequence.includes("prefers-reduced-motion"), "Radar lifecycle must follow page, illustration, and motion visibility.");
+assert(!trainingRadarSequence.includes("requestAnimationFrame"), "Radar must not create a per-frame React loop.");
+assert(trainingRadarSequence.includes('export type TrainingRadarPassMode = "volume" | "tactical"') && trainingRadarSequence.includes('nextPassMode = passMode === "volume" ? "tactical" : "volume"'), "Radar passes must alternate explicitly between volume and tactical modes.");
+assert(!trainingRadarSequence.includes('"rtl"') && !trainingRadarSequence.includes("passDirection") && !trainingRadarTargets.includes("TrainingRadarDirection"), "The radar state and timing model must have no RTL branch.");
+assert(trainingRadarSequence.includes("for (const volumeTarget of trainingVolumeScanTargets)") && trainingRadarSequence.includes("if (passMode === \"volume\")") && trainingRadarSequence.includes("scheduleVolumePass();"), "The volume pass must scan every configured volume target.");
+assert(trainingRadarSequence.includes("for (const target of trainingRadarTargets)") && trainingRadarSequence.includes("scheduleTacticalPass();") && trainingRadarSequence.includes('[target.id]: "active"'), "The tactical pass must cumulatively activate every configured object.");
+assert(trainingRadarSequence.includes('passMode === "volume" ? HIDDEN_TACTICAL_PHASES : current.tacticalPhases') && trainingRadarSequence.includes('passMode === "volume" ? false : current.fennecTacticalActive'), "A volume pass must atomically clear all prior tactical activations.");
+assert(trainingRadarSequence.includes("volumeScanPhases: HIDDEN_VOLUME_SCAN_PHASES") && !trainingRadarSequence.includes("Math.random"), "Every pass must reset temporary volume scans and never select a random tactical target.");
+for (const target of ["left-car", "back-right-car", "front-right-car", "ball", "fennec"]) {
+  assert(trainingRadarTargets.includes(`id: "${target}"`), `Missing training radar target: ${target}`);
+}
+for (const [targetId, scanDelayMs, tacticalDelayMs] of [
+  ["left-car", 1250, 1350],
+  ["ball", 1600, 1550],
+  ["fennec", 1783, 2000],
+  ["back-right-car", 2108, 2100],
+  ["front-right-car", 2200, 2200],
+]) {
+  const targetStart = trainingRadarTargets.indexOf(`id: "${targetId}",`);
+  const targetBlock = trainingRadarTargets.slice(targetStart, targetStart + 1200);
+  assert(targetStart >= 0 && targetBlock.includes(`scanDelayMs: ${scanDelayMs}`) && targetBlock.includes(`tacticalDelayMs: ${tacticalDelayMs}`), `Incorrect calibrated scan/tactical delay for ${targetId}.`);
+}
+assert(trainingRadarSequence.includes("const startDelayMs = volumeTarget.scanDelayMs;") && trainingRadarSequence.includes("const hitDelayMs = target.tacticalDelayMs;") && trainingRadarSequence.includes("trainingFennecVolumeScanTarget.tacticalDelayMs"), "Volume and tactical passes must consume their separate calibrated delays.");
+assert(!trainingRadarSequence.includes("getTrainingRadarHitDelayMs") && !trainingRadarTargets.includes("getTrainingRadarHitDelayMs"), "Calibrated target delays must not be replaced by one shared derived hit delay.");
+assert(trainingRadarTargets.includes("trainingVolumeScanTargets") && trainingRadarTargets.includes("trainingFennecVolumeScanTarget") && trainingRadarTargets.includes("scanHitProgress: TRAINING_FENNEC_SCAN_PROGRESS"), "The Fennec must join only the systematic volume target collection at its calibrated radar hit.");
+for (const timing of ["TRAINING_RADAR_ENTRY_DURATION_MS = 250", "TRAINING_RADAR_TRAVEL_DURATION_MS = 2500", "TRAINING_RADAR_EXIT_DURATION_MS = 200", "TRAINING_RADAR_PAUSE_DURATION_MS = 180", "tacticalHoldDurationMs: 1800", "contactDurationMs: 360", "wireframeDelayMs: 820", "fadeDelayMs: 1500", "targetLifetimeMs: 2300", "fadeDurationMs: 800", "activeDurationMs: 380", "ballActiveDurationMs: 540", "fennecActiveDurationMs: 720", "contourDelayMs: 60", "holdDurationMs: 350", "fadeDurationMs: 400", "leadMs: 120"]) {
+  assert(trainingRadarTargets.includes(timing), `Missing centralized radar timing: ${timing}`);
+}
+assert(!trainingRadarTargets.includes("slowZone") && !trainingRadarTargets.includes("extraDurationMs") && !trainingRadarTargets.includes("smoothTrainingRadarStep"), "Ball and Fennec slow zones must be removed from the central timeline.");
+assert(/TRAINING_RADAR_TIMING\.entryDurationMs\s*\+\s*Math\.round\([\s\S]*?clampTrainingRadarProgress\(progress\)\s*\*\s*TRAINING_RADAR_TIMING\.travelDurationMs/s.test(trainingRadarTargets), "Radar target hits must use the linear entry plus progress times travel formula.");
+assert(/\(scanRange\.endProgress - scanRange\.startProgress\)\s*\*\s*TRAINING_RADAR_TIMING\.travelDurationMs/s.test(trainingRadarTargets), "Range duration must be linear in endProgress minus startProgress.");
+assert(trainingRadarTargets.includes('TRAINING_RADAR_TRAVEL_EASING = "linear"') && trainingRadarOverlay.includes('"--radar-travel-easing": TRAINING_RADAR_TRAVEL_EASING') && css.includes("var(--radar-travel-easing)"), "The visual radar and target scheduling must share one linear timeline.");
+assert(trainingRadarTargets.includes("TRAINING_RADAR_EXIT_DURATION_MS") && trainingRadarTargets.includes("TRAINING_RADAR_PAUSE_DURATION_MS") && trainingRadarSequence.includes("TRAINING_RADAR_TIMING.passDurationMs"), "Entry, travel, exit and hidden reset pause must stay centralized.");
+assert(trainingRadarSequence.includes('volumeTarget.type === "ball"') && trainingRadarSequence.includes('volumeTarget.type === "fennec"') && trainingGroundedActor.includes("TRAINING_VOLUME_SCAN_TIMING.ballActiveDurationMs") && trainingScene.includes("getTrainingRadarRangeTiming"), "The ball must keep its longer fixed reveal while the Fennec consumes the exact shared radar-range timing.");
+for (const placement of ['left: "34.76%"', 'left: "69.28%"', 'left: "73.84%"']) {
+  assert(trainingRadarTargets.includes(placement), `Missing calibrated wireframe placement: ${placement}`);
+}
+for (const grounding of ["groundY: 0.465", "groundY: 0.45", "groundY: 0.49", "groundY: 0.5615"]) {
+  assert(trainingRadarTargets.includes(grounding), `Missing grounded actor contact: ${grounding}`);
+}
+assert(competitiveScene.includes('name="cage"') && competitiveScene.includes('name="ground-reflection"'), "Competitive cage composition must remain.");
+assert(competitiveScene.includes('name="motion-trail"') && competitiveScene.includes('name="fennec"'), "Competitive car composition must remain.");
+for (const depth of ["3", "5", "7", "11", "14"]) {
+  assert(sceneDepths.includes(`translationX: ${depth}`), `Missing legacy parallax depth: ${depth}px`);
+}
+assert(sceneDepths.includes("rotation: 0.2"), "Parallax rotation must remain capped at 0.2deg.");
+for (const trainingDepth of ["trainingSky", "trainingSkyline", "trainingMid", "trainingNear", "trainingGround", "trainingParticlesFar", "trainingParticlesMid", "trainingParticlesNear", "trainingCarFar", "trainingCarMid", "trainingCarNear", "trainingBall", "trainingFennec"]) {
+  assert(sceneDepths.includes(`${trainingDepth}:`), `Missing Training parallax depth: ${trainingDepth}`);
+}
+for (const amplitude of [3, 7, 22, 27, 23, 25, 28, 34]) {
+  assert(sceneDepths.includes(`translationX: ${amplitude}`), `Missing Training horizontal amplitude: ${amplitude}px`);
+}
+assert(sceneDepths.includes("trainingParticlesFar: { translationX: 10, translationY: 0.8") && sceneDepths.includes("trainingParticlesMid: { translationX: 31, translationY: 2.6") && sceneDepths.includes("trainingParticlesNear: { translationX: 50, translationY: 4.4"), "Particle parallax must increase distinctly from far to near.");
+assert(parallaxController.includes("requestAnimationFrame") && parallaxController.includes("cancelAnimationFrame"), "Parallax must create and cancel its frame.");
+assert(
+  parallaxController.includes("new ResizeObserver") &&
+    parallaxController.includes("entry.contentRect.width") &&
+    parallaxController.includes("resizeObserver.disconnect()"),
+  "Training safety scale must be calculated at mount and recalculated by ResizeObserver."
+);
+const parallaxFrameBody =
+  parallaxController.match(/function animate\(timestamp: number\)([\s\S]*?)function stopAnimation/)?.[1] ?? "";
+assert(
+  !parallaxFrameBody.includes("clientWidth") &&
+    !parallaxFrameBody.includes("contentRect") &&
+    !parallaxFrameBody.includes("getBoundingClientRect"),
+  "Parallax animation frames must not measure layout."
+);
+assert(
+  sceneDepths.includes("calculateTrainingParallaxSafety") &&
+    sceneDepths.includes("(2 * (translationX + safetyMargin)) / renderedContainerWidth"),
+  "Training horizontal overscan must use the documented safety formula."
+);
+assert(
+  sceneDepths.includes("TRAINING_PARALLAX_SAFETY_MARGIN_PX = 10") &&
+    sceneDepths.includes("TRAINING_PARALLAX_MAX_SCALE_X = 1.1"),
+  "Training overscan must keep a ten-pixel margin and cap horizontal zoom."
+);
+for (const safetyDepth of ["trainingSkyline", "trainingMid", "trainingNear", "trainingGround"]) {
+  assert(
+    sceneDepths.includes(`  "${safetyDepth}"`),
+    `Dynamic Training safety depth missing: ${safetyDepth}`
+  );
+}
+const trainingSafetyDepthSource = sceneDepths.match(/trainingParallaxSafetyDepths = \[([\s\S]*?)\]/)?.[1] ?? "";
+assert(!trainingSafetyDepthSource.includes("trainingParticles"), "HTML particle planes must not enter raster overscan safety scaling.");
+
+const requestedTrainingTranslations = {
+  trainingSkyline: 7,
+  trainingMid: 22,
+  trainingNear: 34,
+  trainingGround: 27,
+};
+const trainingSafetyMargin = 10;
+const trainingMaximumScale = 1.1;
+
+function calculateExpectedTrainingSafety(width, requestedTranslationX) {
+  const maximumOverscanPerSide = ((trainingMaximumScale - 1) * width) / 2;
+  const safetyMargin = Math.min(trainingSafetyMargin, maximumOverscanPerSide);
+  const translationX = Math.min(
+    requestedTranslationX,
+    Math.max(0, maximumOverscanPerSide - safetyMargin)
+  );
+  const scaleX = 1 + (2 * (translationX + safetyMargin)) / width;
+  return { safetyMargin, scaleX, translationX };
+}
+
+for (const width of [1672, 1166, 1180, 820, 320]) {
+  for (const [name, requestedTranslationX] of Object.entries(requestedTrainingTranslations)) {
+    const safety = calculateExpectedTrainingSafety(width, requestedTranslationX);
+    const overscanPerSide = ((safety.scaleX - 1) * width) / 2;
+
+    assert(safety.scaleX <= trainingMaximumScale + 1e-9, `${name} zoom exceeds cap at ${width}px.`);
+    for (const cameraX of [-1, 0, 1]) {
+      const requiredCoverage = Math.abs(cameraX * safety.translationX) + safety.safetyMargin;
+      assert(
+        overscanPerSide + 1e-9 >= requiredCoverage,
+        `${name} exposes an edge at x=${cameraX} and ${width}px.`
+      );
+    }
+  }
+}
+assert(
+  calculateExpectedTrainingSafety(820, 34).translationX < 34 &&
+    calculateExpectedTrainingSafety(320, 34).translationX <
+      calculateExpectedTrainingSafety(820, 34).translationX,
+  "Small screens must reduce horizontal travel instead of increasing zoom past the cap."
+);
+assert(trainingRadarSequence.includes("tacticalPhases") && !trainingRadarSequence.includes("activeTacticalTargetId") && trainingRadarSequence.includes("...current.tacticalPhases"), "The tactical pass must accumulate activated objects instead of replacing one selected target.");
+assert(trainingRadarSequence.includes("volumeScanPhases") && trainingRadarSequence.includes("for (const volumeTarget of trainingVolumeScanTargets)") && trainingRadarSequence.includes("const startDelayMs = volumeTarget.scanDelayMs;"), "The volume pass must schedule calibrated temporary scans for all five 3D objects.");
+const volumePassSequence = trainingRadarSequence.slice(trainingRadarSequence.indexOf("function scheduleVolumePass"), trainingRadarSequence.indexOf("function scheduleTacticalPass"));
+const volumePhaseOrder = ['"active"', '"hold"', '"fade"', '"hidden"'].map((phase) => volumePassSequence.indexOf(phase));
+assert(volumePhaseOrder.every((position, index) => position >= 0 && (index === 0 || position > volumePhaseOrder[index - 1])), "Each volume scan must follow active, hold, fade, then hidden in order.");
+assert(volumePassSequence.includes("TRAINING_VOLUME_SCAN_TIMING.holdDurationMs") && volumePassSequence.includes("TRAINING_VOLUME_SCAN_TIMING.fadeDurationMs"), "Volume hold and fade delays must be scheduled independently after the unchanged active scan.");
+assert(/const nextPassDelayMs\s*=\s*TRAINING_RADAR_TIMING\.passDurationMs\s*\+\s*\(passMode === "tactical"[\s\S]*?TRAINING_RADAR_TIMING\.tacticalHoldDurationMs[\s\S]*?: 0\)/s.test(trainingRadarSequence) && trainingRadarSequence.includes("schedule(beginPass, nextPassDelayMs)"), "Only the tactical pass may add the 1800ms post-radar hold.");
+for (const phaseType of ['TrainingTacticalPhase = "hidden" | "contact" | "active"', 'TrainingVolumeScanPhase = "hidden" | "active" | "hold" | "fade"', 'TrainingFennecSurfaceMode = "hidden" | "reveal"']) {
+  assert(trainingRadarSequence.includes(phaseType), `Separated radar phase model missing: ${phaseType}.`);
+}
+assert(
+  css.includes("translate3d(0, -8%, 0) scaleY(1)") &&
+    css.includes("translate3d(0, -4%, 0) scaleY(1.02)"),
+  "Middle and near skyline planes must use vertical placement without horizontal CSS zoom."
+);
+const middleCityCss = css.match(/\.training-city-middle\s*\{[^}]*\}/s)?.[0] ?? "";
+const nearCityCss = css.match(/\.training-city-near\s*\{[^}]*\}/s)?.[0] ?? "";
+assert(
+  !/\bscale\(/.test(middleCityCss) && !/\bscale\(/.test(nearCityCss),
+  "Middle and near skyline images must not reintroduce a second horizontal scale."
+);
+assert(sceneDepths.includes("trainingMid: { translationX: 22") && sceneDepths.includes("trainingNear: { translationX: 34"), "The first two skyline planes must have strong and distinct foreground parallax.");
+assert(css.includes("inset: 11% -6% 61%") && css.includes("ellipse at 52% 82%"), "The skyline haze must retain the latest calibrated horizon placement.");
+assert(parallaxController.includes("AUTO_DRIFT_PERIOD_MS = 20000") && parallaxController.includes("-Math.sin(autoAngle)"), "Automatic camera must follow one continuous 20-second center-left-center-right cycle.");
+assert(parallaxController.includes('removeEventListener("pointermove"'), "Parallax pointer listener must clean up.");
+assert(parallaxController.includes('document.removeEventListener("visibilitychange"'), "Parallax visibility listener must clean up.");
+assert(parallaxController.includes("intersectionObserver?.disconnect()"), "Parallax observer must disconnect.");
+assert(!parallaxController.includes("useState"), "Parallax must not update React state per frame.");
+
+for (const line of css.split("\n")) {
+  if (line.includes("font-size")) {
+    assert(!line.includes("vw") && !line.includes("clamp("), `Font size must not scale with viewport width: ${line.trim()}`);
+  }
+}
+
+assert(css.includes("height: 100svh") && css.includes("overflow-y: hidden"), "Desktop home must fit the available viewport without scrolling.");
+assert(css.includes("@media (min-width: 1024px) and (min-height: 720px)"), "No-scroll desktop rule must start at the requested format.");
+assert(css.includes("@media (max-width: 820px)"), "Portrait tablet and mobile layouts must stack.");
+assert(css.includes(".home-statistics-panel") && css.includes(".statistics-lower-grid"), "Statistics panel layout must exist.");
+assert(/\.home-statistics-panel\s*\{[^}]*height:\s*auto;/s.test(css), "Empty statistics content must shrink to its natural height.");
+assert(!/\.home-statistics-panel\s*\{[^}]*border:\s*1px/s.test(css), "Statistics groups must not sit inside one visible outer card.");
+for (const separatedGroup of ["statistics-weekly-focus", "statistics-insight", "statistics-targeted", "statistics-sessions"]) {
+  assert(css.includes(`.${separatedGroup}`), `Missing separated statistics group: ${separatedGroup}`);
+}
+assert(css.includes("aspect-ratio: 1672 / 941"), "Scene ratio must remain 1672x941.");
+assert(css.includes('.mode-illustration[data-motion-active="false"]'), "Hidden and offscreen scene motion must pause.");
+assert(css.includes("@media (prefers-reduced-motion: reduce)"), "Reduced motion support must remain.");
+assert(css.includes("3% 44.2%") && css.includes("82% 44.7%") && css.includes("97% 44.2%"), "Particles must be clipped below the curved terrain horizon.");
+for (const preset of ["far", "mid", "near"]) {
+  assert(css.includes(`data-particle-preset="${preset}"`), `Missing CSS depth band for ${preset} radar particles.`);
+}
+for (const keyframe of ["training-radar-particle-birth-flash", "training-radar-particle-disintegrate", "training-radar-particle-fragment"]) {
+  assert(css.includes(`@keyframes ${keyframe}`), `Missing radar trail particle animation: ${keyframe}.`);
+}
+for (const kind of ["violet-dust", "gold-dot", "tactical-spark"]) {
+  assert(css.includes(`data-particle-kind="${kind}"`), `Missing radar trail particle shape: ${kind}.`);
+}
+assert(css.includes("var(--particle-delay) 1 forwards") && !css.includes("var(--particle-delay) infinite"), "Radar particles must play once after each scan hit, never loop independently.");
+assert(css.includes("drop-shadow(0 0 var(--particle-glow) currentColor)") && css.includes("drop-shadow(0 0 0 transparent)"), "Particles must leave the radar glowing and end with no glow.");
+assert(trainingParticleField.includes('className="training-particle-birth-flash"') && css.includes("var(--particle-kick-x)") && css.includes("scale(1.22)"), "Each radar particle must receive a visible birth flash and directional ejection impulse.");
+assert(css.includes("var(--particle-rise-mid)") && css.includes("var(--particle-rise-soft)") && css.includes("var(--particle-rise-end)"), "Particles must rise progressively while disintegrating.");
+assert(css.includes("var(--particle-fragment-rise-mid)") && css.includes("var(--particle-fragment-rise-end)"), "Each radar particle must shed a secondary rising fragment.");
+for (const removedWormMarker of ["training-metal-shard-jitter", "training-neon-streak-flash", "hard-glint", "neon-streak"]) {
+  assert(!css.includes(removedWormMarker) && !trainingParticlePresets.includes(removedWormMarker), `Legacy worm-like particle effect must stay removed: ${removedWormMarker}.`);
+}
+assert(css.includes("clip-path: polygon(0 42%, 67% 0") && css.includes('data-particle-kind="tactical-spark"'), "Radar particles must use compact tactical fragments instead of large soft circles.");
+assert(css.includes(".training-radar-core-line") && css.includes("stroke-width: 2.5px") && css.includes(".training-tactical-terrain-core"), "The radar core must stay thin, sharp and visibly linked to the saturated tactical mesh.");
+for (const layeredScanMarker of ["training-object-contact", "training-object-surface-scan-ltr", "training-object-contour-scan-ltr", "training-ball-volume-surface", "training-ball-volume-contour", "training-fennec-volume-surface-ltr", "training-fennec-volume-detail-ltr", "training-object-tactical-wireframe", "training-object-tactical-glow", "training-fennec-tactical-base-activate", "training-fennec-tactical-impact-activate"]) {
+  assert(css.includes(layeredScanMarker), `Layered Training object scan CSS missing: ${layeredScanMarker}.`);
+}
+for (const obsoleteRtlMarker of ["training-object-surface-scan-rtl", "training-object-contour-scan-rtl", "training-ball-volume-surface-rtl", "training-ball-volume-contour-rtl", "training-fennec-volume-surface-rtl", "training-fennec-volume-detail-rtl"]) {
+  assert(!css.includes(obsoleteRtlMarker), `Obsolete RTL scan CSS must be removed: ${obsoleteRtlMarker}.`);
+}
+assert(css.includes("opacity: 0.34") && css.includes("opacity: 0.3") && css.includes("mask-position: 130% 50%") && css.includes("mask-position: -30% 50%"), "Surface and contour scans must reveal progressively behind the aligned local line at restrained opacity.");
+assert(trainingRadarTargets.includes('angle: "-19deg"') && trainingRadarTargets.includes("durationMs: 380") && trainingGroundedActor.includes("--training-volume-scan-duration") && trainingGroundedActor.includes("--training-volume-contour-delay"), "Each car volume scan must expose its own mask axis and short persistence timing.");
+assert(css.includes("calc(90deg + var(--training-object-scan-angle))") && css.includes("var(--training-volume-scan-duration)") && css.includes("var(--training-volume-contour-delay)"), "Directional surface mask and near-immediate contour must share the short volume-scan timing.");
+assert(css.includes('[data-volume-scan-phase="active"]') && css.includes('[data-tactical-active="true"]') && !css.includes("data-radar-active"), "Systematic volume reveal and selective tactical activation must use separate CSS state channels.");
+assert(css.includes("opacity: 0.3") && css.includes("opacity: 0.09") && css.includes("--training-target-lifetime"), "Selective tactical wireframe and glow must keep their longer restrained lifecycle.");
+for (const premiumClass of ["training-fennec-rim-light", "training-lights-glow", "training-fennec-headlight-glow", "training-fennec-rear-accent"]) {
+  assert(css.includes(premiumClass), `Premium Fennec treatment missing: ${premiumClass}.`);
+}
+for (const safeOpacity of ["opacity: 0.32", "opacity: 0.24", "opacity: 0.3", "opacity: 0.09"]) {
+  assert(css.includes(safeOpacity), `Safe Training overlay opacity missing: ${safeOpacity}.`);
+}
+assert(!css.includes("training-fennec-reflection"), "The removed Fennec reflection overlay must not retain dead rendering CSS.");
+assert(/\.training-fennec-headlight-glow\s*\{[\s\S]*?opacity:\s*0\.05;[\s\S]*?animation:\s*none;/s.test(css), "The legacy Fennec headlight overlay must remain strongly reduced to avoid doubling the screen glow.");
+assert(/\.training-lights-glow\s*\{[\s\S]*?opacity:\s*0\.48;[\s\S]*?mix-blend-mode:\s*screen;[\s\S]*?animation:\s*training-lights-breathe 3\.6s ease-in-out infinite;/s.test(css), "The violet Fennec light asset must breathe visibly as a separate screen layer.");
+assert(/@keyframes training-lights-breathe\s*\{[\s\S]*?opacity:\s*0\.48;[\s\S]*?brightness\(0\.86\)[\s\S]*?opacity:\s*0\.76;[\s\S]*?brightness\(1\.12\)/s.test(css), "The separate violet lights must restore the stronger legacy breathing range.");
+assert(css.includes("training-ball-volume-surface-ltr") && css.includes("training-ball-volume-contour-ltr"), "The ball volume scan must visibly traverse the ball during the LTR volume pass.");
+assert(css.includes("--training-ball-volume-mask-angle: 90deg") && !css.includes('.training-radar-ball-target[data-radar-direction="rtl"]'), "The ball mask must stay permanently oriented for LTR travel.");
+assert(/@keyframes training-ball-volume-surface-ltr\s*\{[\s\S]*?mask-position:\s*88% 50%;[\s\S]*?mask-position:\s*12% 50%;/s.test(css), "The LTR ball mask must enter the sphere immediately instead of starting far outside it.");
+assert(/\.training-radar-ball-target\[data-tactical-phase="contact"\][\s\S]*?opacity:\s*0\.86;[\s\S]*?brightness\(1\.55\) saturate\(1\.32\)/s.test(css) && /\.training-radar-ball-target\[data-tactical-phase="active"\][\s\S]*?opacity:\s*0\.52;[\s\S]*?brightness\(1\.3\) saturate\(1\.2\)/s.test(css), "The tactical ball must keep a strong contact flash and remain clearly gold while active.");
+assert(/\.training-radar-car-target\[data-volume-scan-phase="hold"\][\s\S]*?\.training-radar-object-surface\s*\{[\s\S]*?opacity:\s*0\.22;[\s\S]*?animation:\s*none;[\s\S]*?mask-position:\s*-30% 50%;/s.test(css) && /\.training-radar-car-target\[data-volume-scan-phase="hold"\][\s\S]*?\.training-radar-object-contour\s*\{[\s\S]*?opacity:\s*0\.14;/s.test(css), "Car volume scans must hold their final surface and contour briefly after traversal.");
+assert(/\.training-radar-ball-target\[data-volume-scan-phase="hold"\][\s\S]*?\.training-radar-ball-volume-surface\s*\{[\s\S]*?opacity:\s*0\.32;[\s\S]*?animation:\s*none;[\s\S]*?mask-position:\s*12% 50%;/s.test(css) && /\.training-radar-ball-target\[data-volume-scan-phase="hold"\][\s\S]*?\.training-radar-ball-volume-contour\s*\{[\s\S]*?opacity:\s*0\.2;/s.test(css), "Ball volume scans must hold their aligned final frame before fading.");
+assert(/@keyframes training-object-surface-scan-ltr\s*\{[\s\S]*?100%\s*\{\s*opacity:\s*0\.22;/s.test(css) && /@keyframes training-object-contour-scan-ltr\s*\{[\s\S]*?100%\s*\{\s*opacity:\s*0\.14;/s.test(css) && /@keyframes training-ball-volume-surface-ltr\s*\{[\s\S]*?100%\s*\{\s*opacity:\s*0\.32;/s.test(css) && /@keyframes training-ball-volume-contour-ltr\s*\{[\s\S]*?100%\s*\{\s*opacity:\s*0\.2;/s.test(css), "Active volume keyframes must end at hold opacity instead of disappearing immediately.");
+assert(/\.training-radar-ball-volume-surface\s*\{[\s\S]*?transparent 39\.5%,[\s\S]*?black 47% 53%,[\s\S]*?transparent 60\.5%/s.test(css), "The systematic ball surface scan must expose a readable volumetric window without a full reveal.");
+assert(/\.training-radar-ball-volume-contour\s*\{[\s\S]*?transparent 41\.5%,[\s\S]*?black 47\.5% 52\.5%,[\s\S]*?transparent 58\.5%/s.test(css), "The systematic ball contour scan must reinforce the readable moving window without a full reveal.");
+assert(!css.includes("black 0 46%") && !css.includes("black 42% 66%"), "The ball volume scan must never reuse a broad full-layer reveal mask.");
+assert(css.includes("opacity: 0.68") && css.includes("opacity: 0.58") && css.includes("mask-position: 88% 50%") && css.includes("mask-position: 12% 50%"), "The aligned ball assets must expose a readable directional surface and contour pass.");
+assert(/\.training-radar-ball-volume-surface,[\s\S]*?\.training-radar-ball-volume-contour\s*\{[\s\S]*?inset:\s*0;[\s\S]*?width:\s*100% !important;[\s\S]*?height:\s*100% !important;[\s\S]*?object-fit:\s*contain;/s.test(css), "Square ball scan assets must preserve their intrinsic canvas without cover enlargement.");
+assert(css.includes("--training-ball-volume-scale-x: 0.4") && css.includes("--training-ball-volume-scale-y: 0.415") && css.includes("--training-ball-volume-scale-x: 0.375") && css.includes("--training-ball-volume-scale-y: 0.385"), "Surface and contour assets must retain their measured scale calibration against the base ball.");
+assert(css.includes("--training-ball-volume-translate-x: 0.48%") && css.includes("--training-ball-volume-translate-y: -3.3%") && css.includes("--training-ball-volume-translate-y: -3.15%"), "Ball scan assets must retain their measured center calibration against the base ball.");
+assert(!css.includes("width: 8.6%") && !css.includes("translate(-50%, -88%)"), "The obsolete undersized and offset ball fallback must stay removed.");
+const ballVolumeKeyframes = css.slice(css.indexOf("@keyframes training-ball-volume-surface-ltr"), css.indexOf("@keyframes training-object-tactical-wireframe"));
+assert(!ballVolumeKeyframes.includes("scale(") && !ballVolumeKeyframes.includes("width:"), "The systematic ball volume scan must not resize or displace the ball.");
+const tacticalTargetCollection = trainingRadarTargets.slice(trainingRadarTargets.indexOf("export const trainingRadarTargets"), trainingRadarTargets.indexOf("export const trainingFennecVolumeScanTarget"));
+assert(!tacticalTargetCollection.includes('id: "fennec"') && trainingRadarTargets.includes('id: "fennec"'), "The Fennec must receive systematic volume scans without joining tactical target selection.");
+const fennecScene = trainingScene.slice(trainingScene.indexOf('name="fennec"'), trainingScene.indexOf('name="fennec-lights-glow"'));
+const fennecScanCss = css.slice(css.indexOf(".training-radar-fennec-target"), css.indexOf('.scene-group[data-scene-group="fennec-lights-glow"]'));
+const fennecSurfaceMaskCss = css.slice(css.indexOf(".training-radar-fennec-surface-mask {"), css.indexOf(".training-radar-fennec-surface-frame {"));
+const fennecSurfaceKeyframes = css.slice(css.indexOf("@keyframes training-fennec-volume-surface-ltr"), css.indexOf("@keyframes training-fennec-volume-detail-ltr"));
+assert(!fennecScene.includes("training-object-local-scan-line") && !fennecScanCss.includes("::before") && !fennecScanCss.includes("::after"), "The Fennec volume scan must never render a local line or pseudo-line.");
+assert(fennecScene.includes('className="training-radar-fennec-surface-mask"') && fennecScene.includes('className="training-radar-fennec-surface-frame"'), "The calibrated Fennec image must be nested inside a separate full-canvas radar mask.");
+assert(/\.training-radar-fennec-surface-mask\s*\{[\s\S]*?--training-fennec-surface-mask-angle:\s*90deg;[\s\S]*?position:\s*absolute;[\s\S]*?inset:\s*0;[\s\S]*?width:\s*100%;[\s\S]*?height:\s*100%;[\s\S]*?opacity:\s*0;[\s\S]*?linear-gradient\(\s*var\(--training-fennec-surface-mask-angle\)[\s\S]*?black 0 50%,[\s\S]*?transparent 53%[\s\S]*?mask-size:\s*200% 100%;/s.test(css), "The temporary radar mask must remain full-canvas with one fixed 90-degree orientation.");
+assert(!fennecSurfaceMaskCss.includes("--training-fennec-volume-mask-angle"), "The Fennec surface mask must keep its fixed LTR orientation.");
+assert(/\.training-radar-fennec-surface-frame\s*\{[\s\S]*?left:\s*15\.8085%;[\s\S]*?top:\s*6\.1722%;[\s\S]*?width:\s*80\.4954%;[\s\S]*?height:\s*88\.9024%;/s.test(css), "The surface frame must preserve the latest main calibration.");
+assert(/\.training-radar-fennec-surface\s*\{[\s\S]*?width:\s*100% !important;[\s\S]*?height:\s*100% !important;[\s\S]*?object-fit:\s*fill;[\s\S]*?object-position:\s*center;[\s\S]*?opacity:\s*1;[\s\S]*?brightness\(1\.18\) contrast\(1\.34\) saturate\(1\.2\);[\s\S]*?transition:\s*none;/s.test(css), "The calibrated surface image must preserve its measured non-uniform X/Y frame with object-fit fill.");
+assert(!fennecScanCss.includes('url("/ui/training-fennec-base.png")') && !fennecScanCss.includes("mask-composite"), "The base Fennec image must never be reused as a CSS mask for the surface-scan.");
+assert(/\.training-radar-fennec-contour\s*\{[\s\S]*?--training-fennec-detail-peak:\s*0\.18;[\s\S]*?--training-fennec-detail-tail:\s*0;[\s\S]*?transparent 44%,[\s\S]*?black 49% 52%,[\s\S]*?transparent 56%/s.test(css), "The Fennec contour must remain a lighter reinforcement behind the surface reveal.");
+assert(trainingScene.includes('className="training-radar-fennec-impact-frame"') && /\.training-radar-fennec-impact-frame\s*\{[\s\S]*?left:\s*39\.8085%;[\s\S]*?top:\s*35\.1722%;[\s\S]*?width:\s*56\.4954%;[\s\S]*?height:\s*58%;[\s\S]*?z-index:\s*2;[\s\S]*?pointer-events:\s*none;/s.test(css), "The im-light must preserve the exact calibration currently on main while staying below the surface scan.");
+assert(/\.training-radar-fennec-impact\s*\{[\s\S]*?position:\s*absolute;[\s\S]*?inset:\s*0;[\s\S]*?width:\s*100% !important;[\s\S]*?height:\s*100% !important;[\s\S]*?object-fit:\s*fill;[\s\S]*?object-position:\s*center;/s.test(css) && !/\.training-radar-fennec-impact\s*\{[\s\S]*?clip-path:/s.test(fennecScanCss), "The calibrated im-light must fill only its own frame without the obsolete crop.");
+assert(/\.training-radar-fennec-surface-mask\s*\{[\s\S]*?z-index:\s*3;/s.test(css) && /\.training-radar-fennec-contour\s*\{[\s\S]*?z-index:\s*4;/s.test(css), "The calibrated im-light must stay below the surface scan and contour.");
+assert(/@keyframes training-fennec-volume-surface-ltr\s*\{[\s\S]*?mask-position:\s*var\(--training-fennec-mask-start-position\) 50%;[\s\S]*?mask-position:\s*var\(--training-fennec-mask-end-position\) 50%;/s.test(css) && !fennecSurfaceKeyframes.includes("opacity:"), "The temporary Fennec volume pass must animate only its LTR mask position.");
+assert(trainingRadarTargets.includes("getTrainingRadarRangeTiming") && trainingRadarTargets.includes("startProgress: 0.613") && trainingRadarTargets.includes("endProgress: 0.924") && trainingRadarTargets.includes("scanDelayMs: 1783") && trainingRadarSequence.includes("fennecRangeTiming?.durationMs"), "The Fennec volume lifecycle must use its calibrated start delay and exact linear duration across its measured width.");
+assert(trainingScene.includes("--training-volume-scan-easing") && trainingScene.includes("--training-fennec-mask-start-position") && trainingScene.includes("data-surface-scan-mode={fennecSurfaceMode}"), "The temporary Fennec surface scan must consume the central LTR range timing.");
+assert(/data-surface-scan-mode="reveal"[\s\S]*?training-radar-fennec-surface-mask[\s\S]*?opacity:\s*0\.48;[\s\S]*?training-fennec-volume-surface-ltr/s.test(fennecScanCss) && /data-volume-scan-phase="fade"[\s\S]*?training-radar-fennec-surface-mask[\s\S]*?opacity:\s*0;/s.test(fennecScanCss), "The Fennec surface scan must reveal then fade during the volume pass only.");
+assert(/data-volume-scan-phase="hold"[\s\S]*?training-radar-fennec-surface-mask[\s\S]*?opacity:\s*0\.48;[\s\S]*?animation:\s*none;[\s\S]*?mask-position:\s*var\(--training-fennec-mask-end-position\) 50%;/s.test(fennecScanCss) && /data-volume-scan-phase="hold"[\s\S]*?training-radar-fennec-contour[\s\S]*?opacity:\s*0\.14;[\s\S]*?animation:\s*none;/s.test(fennecScanCss), "The Fennec volume scan must hold its fully revealed surface and discreet contour before fading.");
+assert(trainingScene.includes('className="training-fennec-base-frame"') && trainingScene.includes('className="training-fennec-base"') && trainingScene.includes('data-tactical-active={fennecTacticalActive ? "true" : "false"}'), "The Fennec base and im-light must expose the separate tactical state.");
+assert(/\.training-radar-fennec-impact\s*\{[\s\S]*?--training-fennec-detail-peak:\s*0\.3;[\s\S]*?filter:\s*none;/s.test(css), "The im-light must remain readable without diffuse glow.");
+assert(/\.training-fennec-base-frame\[data-tactical-active="false"\]\s*\{[\s\S]*?opacity:\s*1;[\s\S]*?animation:\s*none;/s.test(css) && /data-tactical-active="false"[\s\S]*?\.training-radar-fennec-impact\s*\{[\s\S]*?opacity:\s*0;[\s\S]*?animation:\s*none;/s.test(fennecScanCss), "Inactive tactical state must restore the Fennec base and hide im-light immediately.");
+assert(/\.training-fennec-base-frame\[data-tactical-active="true"\]\s*\{[\s\S]*?training-fennec-tactical-base-activate 650ms linear both;/s.test(css) && /data-tactical-active="true"[\s\S]*?\.training-radar-fennec-impact\s*\{[\s\S]*?training-fennec-tactical-impact-activate 650ms linear both;[\s\S]*?mask-image:\s*none;/s.test(fennecScanCss), "Active tactical state must drive one synchronized Fennec base/im-light flicker.");
+assert(/@keyframes training-fennec-tactical-base-activate\s*\{[\s\S]*?0%\s*\{\s*opacity:\s*1;[\s\S]*?100%\s*\{\s*opacity:\s*0\.4;/s.test(css) && /@keyframes training-fennec-tactical-impact-activate\s*\{[\s\S]*?0%\s*\{\s*opacity:\s*0;[\s\S]*?100%\s*\{\s*opacity:\s*0\.6;/s.test(css), "The Fennec tactical activation must settle at base 0.4 and im-light 0.6.");
+assert(!css.includes("training-fennec-base-persisted-crossfade") && !css.includes("training-fennec-impact-persisted-crossfade") && !css.includes('data-surface-scan-mode="persisted"') && !css.includes('data-surface-scan-mode="erase"'), "Legacy persisted and RTL erase crossfade controls must be removed.");
+assert(!fennecScanCss.includes("blur(") && !fennecScanCss.includes("drop-shadow("), "Fennec volume overlays must stay crisp without diffuse blur or glow spread.");
+assert(!fennecScanCss.includes("49.2% 50.8%") && !fennecScanCss.includes("49.5% 50.5%") && !fennecScanCss.includes("49.7% 50.3%"), "Fennec masks must not regress to ultra-thin line cores.");
+assert(!trainingScene.includes("fennecReflection") && !trainingRadarTargets.includes("wireframeAsset: assets.fennec") && !trainingRadarTargets.includes("glowAsset: assets.fennec"), "The Fennec volume scan must not restore reflection or tactical target overlays.");
+assert(/\.training-fennec-rear-accent\s*\{[\s\S]*?opacity:\s*0\.08;/s.test(css), "Fennec rear accent must remain very subtle.");
+assert(css.includes(".training-radar-ball-target::before") && css.includes("display: none"), "The ball must not render the full-canvas contact ring.");
+assert(css.includes('.mode-illustration[data-active="false"] .training-particle-core') && css.includes('.mode-illustration[data-motion-active="false"] .training-particle-core::after'), "Inactive and offscreen particle and fragment animations must pause.");
+assert(css.includes('.training-scene[data-launching="true"] .training-particle-field') && css.includes("transition: opacity 240ms ease-out"), "Particles must fade and pause during launch.");
+assert(css.includes("transparent 44%") && css.includes("rgb(0 0 0 / 0.22) 47%") && css.includes("rgb(0 0 0 / 0.78) 73%") && css.includes("black 100%"), "Radar particles must be hidden at the horizon, readable in the middle and strongest in the foreground.");
+assert(css.includes("brightness(2.2)") && css.includes("var(--particle-delay) 1 forwards"), "Radar particles must flash immediately at emission while staying hidden before the scan line arrives.");
+assert(/@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.training-particle-field\s*\{\s*display:\s*none;/s.test(css), "Reduced motion must hide the radar particle trail together with the radar.");
+
+assert(css.includes("@keyframes training-radar-traverse") && !css.includes("@keyframes training-analysis-scan"), "Training must use the clipped field radar instead of legacy circles.");
+assert(css.includes("@keyframes training-launch-ball-energy") && css.includes("@keyframes home-training-launch-wave"), "Training launch keyframes must remain untouched.");
+assert(css.includes("@keyframes competitive-launch-fennec"), "Competitive prepared launch keyframes must remain.");
+
+for (const legacyPath of legacyHomeFiles) {
+  assert(!existsSync(legacyPath), `Legacy home component must be removed: ${legacyPath}`);
+}
+
+const forbiddenVisibleWording = [
+  "mode verrouille",
+  "permis verrouille",
+  "top mondial",
+  "classement mondial",
+  "faux rang",
+  "218 sessions",
+  "45h",
+  "78%",
+  "68%",
+];
+for (const [path, content] of Object.entries(files)) {
+  const lower = content.toLowerCase();
+  for (const wording of forbiddenVisibleWording) {
+    assert(!lower.includes(wording), `Forbidden home wording found in ${path}: ${wording}`);
+  }
+}
+
+for (const [path, content] of Object.entries(files)) {
+  for (const forbidden of ["content.json", "@/lib/questions", "getQuestionSummaries", "getActiveQuestions", "error_tags"]) {
+    assert(!content.includes(forbidden), `Home layer must not read pedagogical internals in ${path}: ${forbidden}`);
+  }
+}
+
+console.log("Home dashboard validation OK");
+console.log("Covered states: statistics default, training launch, competitive locked preview, permit 0-100, weekly focus lifecycle, empty insights, targeted sessions locked, up to three real sessions.");
