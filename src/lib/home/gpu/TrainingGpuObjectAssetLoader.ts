@@ -21,6 +21,7 @@ export type TrainingGpuDecodedObjectAssetSet = {
   objectId: TrainingGpuPreparedObjectId;
   manifestUrl: string;
   manifest: TrainingGpuObjectAssetManifest;
+  estimatedTextureBytes: number;
   assets: Partial<
     Record<TrainingGpuObjectAssetRole, TrainingGpuDecodedObjectAsset>
   >;
@@ -187,6 +188,13 @@ async function loadTrainingGpuObjectAssetSet(
     objectId: parsedManifest.objectId,
     manifestUrl,
     manifest: parsedManifest,
+    estimatedTextureBytes: entries.reduce(
+      (total, [, entry]) =>
+        entry
+          ? total + entry.outputSize.width * entry.outputSize.height * 4
+          : total,
+      0,
+    ),
     assets,
   };
 }

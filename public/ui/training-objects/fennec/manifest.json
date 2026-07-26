@@ -81,6 +81,46 @@
       "paddingPx": 24,
       "alignmentGroup": "fennec:impact-frame",
       "placementSpace": "fennec-impact-frame"
+    },
+    "headlightGlow": {
+      "file": "headlight-glow.webp",
+      "sourceSize": {
+        "width": 1672,
+        "height": 941
+      },
+      "crop": {
+        "x": 983,
+        "y": 420,
+        "width": 688,
+        "height": 376
+      },
+      "outputSize": {
+        "width": 688,
+        "height": 376
+      },
+      "paddingPx": 59,
+      "alignmentGroup": "fennec:headlight-scene",
+      "placementSpace": "scene"
+    },
+    "rearAccent": {
+      "file": "rear-accent.webp",
+      "sourceSize": {
+        "width": 1672,
+        "height": 941
+      },
+      "crop": {
+        "x": 728,
+        "y": 416,
+        "width": 944,
+        "height": 496
+      },
+      "outputSize": {
+        "width": 944,
+        "height": 496
+      },
+      "paddingPx": 24,
+      "alignmentGroup": "fennec:rear-scene",
+      "placementSpace": "scene"
     }
   }
 }
