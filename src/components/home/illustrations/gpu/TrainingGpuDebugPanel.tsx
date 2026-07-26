@@ -21,6 +21,7 @@ const SUBSYSTEM_NAMES = [
   "radar",
   "particles",
   "volume",
+  "fennec-base",
   "fennec-volume",
   "fennec-effects",
   "tactical",

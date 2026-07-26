@@ -28,6 +28,7 @@ type TrainingGpuFennecVolumeLayer = "surface" | "contour";
 
 type TrainingGpuFennecVolumeOptions = {
   debugCollector: TrainingGpuDebugCollector | null;
+  onBaseReadyChange: (ready: boolean) => void;
   onContextRestored: () => void;
   onEffectsReadyChange: (ready: boolean) => void;
   onReadyChange: (ready: boolean) => void;
@@ -207,6 +208,10 @@ function destroyFennecEffectResources(
 
 export class TrainingGpuFennecVolumeSubsystem {
   private assetSet: TrainingGpuDecodedObjectAssetSet | null = null;
+  private baseInitialized = false;
+  private baseQuad: TrainingGpuObjectRenderRect | null = null;
+  private baseReady = false;
+  private baseTexture: WebGLTexture | null = null;
   private contextLost = false;
   private effectsInitialized = false;
   private effectsReady = false;
@@ -215,7 +220,6 @@ export class TrainingGpuFennecVolumeSubsystem {
   private headlightQuad: TrainingGpuObjectRenderRect | null = null;
   private impactQuad: TrainingGpuObjectRenderRect | null = null;
   private initialized = false;
-  private lastBaseOpacity: string | null = null;
   private ready = false;
   private rearQuad: TrainingGpuObjectRenderRect | null = null;
   private resources: TrainingGpuVolumeResources | null = null;
@@ -246,6 +250,14 @@ export class TrainingGpuFennecVolumeSubsystem {
     return this.ready;
   }
 
+  isBaseInitialized() {
+    return this.baseInitialized;
+  }
+
+  isBaseReady() {
+    return this.baseReady;
+  }
+
   isEffectsInitialized() {
     return this.effectsInitialized;
   }
@@ -256,11 +268,14 @@ export class TrainingGpuFennecVolumeSubsystem {
 
   setAssets(assetSet: TrainingGpuDecodedObjectAssetSet | null) {
     if (assetSet === this.assetSet) return;
+    this.releaseBaseResource();
     this.releaseEffectsResources();
     this.releaseResources();
     this.assetSet = assetSet?.objectId === "fennec" ? assetSet : null;
+    this.baseInitialized = false;
     this.initialized = false;
     this.effectsInitialized = false;
+    this.setBaseReady(false);
     this.setEffectsReady(false);
     this.setReady(false);
     this.clear();
@@ -286,6 +301,7 @@ export class TrainingGpuFennecVolumeSubsystem {
       this.initialized = true;
       this.resize();
       this.initializeEffects();
+      this.initializeBase();
     } catch (error) {
       reportFennecVolumeFailureOnce("initialization failed", error);
       this.options.debugCollector?.recordSubsystemError(
@@ -336,6 +352,43 @@ export class TrainingGpuFennecVolumeSubsystem {
     return this.effectsInitialized;
   }
 
+  private initializeBase() {
+    const baseAsset = this.assetSet?.assets.base;
+    if (
+      !baseAsset ||
+      !this.gl ||
+      !this.resources ||
+      this.contextLost
+    ) {
+      this.baseInitialized = false;
+      this.setBaseReady(false);
+      this.updateDebugState();
+      return false;
+    }
+    if (this.baseInitialized && this.baseTexture) return true;
+
+    try {
+      this.baseTexture = createTrainingGpuVolumeTexture(
+        this.gl,
+        baseAsset,
+        this.options.debugCollector,
+      );
+      this.baseInitialized = true;
+      this.cacheLayerQuads();
+    } catch (error) {
+      reportFennecVolumeFailureOnce("base initialization failed", error);
+      this.options.debugCollector?.recordSubsystemError(
+        "fennec-base",
+        error,
+      );
+      this.releaseBaseResource();
+      this.baseInitialized = false;
+      this.setBaseReady(false);
+    }
+    this.updateDebugState();
+    return this.baseInitialized;
+  }
+
   resize() {
     const rect = this.canvas.getBoundingClientRect();
     const cssWidth = rect.width;
@@ -347,11 +400,13 @@ export class TrainingGpuFennecVolumeSubsystem {
       cssHeight <= 0
     ) {
       this.viewport = null;
+      this.baseQuad = null;
       this.surfaceQuad = null;
       this.contourQuad = null;
       this.impactQuad = null;
       this.rearQuad = null;
       this.headlightQuad = null;
+      this.setBaseReady(false);
       this.setEffectsReady(false);
       this.setReady(false);
       this.updateDebugState();
@@ -389,6 +444,58 @@ export class TrainingGpuFennecVolumeSubsystem {
 
   beginFrame() {
     this.clear();
+  }
+
+  renderBase(state: TrainingGpuFennecEffectsState, staticRender = false) {
+    const { gl, resources, baseTexture, baseQuad, viewport } = this;
+    if (
+      !this.baseInitialized ||
+      !gl ||
+      !resources ||
+      !baseTexture ||
+      !baseQuad ||
+      !viewport ||
+      this.contextLost
+    ) {
+      this.setBaseReady(false);
+      return false;
+    }
+
+    try {
+      gl.viewport(0, 0, viewport.pixelWidth, viewport.pixelHeight);
+      gl.enable(gl.BLEND);
+      gl.blendFuncSeparate(
+        gl.ONE,
+        gl.ONE_MINUS_SRC_ALPHA,
+        gl.ONE,
+        gl.ONE_MINUS_SRC_ALPHA,
+      );
+      gl.useProgram(resources.program);
+      gl.bindVertexArray(resources.vertexArray);
+      this.renderEffectLayer(
+        baseTexture,
+        baseQuad,
+        state.baseOpacity,
+        1,
+        1,
+      );
+      gl.bindTexture(gl.TEXTURE_2D, null);
+      gl.bindVertexArray(null);
+      gl.useProgram(null);
+      if (staticRender) {
+        this.options.debugCollector?.recordStaticRender("fennec-base");
+      }
+      this.setBaseReady(true);
+      return true;
+    } catch (error) {
+      reportFennecVolumeFailureOnce("base render failed", error);
+      this.options.debugCollector?.recordSubsystemError(
+        "fennec-base",
+        error,
+      );
+      this.setBaseReady(false);
+      return false;
+    }
   }
 
   render(state: TrainingGpuVolumeScanState, running: boolean) {
@@ -464,13 +571,11 @@ export class TrainingGpuFennecVolumeSubsystem {
       !this.headlightQuad ||
       this.contextLost
     ) {
-      this.setDomBaseOpacity(1);
       this.setEffectsReady(false);
       return false;
     }
 
     try {
-      this.setDomBaseOpacity(state.baseOpacity);
       gl.viewport(0, 0, viewport.pixelWidth, viewport.pixelHeight);
       gl.enable(gl.BLEND);
       gl.blendFuncSeparate(
@@ -519,7 +624,6 @@ export class TrainingGpuFennecVolumeSubsystem {
         "fennec-effects",
         error,
       );
-      this.setDomBaseOpacity(1);
       this.setEffectsReady(false);
       return false;
     }
@@ -532,9 +636,10 @@ export class TrainingGpuFennecVolumeSubsystem {
   }
 
   destroy() {
-    this.setDomBaseOpacity(1);
+    this.setBaseReady(false);
     this.setEffectsReady(false);
     this.setReady(false);
+    this.releaseBaseResource();
     this.releaseEffectsResources();
     this.releaseResources();
     this.canvas.removeEventListener("webglcontextlost", this.onContextLost);
@@ -545,11 +650,13 @@ export class TrainingGpuFennecVolumeSubsystem {
     this.assetSet = null;
     this.gl = null;
     this.viewport = null;
+    this.baseQuad = null;
     this.surfaceQuad = null;
     this.contourQuad = null;
     this.impactQuad = null;
     this.rearQuad = null;
     this.headlightQuad = null;
+    this.baseInitialized = false;
     this.initialized = false;
     this.effectsInitialized = false;
     this.updateDebugState();
@@ -559,6 +666,7 @@ export class TrainingGpuFennecVolumeSubsystem {
     const assetSet = this.assetSet;
     const viewport = this.viewport;
     if (!assetSet || !viewport) {
+      this.baseQuad = null;
       this.surfaceQuad = null;
       this.contourQuad = null;
       this.impactQuad = null;
@@ -584,6 +692,7 @@ export class TrainingGpuFennecVolumeSubsystem {
 
     this.surfaceQuad = getQuad(assetSet.assets.volumeSurface);
     this.contourQuad = getQuad(assetSet.assets.volumeContour);
+    this.baseQuad = getQuad(assetSet.assets.base);
     this.impactQuad = getQuad(assetSet.assets.tacticalImpact);
     this.rearQuad = getQuad(assetSet.assets.rearAccent);
     this.headlightQuad = getQuad(assetSet.assets.headlightGlow);
@@ -684,16 +793,6 @@ export class TrainingGpuFennecVolumeSubsystem {
     gl.drawArrays(gl.TRIANGLES, 0, 6);
   }
 
-  private setDomBaseOpacity(opacity: number) {
-    const value = Math.min(1, Math.max(0, opacity)).toFixed(4);
-    if (value === this.lastBaseOpacity) return;
-    this.lastBaseOpacity = value;
-    this.canvas.parentElement?.style.setProperty(
-      "--training-fennec-gpu-base-opacity",
-      value,
-    );
-  }
-
   private setReady(ready: boolean) {
     if (this.ready === ready) return;
     this.ready = ready;
@@ -705,6 +804,13 @@ export class TrainingGpuFennecVolumeSubsystem {
     if (this.effectsReady === ready) return;
     this.effectsReady = ready;
     this.options.onEffectsReadyChange(ready);
+    this.updateDebugState();
+  }
+
+  private setBaseReady(ready: boolean) {
+    if (this.baseReady === ready) return;
+    this.baseReady = ready;
+    this.options.onBaseReadyChange(ready);
     this.updateDebugState();
   }
 
@@ -724,16 +830,27 @@ export class TrainingGpuFennecVolumeSubsystem {
     this.updateDebugState();
   }
 
+  private releaseBaseResource() {
+    if (this.gl && !this.contextLost) {
+      this.gl.deleteTexture(this.baseTexture);
+    }
+    this.baseTexture = null;
+    this.updateDebugState();
+  }
+
   private loseContext(event: Event) {
     event.preventDefault();
     this.contextLost = true;
+    this.baseTexture = null;
     this.resources = null;
     this.effectsResources = null;
     this.initialized = false;
+    this.baseInitialized = false;
     this.effectsInitialized = false;
+    this.options.debugCollector?.recordContextLost("fennec-base");
     this.options.debugCollector?.recordContextLost("fennec-volume");
     this.options.debugCollector?.recordContextLost("fennec-effects");
-    this.setDomBaseOpacity(1);
+    this.setBaseReady(false);
     this.setEffectsReady(false);
     this.setReady(false);
     this.updateDebugState();
@@ -749,6 +866,9 @@ export class TrainingGpuFennecVolumeSubsystem {
     }
 
     if (this.initialize()) {
+      if (this.baseInitialized) {
+        this.options.debugCollector?.recordContextRestored("fennec-base");
+      }
       this.options.debugCollector?.recordContextRestored("fennec-volume");
       if (this.effectsInitialized) {
         this.options.debugCollector?.recordContextRestored("fennec-effects");
@@ -767,6 +887,39 @@ export class TrainingGpuFennecVolumeSubsystem {
       : this.contextLost
         ? "lost"
         : "available";
+    debugCollector.setSubsystemState("fennec-base", {
+      initialized: this.baseInitialized,
+      ready: this.baseReady,
+      contextState,
+    });
+    debugCollector.setSubsystemResources(
+      "fennec-base",
+      {
+        contexts: this.gl && !this.contextLost ? 1 : 0,
+        programs: 0,
+        buffers: 0,
+        vertexArrays: 0,
+        textures: this.baseTexture ? 1 : 0,
+        estimatedTextureBytes:
+          this.baseTexture && this.assetSet?.assets.base
+            ? this.assetSet.assets.base.entry.outputSize.width *
+              this.assetSet.assets.base.entry.outputSize.height *
+              4
+            : 0,
+      },
+      this.viewport
+        ? [
+            {
+              id: "fennec-base",
+              subsystem: "fennec-base",
+              cssWidth: this.viewport.cssWidth,
+              cssHeight: this.viewport.cssHeight,
+              pixelWidth: this.viewport.pixelWidth,
+              pixelHeight: this.viewport.pixelHeight,
+            },
+          ]
+        : [],
+    );
     debugCollector.setSubsystemState("fennec-volume", {
       initialized: this.initialized,
       ready: this.ready,

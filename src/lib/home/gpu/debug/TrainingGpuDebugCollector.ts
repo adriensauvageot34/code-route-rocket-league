@@ -166,6 +166,7 @@ export class TrainingGpuDebugCollector {
     radar: createSubsystemState(),
     particles: createSubsystemState(),
     volume: createSubsystemState(),
+    "fennec-base": createSubsystemState(),
     "fennec-volume": createSubsystemState(),
     "fennec-effects": createSubsystemState(),
     tactical: createSubsystemState(),
@@ -301,6 +302,7 @@ export class TrainingGpuDebugCollector {
     else this.assets.assetsInError += 1;
     this.subsystems.bases.lastError = errorMessage(error);
     this.subsystems.volume.lastError = errorMessage(error);
+    this.subsystems["fennec-base"].lastError = errorMessage(error);
     this.subsystems["fennec-volume"].lastError = errorMessage(error);
     this.subsystems["fennec-effects"].lastError = errorMessage(error);
     this.subsystems.tactical.lastError = errorMessage(error);
@@ -371,6 +373,7 @@ export class TrainingGpuDebugCollector {
           total.contexts +
           (name === "bases" ||
           name === "tactical" ||
+          name === "fennec-base" ||
           name === "fennec-effects"
             ? 0
             : subsystem.resources.contexts),
