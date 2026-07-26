@@ -36,6 +36,7 @@ const expectedFiles = [
   "src/lib/home/gpu/trainingGpuObjectAssetCatalog.ts",
   "src/lib/home/gpu/trainingGpuObjectManifest.ts",
   "src/lib/home/gpu/trainingGpuBaseUtils.ts",
+  "src/lib/home/gpu/trainingGpuFennecTiming.ts",
   "src/lib/home/gpu/trainingGpuFennecVolumeUtils.ts",
   "src/lib/home/gpu/trainingGpuObjectRegistry.ts",
   "src/lib/home/gpu/trainingGpuObjectPlacement.ts",
@@ -108,6 +109,7 @@ const trainingGpuObjectAssetLoader = files["src/lib/home/gpu/TrainingGpuObjectAs
 const trainingGpuObjectAssetCatalog = files["src/lib/home/gpu/trainingGpuObjectAssetCatalog.ts"];
 const trainingGpuObjectManifest = files["src/lib/home/gpu/trainingGpuObjectManifest.ts"];
 const trainingGpuBaseUtils = files["src/lib/home/gpu/trainingGpuBaseUtils.ts"];
+const trainingGpuFennecTiming = files["src/lib/home/gpu/trainingGpuFennecTiming.ts"];
 const trainingGpuFennecVolumeUtils = files["src/lib/home/gpu/trainingGpuFennecVolumeUtils.ts"];
 const trainingGpuObjectRegistry = files["src/lib/home/gpu/trainingGpuObjectRegistry.ts"];
 const trainingGpuObjectPlacement = files["src/lib/home/gpu/trainingGpuObjectPlacement.ts"];
@@ -209,6 +211,17 @@ assert(trainingScene.includes("trainingFennecVolumeScanTarget.surfaceAsset") && 
 assert(trainingGpuObjectAssetsHook.includes("Promise.allSettled") && trainingGpuObjectAssetsHook.includes("Object.fromEntries(loadedEntries)") && trainingScene.includes('gpuObjectAssetState.status === "error"'), "A local Fennec asset failure must preserve partial decoded sets so the four established GPU objects stay independent.");
 assert(trainingGpuFennecVolumeUtils.includes('recordContextLost("fennec-volume")') && trainingGpuFennecVolumeUtils.includes('recordContextRestored("fennec-volume")') && trainingGpuFennecVolumeUtils.includes("this.setReady(false)") && trainingGpuFennecVolumeUtils.includes("this.options.onContextRestored()"), "Fennec context loss must restore both DOM fallbacks and context restoration must resume the current absolute frame.");
 assert(trainingGpuDebugTypes.includes('| "fennec-volume"') && trainingGpuDebugCollector.includes('"fennec-volume": createSubsystemState()') && trainingGpuDebugPanel.includes('"fennec-volume"') && trainingGpuFennecVolumeUtils.includes("textures: this.resources ? 2 : 0") && trainingGpuFennecVolumeUtils.includes("estimatedTextureBytes"), "debugRenderer=1 must expose the isolated Fennec context, readiness, CPU, two textures, memory and errors.");
+assert(!trainingGpuFennecTiming.includes("requestAnimationFrame") && !trainingGpuFennecTiming.includes("setTimeout") && !trainingGpuFennecTiming.includes("setInterval") && trainingGpuFennecTiming.includes('"elapsedMs" | "passMode" | "running"') && trainingGpuFennecTiming.includes("trainingFennecVolumeScanTarget.tacticalDelayMs"), "Fennec tactical effects must sample the shared absolute MasterClock without a second loop or timer.");
+assert(trainingGpuFennecTiming.includes("baseOpacity: 1 - impactOpacity") && trainingGpuFennecTiming.includes("FENNEC_TACTICAL_EMPHASIS_DURATION_MS = 650") && trainingGpuFennecTiming.includes("{ progress: 1, opacity: 0 }"), "The temporary Fennec base bridge and tactical impact must use inverse validated curves that return to their neutral values.");
+assert((trainingScene.match(/training-gpu-fennec-canvas/g) ?? []).length === 1 && (trainingGpuFennecVolumeUtils.match(/\.getContext\(/g) ?? []).length === 1 && trainingGpuRenderer.includes("this.fennecVolumeSubsystem.renderEffects") && !trainingGpuRenderer.includes("new TrainingGpuFennecEffectsSubsystem"), "Fennec volume and local tactical effects must share the same existing canvas, context, renderer RAF and clock sample.");
+const fennecEffectsRenderStart = trainingGpuFennecVolumeUtils.indexOf("renderEffects(state:");
+const fennecEffectsRender = trainingGpuFennecVolumeUtils.slice(fennecEffectsRenderStart, trainingGpuFennecVolumeUtils.indexOf("\n  clear() {", fennecEffectsRenderStart));
+assert(fennecEffectsRender.indexOf("effectsResources.impactTexture") < fennecEffectsRender.indexOf("effectsResources.rearTexture") && fennecEffectsRender.indexOf("effectsResources.rearTexture") < fennecEffectsRender.indexOf("effectsResources.headlightTexture") && trainingGpuFennecVolumeUtils.includes("textures: this.effectsResources ? 3 : 0"), "The shared Fennec context must draw tactical impact, rear accent and headlight glow in their validated order with exactly three effect textures.");
+assert(trainingGpuFennecVolumeUtils.includes("assetSet.assets.tacticalImpact") && trainingGpuFennecVolumeUtils.includes("assetSet.assets.rearAccent") && trainingGpuFennecVolumeUtils.includes("assetSet.assets.headlightGlow") && trainingGpuFennecVolumeUtils.includes("getTrainingGpuObjectRenderRect(registration, asset.entry)"), "Each Fennec effect must keep the distinct manifest placement resolved by the existing cached placement helper.");
+assert(trainingScene.includes("gpuFennecEffectsReady") && trainingScene.includes('data-gpu-fennec-effects-ready=') && css.includes('.training-scene[data-gpu-fennec-effects-ready="true"]') && css.includes(".training-radar-fennec-impact") && css.includes(".training-fennec-headlight-glow") && css.includes(".training-fennec-rear-accent"), "Fennec effect readiness must atomically hide all three preserved DOM fallbacks only after their first valid shared-canvas draw.");
+assert(trainingScene.includes("assets.fennecBase") && css.includes("--training-fennec-gpu-base-opacity") && trainingGpuFennecVolumeUtils.includes('setProperty(\n      "--training-fennec-gpu-base-opacity"') && !trainingScene.includes("--training-fennec-gpu-base-opacity"), "The Fennec base must remain a DOM fallback in this step while its temporary opacity bridge is written only by the existing GPU renderer.");
+assert(homeIllustrationAssets.includes("/ui/training-lights-violet-glow-screen.png") && trainingScene.includes('name="fennec-lights-glow"') && !trainingGpuFennecVolumeUtils.includes("lights-violet-glow-screen"), "The global violet screen halo must remain a separate DOM group and must never enter the local Fennec effect canvas.");
+assert(trainingGpuDebugTypes.includes('| "fennec-effects"') && trainingGpuDebugCollector.includes('"fennec-effects": createSubsystemState()') && trainingGpuDebugPanel.includes('"fennec-effects"') && trainingGpuFennecVolumeUtils.includes('recordContextLost("fennec-effects")') && trainingGpuFennecVolumeUtils.includes('recordContextRestored("fennec-effects")'), "debugRenderer=1 must report the shared-context Fennec effects readiness, CPU, three textures, memory and context recovery independently.");
 
 assert(
   trainingRendererDebugHook.includes('TRAINING_RENDERER_DEBUG_PARAM = "debugRenderer"') &&

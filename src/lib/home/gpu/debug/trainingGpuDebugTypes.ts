@@ -7,6 +7,7 @@ export type TrainingGpuDebugSubsystemName =
   | "particles"
   | "volume"
   | "fennec-volume"
+  | "fennec-effects"
   | "tactical";
 
 export type TrainingGpuDebugContextState =

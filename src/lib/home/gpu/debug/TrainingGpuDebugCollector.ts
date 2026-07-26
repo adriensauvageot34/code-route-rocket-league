@@ -167,6 +167,7 @@ export class TrainingGpuDebugCollector {
     particles: createSubsystemState(),
     volume: createSubsystemState(),
     "fennec-volume": createSubsystemState(),
+    "fennec-effects": createSubsystemState(),
     tactical: createSubsystemState(),
   };
   private global = { ...INITIAL_GLOBAL };
@@ -301,6 +302,7 @@ export class TrainingGpuDebugCollector {
     this.subsystems.bases.lastError = errorMessage(error);
     this.subsystems.volume.lastError = errorMessage(error);
     this.subsystems["fennec-volume"].lastError = errorMessage(error);
+    this.subsystems["fennec-effects"].lastError = errorMessage(error);
     this.subsystems.tactical.lastError = errorMessage(error);
   }
 
@@ -367,7 +369,9 @@ export class TrainingGpuDebugCollector {
       (total, [name, subsystem]) => ({
         contexts:
           total.contexts +
-          (name === "bases" || name === "tactical"
+          (name === "bases" ||
+          name === "tactical" ||
+          name === "fennec-effects"
             ? 0
             : subsystem.resources.contexts),
         programs: total.programs + subsystem.resources.programs,

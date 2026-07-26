@@ -24,6 +24,7 @@ type TrainingGpuCanvasProps = {
   active: boolean;
   debugCollector: TrainingGpuDebugCollector | null;
   onBasesReadyChange: (ready: boolean) => void;
+  onFennecEffectsReadyChange: (ready: boolean) => void;
   onFennecVolumeReadyChange: (ready: boolean) => void;
   onParticlesReadyChange: (ready: boolean) => void;
   onRadarReadyChange: (ready: boolean) => void;
@@ -67,6 +68,7 @@ export function TrainingGpuCanvas({
   active,
   debugCollector,
   onBasesReadyChange,
+  onFennecEffectsReadyChange,
   onFennecVolumeReadyChange,
   onParticlesReadyChange,
   onRadarReadyChange,
@@ -142,6 +144,7 @@ export function TrainingGpuCanvas({
     let resizeObserver: ResizeObserver | null = null;
     let resizeCanvases: (() => void) | null = null;
     onBasesReadyChange(false);
+    onFennecEffectsReadyChange(false);
     onFennecVolumeReadyChange(false);
     onRadarReadyChange(false);
     onParticlesReadyChange(false);
@@ -207,6 +210,7 @@ export function TrainingGpuCanvas({
             debugCollector,
             fieldMaskPixels,
             onBasesReadyChange,
+            onFennecEffectsReadyChange,
             onFennecVolumeReadyChange,
             onParticlesReadyChange,
             onRadarReadyChange,
@@ -274,6 +278,7 @@ export function TrainingGpuCanvas({
           renderer.destroy();
           rendererRef.current = null;
           onBasesReadyChange(false);
+          onFennecEffectsReadyChange(false);
           onFennecVolumeReadyChange(false);
           onRadarReadyChange(false);
           onParticlesReadyChange(false);
@@ -296,6 +301,7 @@ export function TrainingGpuCanvas({
         rendererRef.current = null;
         if (!cancelled) {
           onBasesReadyChange(false);
+          onFennecEffectsReadyChange(false);
           onFennecVolumeReadyChange(false);
           onRadarReadyChange(false);
           onParticlesReadyChange(false);
@@ -317,6 +323,7 @@ export function TrainingGpuCanvas({
       rendererRef.current?.destroy();
       rendererRef.current = null;
       onBasesReadyChange(false);
+      onFennecEffectsReadyChange(false);
       onFennecVolumeReadyChange(false);
       onRadarReadyChange(false);
       onParticlesReadyChange(false);
@@ -331,6 +338,7 @@ export function TrainingGpuCanvas({
     frontRightCarVolumeCanvasRef,
     leftCarVolumeCanvasRef,
     onBasesReadyChange,
+    onFennecEffectsReadyChange,
     onFennecVolumeReadyChange,
     onParticlesReadyChange,
     onRadarReadyChange,
