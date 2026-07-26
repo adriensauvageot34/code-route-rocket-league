@@ -71,7 +71,16 @@ const EMPTY_RESOURCES: TrainingGpuDebugResourceCounts = {
 };
 
 const INITIAL_GLOBAL: TrainingGpuDebugGlobalSnapshot = {
+  absolutePassIndex: 0,
+  activeDriver: "none",
+  callbackLatenessMs: 0,
+  cumulativeTheoreticalDriftMs: 0,
+  domChangedValuesPerFrame: 0,
+  domUpdatesPerFrame: 0,
+  globalTimersActive: 0,
   mode: "dom",
+  nextPassBoundaryMs: 0,
+  objectTimersActive: 0,
   rendererActive: false,
   rendererSuspended: true,
   rafActive: false,
@@ -81,6 +90,9 @@ const INITIAL_GLOBAL: TrainingGpuDebugGlobalSnapshot = {
   passMode: "volume",
   passProgress: 0,
   passKey: 0,
+  passStartedAtMs: 0,
+  skippedPasses: 0,
+  trainingRafCount: 0,
   masterClockNowMs: 0,
   dpr: 1,
   renderScale: 1,

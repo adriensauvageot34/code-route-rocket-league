@@ -61,7 +61,16 @@ export type TrainingGpuDebugSubsystemSnapshot = {
 };
 
 export type TrainingGpuDebugGlobalSnapshot = {
+  absolutePassIndex: number;
+  activeDriver: "gpu" | "dom" | "none";
+  callbackLatenessMs: number;
+  cumulativeTheoreticalDriftMs: number;
+  domChangedValuesPerFrame: number;
+  domUpdatesPerFrame: number;
+  globalTimersActive: number;
   mode: TrainingRendererMode;
+  nextPassBoundaryMs: number;
+  objectTimersActive: number;
   rendererActive: boolean;
   rendererSuspended: boolean;
   rafActive: boolean;
@@ -71,6 +80,9 @@ export type TrainingGpuDebugGlobalSnapshot = {
   passMode: TrainingRadarPassMode;
   passProgress: number;
   passKey: number;
+  passStartedAtMs: number;
+  skippedPasses: number;
+  trainingRafCount: number;
   masterClockNowMs: number;
   dpr: number;
   renderScale: number;

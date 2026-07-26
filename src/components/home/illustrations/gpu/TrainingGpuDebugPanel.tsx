@@ -214,6 +214,27 @@ export function TrainingGpuDebugPanel({
           {formatNumber(global.viewportCssHeight, 0)} · pixels{" "}
           {global.viewportPixelWidth}×{global.viewportPixelHeight}
         </span>
+        <span>
+          driver {global.activeDriver} · RAF Training{" "}
+          {global.trainingRafCount} · timers globaux{" "}
+          {global.globalTimersActive} · timers objets{" "}
+          {global.objectTimersActive}
+        </span>
+        <span>
+          pass start {formatNumber(global.passStartedAtMs, 0)} ms · index{" "}
+          {global.absolutePassIndex} · prochaine frontière{" "}
+          {formatNumber(global.nextPassBoundaryMs, 0)} ms
+        </span>
+        <span>
+          callback +{formatNumber(global.callbackLatenessMs, 1)} ms · passes
+          sautées {global.skippedPasses} · dérive théorique{" "}
+          {formatNumber(global.cumulativeTheoreticalDriftMs, 1)} ms
+        </span>
+        <span>
+          DOM updates/frame {formatNumber(global.domUpdatesPerFrame, 1)} ·
+          valeurs modifiées/frame{" "}
+          {formatNumber(global.domChangedValuesPerFrame, 1)}
+        </span>
       </section>
 
       <section>

@@ -9,12 +9,14 @@ import {
 type UseTrainingRadarClockInput = {
   passKey: number;
   passMode: TrainingRadarPassMode;
+  passStartedAtMs: number;
   running: boolean;
 };
 
 export function useTrainingRadarClock({
   passKey,
   passMode,
+  passStartedAtMs,
   running,
 }: UseTrainingRadarClockInput) {
   const radarClockRef = useRef<TrainingRadarClock | null>(null);
@@ -34,10 +36,10 @@ export function useTrainingRadarClock({
     radarClock.beginPass({
       passKey,
       passMode,
-      passStartedAtMs: performance.now(),
+      passStartedAtMs,
       running: true,
     });
-  }, [passKey, passMode, radarClock, running]);
+  }, [passKey, passMode, passStartedAtMs, radarClock, running]);
 
   return radarClock;
 }

@@ -1462,6 +1462,150 @@
   opacity: 0;
 }
 
+.training-radar-overlay[data-dom-visible="false"],
+.training-particle-field[data-dom-visible="false"],
+.training-grounded-actor[data-dom-base-visible="false"]
+  > .training-grounded-actor-base,
+.training-radar-object-target[data-dom-volume-visible="false"]
+  :is(
+    .training-radar-object-surface,
+    .training-radar-object-contour,
+    .training-radar-ball-volume-surface,
+    .training-radar-ball-volume-contour
+  ),
+.training-radar-object-target[data-dom-tactical-visible="false"]
+  :is(
+    .training-radar-car-wireframe,
+    .training-radar-car-glow,
+    .training-radar-ball-energy
+  ) {
+  display: none;
+}
+
+.training-scene[data-training-time-source="master-clock"]
+  .training-radar-motion {
+  animation: none;
+}
+
+.training-scene[data-training-time-source="master-clock"]
+  .training-particle-band[data-pass-active="false"] {
+  visibility: hidden;
+}
+
+.training-scene[data-training-time-source="master-clock"]
+  .training-particle-birth-flash,
+.training-scene[data-training-time-source="master-clock"]
+  .training-particle-core,
+.training-scene[data-training-time-source="master-clock"]
+  .training-particle-core::after {
+  animation-delay: var(--particle-sample-delay);
+  animation-play-state: paused;
+}
+
+.training-scene[data-training-time-source="master-clock"]
+  .training-radar-object-target::before {
+  opacity: var(--training-contact-opacity, 0);
+  transform: scale(var(--training-contact-scale, 0.72));
+  animation: none;
+}
+
+.training-scene[data-training-time-source="master-clock"]
+  :is(
+    .training-radar-object-surface,
+    .training-radar-ball-volume-surface
+  ) {
+  opacity: var(--training-volume-surface-opacity, 0);
+  filter:
+    brightness(var(--training-volume-surface-brightness, 1))
+    saturate(var(--training-volume-surface-saturation, 1));
+  -webkit-mask-position: var(--training-volume-surface-mask-position, 130% 50%);
+  mask-position: var(--training-volume-surface-mask-position, 130% 50%);
+  animation: none;
+  transition: none;
+}
+
+.training-scene[data-training-time-source="master-clock"]
+  .training-radar-object-contour {
+  opacity: var(--training-volume-contour-opacity, 0);
+  filter:
+    brightness(var(--training-volume-contour-brightness, 1))
+    saturate(var(--training-volume-contour-saturation, 1))
+    drop-shadow(0 0 4px rgb(242 183 75 / 0.44));
+  -webkit-mask-position: var(--training-volume-contour-mask-position, 130% 50%);
+  mask-position: var(--training-volume-contour-mask-position, 130% 50%);
+  animation: none;
+  transition: none;
+}
+
+.training-scene[data-training-time-source="master-clock"]
+  .training-radar-ball-volume-contour {
+  opacity: var(--training-volume-contour-opacity, 0);
+  filter:
+    brightness(var(--training-volume-contour-brightness, 1))
+    saturate(var(--training-volume-contour-saturation, 1))
+    drop-shadow(0 0 3px rgb(244 188 78 / 0.34));
+  -webkit-mask-position: var(--training-volume-contour-mask-position, 88% 50%);
+  mask-position: var(--training-volume-contour-mask-position, 88% 50%);
+  animation: none;
+  transition: none;
+}
+
+.training-scene[data-training-time-source="master-clock"]
+  .training-radar-car-wireframe {
+  opacity: var(--training-tactical-wireframe-opacity, 0);
+  animation: none;
+  transition: none;
+}
+
+.training-scene[data-training-time-source="master-clock"]
+  .training-radar-car-glow {
+  opacity: var(--training-tactical-glow-opacity, 0);
+  animation: none;
+  transition: none;
+}
+
+.training-scene[data-training-time-source="master-clock"]
+  .training-radar-ball-energy {
+  opacity: var(--training-tactical-energy-opacity, 0);
+  filter:
+    brightness(var(--training-tactical-energy-brightness, 1))
+    saturate(var(--training-tactical-energy-saturation, 1));
+  transition: none;
+}
+
+.training-scene[data-training-time-source="master-clock"]
+  .training-radar-fennec-surface-mask {
+  opacity: var(--training-volume-surface-opacity, 0);
+  -webkit-mask-position: var(--training-volume-surface-mask-position, 38.7% 50%);
+  mask-position: var(--training-volume-surface-mask-position, 38.7% 50%);
+  animation: none;
+  transition: none;
+}
+
+.training-scene[data-training-time-source="master-clock"]
+  .training-radar-fennec-contour {
+  opacity: var(--training-volume-contour-opacity, 0);
+  -webkit-mask-position: var(--training-volume-contour-mask-position, 43% 50%);
+  mask-position: var(--training-volume-contour-mask-position, 43% 50%);
+  animation: none;
+  transition: none;
+}
+
+.training-scene[data-training-time-source="master-clock"]
+  .training-fennec-base-frame {
+  opacity: var(--training-fennec-base-opacity, 1);
+  animation: none;
+}
+
+.training-scene[data-training-time-source="master-clock"]
+  .training-radar-fennec-impact {
+  opacity: var(--training-fennec-impact-opacity, 0);
+  -webkit-mask-image: none;
+  mask-image: none;
+  animation: none;
+  transition: none;
+}
+
 .training-ball-launch-energy {
   z-index: 3;
   opacity: 0;

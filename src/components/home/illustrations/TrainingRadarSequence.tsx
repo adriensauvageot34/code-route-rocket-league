@@ -1,35 +1,21 @@
 "use client";
 
-import {
-  useEffect,
-  useRef,
-  useState,
-  type RefObject,
-} from "react";
-import {
-  getTrainingRadarRangeTiming,
-  TRAINING_RADAR_TIMING,
-  TRAINING_VOLUME_SCAN_TIMING,
-  trainingFennecVolumeScanTarget,
-  trainingRadarTargets,
-  trainingVolumeScanTargets,
-  type TrainingRadarTargetId,
-  type TrainingVolumeScanTargetId,
-} from "@/lib/home/trainingRadarTargets";
-
-export type TrainingRadarPassMode = "volume" | "tactical";
-export type TrainingTacticalPhase = "hidden" | "contact" | "active";
-export type TrainingVolumeScanPhase = "hidden" | "active" | "hold" | "fade";
-export type TrainingFennecSurfaceMode = "hidden" | "reveal";
+import { useEffect, useRef, useState, type RefObject } from "react";
+import { TRAINING_RADAR_TIMING } from "@/lib/home/trainingRadarTargets";
+import type { TrainingRadarPassMode } from "@/lib/home/trainingRadarClock";
 
 type TrainingRadarSequenceState = {
-  fennecSurfaceMode: TrainingFennecSurfaceMode;
-  fennecTacticalActive: boolean;
+  absolutePassIndex: number;
+  callbackLatenessMs: number;
+  cumulativeTheoreticalDriftMs: 0;
+  globalTimersActive: 0 | 1;
+  nextPassBoundaryMs: number;
+  objectTimersActive: 0;
   passKey: number;
   passMode: TrainingRadarPassMode;
+  passStartedAtMs: number;
   running: boolean;
-  tacticalPhases: Record<TrainingRadarTargetId, TrainingTacticalPhase>;
-  volumeScanPhases: Record<TrainingVolumeScanTargetId, TrainingVolumeScanPhase>;
+  skippedPasses: number;
 };
 
 type UseTrainingRadarSequenceOptions = {
@@ -37,30 +23,63 @@ type UseTrainingRadarSequenceOptions = {
   launching: boolean;
 };
 
-const HIDDEN_TACTICAL_PHASES: Record<TrainingRadarTargetId, TrainingTacticalPhase> = {
-  "left-car": "hidden",
-  "back-right-car": "hidden",
-  "front-right-car": "hidden",
-  ball: "hidden",
+type AbsoluteTrainingRadarPass = {
+  absolutePassIndex: number;
+  nextPassBoundaryMs: number;
+  passMode: TrainingRadarPassMode;
+  passStartedAtMs: number;
 };
 
-const HIDDEN_VOLUME_SCAN_PHASES: Record<TrainingVolumeScanTargetId, TrainingVolumeScanPhase> = {
-  "left-car": "hidden",
-  "back-right-car": "hidden",
-  "front-right-car": "hidden",
-  ball: "hidden",
-  fennec: "hidden",
-};
+const VOLUME_PASS_DURATION_MS = TRAINING_RADAR_TIMING.passDurationMs;
+const TACTICAL_PASS_DURATION_MS =
+  TRAINING_RADAR_TIMING.passDurationMs +
+  TRAINING_RADAR_TIMING.tacticalHoldDurationMs;
+const ABSOLUTE_CYCLE_DURATION_MS =
+  VOLUME_PASS_DURATION_MS + TACTICAL_PASS_DURATION_MS;
 
 const INITIAL_SEQUENCE_STATE: TrainingRadarSequenceState = {
-  fennecSurfaceMode: "hidden",
-  fennecTacticalActive: false,
+  absolutePassIndex: 0,
+  callbackLatenessMs: 0,
+  cumulativeTheoreticalDriftMs: 0,
+  globalTimersActive: 0,
+  nextPassBoundaryMs: 0,
+  objectTimersActive: 0,
   passKey: 0,
   passMode: "volume",
+  passStartedAtMs: 0,
   running: false,
-  tacticalPhases: HIDDEN_TACTICAL_PHASES,
-  volumeScanPhases: HIDDEN_VOLUME_SCAN_PHASES,
+  skippedPasses: 0,
 };
+
+export function getAbsoluteTrainingRadarPass(
+  cycleStartedAtMs: number,
+  nowMs: number,
+): AbsoluteTrainingRadarPass {
+  const elapsedMs = Math.max(0, nowMs - cycleStartedAtMs);
+  const cycleIndex = Math.floor(elapsedMs / ABSOLUTE_CYCLE_DURATION_MS);
+  const cycleOffsetMs = elapsedMs - cycleIndex * ABSOLUTE_CYCLE_DURATION_MS;
+  const cyclePassIndex = cycleOffsetMs < VOLUME_PASS_DURATION_MS ? 0 : 1;
+  const absolutePassIndex = cycleIndex * 2 + cyclePassIndex;
+  const cycleBoundaryMs =
+    cycleStartedAtMs + cycleIndex * ABSOLUTE_CYCLE_DURATION_MS;
+  const passMode: TrainingRadarPassMode =
+    cyclePassIndex === 0 ? "volume" : "tactical";
+  const passStartedAtMs =
+    cycleBoundaryMs +
+    (cyclePassIndex === 0 ? 0 : VOLUME_PASS_DURATION_MS);
+  const nextPassBoundaryMs =
+    passStartedAtMs +
+    (passMode === "volume"
+      ? VOLUME_PASS_DURATION_MS
+      : TACTICAL_PASS_DURATION_MS);
+
+  return {
+    absolutePassIndex,
+    nextPassBoundaryMs,
+    passMode,
+    passStartedAtMs,
+  };
+}
 
 export function useTrainingRadarSequence({
   active,
@@ -70,13 +89,17 @@ export function useTrainingRadarSequence({
 } {
   const sceneRef = useRef<HTMLDivElement>(null);
   const [motionAvailable, setMotionAvailable] = useState(false);
-  const [sequence, setSequence] = useState<TrainingRadarSequenceState>(INITIAL_SEQUENCE_STATE);
+  const [sequence, setSequence] = useState<TrainingRadarSequenceState>(
+    INITIAL_SEQUENCE_STATE,
+  );
 
   useEffect(() => {
     const scene = sceneRef.current;
     if (!scene) return;
 
-    const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const reducedMotionQuery = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    );
     let documentVisible = document.visibilityState === "visible";
     let illustrationVisible = true;
     let observer: IntersectionObserver | null = null;
@@ -119,174 +142,63 @@ export function useTrainingRadarSequence({
 
   useEffect(() => {
     if (!shouldRun) {
-      const resetTimer = window.setTimeout(() => {
-        setSequence(INITIAL_SEQUENCE_STATE);
-      }, 0);
-      return () => window.clearTimeout(resetTimer);
+      setSequence(INITIAL_SEQUENCE_STATE);
+      return;
     }
 
-    const timers = new Set<number>();
+    const cycleStartedAtMs = performance.now();
     let cancelled = false;
-    let nextPassMode: TrainingRadarPassMode = "volume";
+    let globalTimerId: number | null = null;
+    let previousAbsolutePassIndex = -1;
+    let skippedPasses = 0;
 
-    function schedule(callback: () => void, delayMs: number) {
-      const timer = window.setTimeout(() => {
-        timers.delete(timer);
-        if (!cancelled) callback();
-      }, delayMs);
-      timers.add(timer);
-    }
+    function syncFromAbsoluteTime(expectedBoundaryMs = 0) {
+      if (cancelled) return;
 
-    function setVolumeScan(
-      targetId: TrainingVolumeScanTargetId,
-      phase: TrainingVolumeScanPhase,
-      surfaceMode?: TrainingFennecSurfaceMode,
-    ) {
-      setSequence((current) => ({
-        ...current,
-        fennecSurfaceMode: surfaceMode ?? current.fennecSurfaceMode,
-        volumeScanPhases: {
-          ...current.volumeScanPhases,
-          [targetId]: phase,
-        },
-      }));
-    }
-
-    function scheduleVolumePass() {
-      for (const volumeTarget of trainingVolumeScanTargets) {
-        const fennecRangeTiming =
-          volumeTarget.type === "fennec"
-            ? getTrainingRadarRangeTiming(volumeTarget.scanRange)
-            : null;
-        const startDelayMs = volumeTarget.scanDelayMs;
-        const activeDurationMs =
-          fennecRangeTiming?.durationMs ??
-          (volumeTarget.type === "ball"
-            ? TRAINING_VOLUME_SCAN_TIMING.ballActiveDurationMs
-            : TRAINING_VOLUME_SCAN_TIMING.activeDurationMs);
-        schedule(() => {
-          setVolumeScan(
-            volumeTarget.id,
-            "active",
-            volumeTarget.id === "fennec" ? "reveal" : undefined,
-          );
-        }, startDelayMs);
-
-        schedule(() => {
-          setVolumeScan(volumeTarget.id, "hold");
-        }, startDelayMs + activeDurationMs);
-
-        schedule(
-          () => {
-            setVolumeScan(volumeTarget.id, "fade");
-          },
-          startDelayMs +
-            activeDurationMs +
-            TRAINING_VOLUME_SCAN_TIMING.holdDurationMs,
-        );
-
-        schedule(
-          () => {
-            setVolumeScan(
-              volumeTarget.id,
-              "hidden",
-              volumeTarget.id === "fennec" ? "hidden" : undefined,
-            );
-          },
-          startDelayMs +
-            activeDurationMs +
-            TRAINING_VOLUME_SCAN_TIMING.holdDurationMs +
-            TRAINING_VOLUME_SCAN_TIMING.fadeDurationMs,
+      const nowMs = performance.now();
+      const pass = getAbsoluteTrainingRadarPass(cycleStartedAtMs, nowMs);
+      if (previousAbsolutePassIndex >= 0) {
+        skippedPasses += Math.max(
+          0,
+          pass.absolutePassIndex - previousAbsolutePassIndex - 1,
         );
       }
-    }
+      previousAbsolutePassIndex = pass.absolutePassIndex;
 
-    function scheduleTacticalPass() {
-      for (const target of trainingRadarTargets) {
-        const hitDelayMs = target.tacticalDelayMs;
-
-        schedule(() => {
-          setSequence((current) => ({
-            ...current,
-            tacticalPhases: {
-              ...current.tacticalPhases,
-              [target.id]: "contact",
-            },
-          }));
-        }, hitDelayMs);
-
-        schedule(() => {
-          setSequence((current) => ({
-            ...current,
-            tacticalPhases: {
-              ...current.tacticalPhases,
-              [target.id]: "active",
-            },
-          }));
-        }, hitDelayMs + TRAINING_RADAR_TIMING.contactDurationMs);
-      }
-
-      schedule(() => {
-        setSequence((current) => ({
-          ...current,
-          fennecTacticalActive: true,
-        }));
-      }, trainingFennecVolumeScanTarget.tacticalDelayMs);
-    }
-
-    function beginPass() {
-      const passMode = nextPassMode;
-      nextPassMode = passMode === "volume" ? "tactical" : "volume";
-
-      setSequence((current) => ({
-        ...current,
-        fennecSurfaceMode: "hidden",
-        fennecTacticalActive:
-          passMode === "volume" ? false : current.fennecTacticalActive,
-        passKey: current.passKey + 1,
-        passMode,
+      setSequence({
+        absolutePassIndex: pass.absolutePassIndex,
+        callbackLatenessMs:
+          expectedBoundaryMs > 0
+            ? Math.max(0, nowMs - expectedBoundaryMs)
+            : 0,
+        cumulativeTheoreticalDriftMs: 0,
+        globalTimersActive: 1,
+        nextPassBoundaryMs: pass.nextPassBoundaryMs,
+        objectTimersActive: 0,
+        passKey: pass.absolutePassIndex + 1,
+        passMode: pass.passMode,
+        passStartedAtMs: pass.passStartedAtMs,
         running: true,
-        tacticalPhases:
-          passMode === "volume" ? HIDDEN_TACTICAL_PHASES : current.tacticalPhases,
-        volumeScanPhases: HIDDEN_VOLUME_SCAN_PHASES,
-      }));
+        skippedPasses,
+      });
 
-      if (passMode === "volume") {
-        scheduleVolumePass();
-      } else {
-        scheduleTacticalPass();
-      }
-
-      const nextPassDelayMs =
-        TRAINING_RADAR_TIMING.passDurationMs +
-        (passMode === "tactical"
-          ? TRAINING_RADAR_TIMING.tacticalHoldDurationMs
-          : 0);
-
-      schedule(beginPass, nextPassDelayMs);
+      const nextBoundaryMs = pass.nextPassBoundaryMs;
+      globalTimerId = window.setTimeout(
+        () => syncFromAbsoluteTime(nextBoundaryMs),
+        Math.max(0, nextBoundaryMs - performance.now()),
+      );
     }
 
-    beginPass();
+    syncFromAbsoluteTime();
 
     return () => {
       cancelled = true;
-      for (const timer of timers) window.clearTimeout(timer);
-      timers.clear();
+      if (globalTimerId !== null) window.clearTimeout(globalTimerId);
     };
   }, [shouldRun]);
 
   return {
-    fennecSurfaceMode: shouldRun ? sequence.fennecSurfaceMode : "hidden",
-    fennecTacticalActive: shouldRun && sequence.fennecTacticalActive,
-    passKey: shouldRun ? sequence.passKey : 0,
-    passMode: shouldRun ? sequence.passMode : "volume",
-    running: shouldRun && sequence.running,
+    ...sequence,
     sceneRef,
-    tacticalPhases: shouldRun
-      ? sequence.tacticalPhases
-      : HIDDEN_TACTICAL_PHASES,
-    volumeScanPhases: shouldRun
-      ? sequence.volumeScanPhases
-      : HIDDEN_VOLUME_SCAN_PHASES,
   };
 }

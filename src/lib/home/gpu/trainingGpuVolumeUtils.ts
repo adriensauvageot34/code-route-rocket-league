@@ -3,9 +3,7 @@ import {
   TRAINING_GPU_VOLUME_BALL_MASK,
   TRAINING_GPU_VOLUME_BALL_TRANSFORMS,
   TRAINING_GPU_VOLUME_CAR_MASK,
-  TRAINING_GPU_VOLUME_STYLE_KEYFRAMES,
   type TrainingGpuVolumeLayer,
-  type TrainingGpuVolumeStyleKeyframe,
 } from "@/lib/home/gpu/trainingGpuVolumeConstants";
 import {
   TRAINING_GPU_VOLUME_FRAGMENT_SHADER,
@@ -359,68 +357,20 @@ export function destroyTrainingGpuVolumeResources(
   gl.deleteProgram(resources.program);
 }
 
-function interpolate(left: number, right: number, progress: number) {
-  return left + (right - left) * progress;
-}
-
-function interpolateStyle(
-  keyframes: readonly TrainingGpuVolumeStyleKeyframe[],
-  progress: number,
-) {
-  const clamped = Math.min(1, Math.max(0, progress));
-  let left = keyframes[0];
-  let right = keyframes[keyframes.length - 1];
-
-  for (let index = 1; index < keyframes.length; index += 1) {
-    if (clamped <= keyframes[index].progress) {
-      left = keyframes[index - 1];
-      right = keyframes[index];
-      break;
-    }
-  }
-
-  const range = Math.max(0.0001, right.progress - left.progress);
-  const local = Math.min(1, Math.max(0, (clamped - left.progress) / range));
-  return {
-    opacity: interpolate(left.opacity, right.opacity, local),
-    brightness: interpolate(left.brightness, right.brightness, local),
-    saturation: interpolate(left.saturation, right.saturation, local),
-  };
-}
-
 function getLayerStyle(
   kind: "car" | "ball",
   layer: TrainingGpuVolumeLayer,
   state: TrainingGpuVolumeScanState,
 ): TrainingGpuVolumeLayerStyle {
-  const keyframes = TRAINING_GPU_VOLUME_STYLE_KEYFRAMES[kind][layer];
-  const terminal = keyframes[keyframes.length - 1];
-  const progress =
-    layer === "surface" ? state.surfaceProgress : state.contourProgress;
-  const activeStyle = interpolateStyle(keyframes, progress);
+  const layerState = state[layer];
   const glowPx = layer === "contour" ? (kind === "car" ? 4 : 3) : 0;
   const glowStrength =
     layer === "contour" ? (kind === "car" ? 0.44 : 0.34) : 0;
 
-  if (state.phase === "hidden") {
-    return { ...activeStyle, opacity: 0, glowPx, glowStrength };
-  }
-  if (state.phase === "active") {
-    return { ...activeStyle, glowPx, glowStrength };
-  }
-
-  const opacity =
-    state.phase === "fade"
-      ? terminal.opacity *
-        (layer === "surface"
-          ? state.surfaceOpacityFactor
-          : state.contourOpacityFactor)
-      : terminal.opacity;
-
   return {
-    opacity,
-    brightness: terminal.brightness,
-    saturation: terminal.saturation,
+    opacity: layerState.opacity,
+    brightness: layerState.brightness,
+    saturation: layerState.saturation,
     glowPx,
     glowStrength,
   };

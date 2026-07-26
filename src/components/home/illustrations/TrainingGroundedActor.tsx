@@ -1,9 +1,5 @@
 import Image from "next/image";
 import type { CSSProperties, Ref } from "react";
-import type {
-  TrainingTacticalPhase,
-  TrainingVolumeScanPhase,
-} from "@/components/home/illustrations/TrainingRadarSequence";
 import {
   TRAINING_RADAR_TIMING,
   TRAINING_VOLUME_SCAN_TIMING,
@@ -34,8 +30,6 @@ type TrainingCarScanStyle = CSSProperties & {
 
 type TrainingGroundedCarProps = {
   target: TrainingCarRadarTarget;
-  tacticalPhase: TrainingTacticalPhase;
-  volumeScanPhase: TrainingVolumeScanPhase;
   gpuVolumeCanvasRef?: Ref<HTMLCanvasElement>;
   showGpuVolumeCanvas?: boolean;
   showDomBase?: boolean;
@@ -45,8 +39,6 @@ type TrainingGroundedCarProps = {
 
 type TrainingGroundedBallProps = {
   target: TrainingBallRadarTarget;
-  tacticalPhase: TrainingTacticalPhase;
-  volumeScanPhase: TrainingVolumeScanPhase;
   gpuVolumeCanvasRef?: Ref<HTMLCanvasElement>;
   showGpuVolumeCanvas?: boolean;
   showDomBase?: boolean;
@@ -81,8 +73,6 @@ function getGroundedActorStyle(
 
 export function TrainingGroundedCar({
   target,
-  tacticalPhase,
-  volumeScanPhase,
   gpuVolumeCanvasRef,
   showGpuVolumeCanvas = false,
   showDomBase = true,
@@ -105,54 +95,51 @@ export function TrainingGroundedCar({
     <div
       aria-hidden="true"
       className="training-grounded-actor training-grounded-car"
+      data-dom-base-visible={showDomBase ? "true" : "false"}
       data-radar-target={target.id}
       style={getGroundedActorStyle(target)}
     >
       <div className="training-contact-shadow training-car-contact-shadow" />
-      {showDomBase ? (
+      <Image
+        alt=""
+        aria-hidden="true"
+        className="training-grounded-actor-base"
+        draggable={false}
+        fill
+        sizes="(max-width: 820px) 100vw, (max-width: 1180px) 66vw, 34vw"
+        src={target.baseAsset.path}
+        unoptimized
+      />
+      <div
+        className="training-radar-object-target training-radar-car-target"
+        data-dom-tactical-visible={showDomTactical ? "true" : "false"}
+        data-dom-volume-visible={showDomVolumeScan ? "true" : "false"}
+        data-object-scan="aligned"
+        data-tactical-active="false"
+        data-tactical-phase="hidden"
+        data-volume-scan-phase="hidden"
+        style={placementStyle}
+      >
         <Image
           alt=""
           aria-hidden="true"
-          className="training-grounded-actor-base"
+          className="training-radar-object-surface training-radar-car-surface"
           draggable={false}
           fill
-          sizes="(max-width: 820px) 100vw, (max-width: 1180px) 66vw, 34vw"
-          src={target.baseAsset.path}
+          sizes="12vw"
+          src={target.surfaceAsset.path}
           unoptimized
         />
-      ) : null}
-      <div
-        className="training-radar-object-target training-radar-car-target"
-        data-object-scan="aligned"
-        data-tactical-active={tacticalPhase === "hidden" ? "false" : "true"}
-        data-tactical-phase={tacticalPhase}
-        data-volume-scan-phase={volumeScanPhase}
-        style={placementStyle}
-      >
-        {showDomVolumeScan ? (
-          <>
-            <Image
-              alt=""
-              aria-hidden="true"
-              className="training-radar-object-surface training-radar-car-surface"
-              draggable={false}
-              fill
-              sizes="12vw"
-              src={target.surfaceAsset.path}
-              unoptimized
-            />
-            <Image
-              alt=""
-              aria-hidden="true"
-              className="training-radar-object-contour training-radar-car-contour"
-              draggable={false}
-              fill
-              sizes="12vw"
-              src={target.contourAsset.path}
-              unoptimized
-            />
-          </>
-        ) : null}
+        <Image
+          alt=""
+          aria-hidden="true"
+          className="training-radar-object-contour training-radar-car-contour"
+          draggable={false}
+          fill
+          sizes="12vw"
+          src={target.contourAsset.path}
+          unoptimized
+        />
         {showGpuVolumeCanvas ? (
           <canvas
             aria-hidden="true"
@@ -160,30 +147,26 @@ export function TrainingGroundedCar({
             ref={gpuVolumeCanvasRef}
           />
         ) : null}
-        {showDomTactical ? (
-          <>
-            <Image
-              alt=""
-              aria-hidden="true"
-              className="training-radar-car-wireframe"
-              draggable={false}
-              fill
-              sizes="12vw"
-              src={target.wireframeAsset.path}
-              unoptimized
-            />
-            <Image
-              alt=""
-              aria-hidden="true"
-              className="training-radar-car-glow"
-              draggable={false}
-              fill
-              sizes="12vw"
-              src={target.glowAsset.path}
-              unoptimized
-            />
-          </>
-        ) : null}
+        <Image
+          alt=""
+          aria-hidden="true"
+          className="training-radar-car-wireframe"
+          draggable={false}
+          fill
+          sizes="12vw"
+          src={target.wireframeAsset.path}
+          unoptimized
+        />
+        <Image
+          alt=""
+          aria-hidden="true"
+          className="training-radar-car-glow"
+          draggable={false}
+          fill
+          sizes="12vw"
+          src={target.glowAsset.path}
+          unoptimized
+        />
       </div>
     </div>
   );
@@ -191,8 +174,6 @@ export function TrainingGroundedCar({
 
 export function TrainingGroundedBall({
   target,
-  tacticalPhase,
-  volumeScanPhase,
   gpuVolumeCanvasRef,
   showGpuVolumeCanvas = false,
   showDomBase = true,
@@ -205,51 +186,49 @@ export function TrainingGroundedBall({
     <div
       aria-hidden="true"
       className="training-grounded-actor training-grounded-ball"
+      data-dom-base-visible={showDomBase ? "true" : "false"}
       data-radar-target={target.id}
       style={getGroundedActorStyle(target)}
     >
       <div className="training-contact-shadow training-ball-contact-shadow" />
-      {showDomBase ? (
+      <Image
+        alt=""
+        aria-hidden="true"
+        className="training-grounded-actor-base"
+        draggable={false}
+        fill
+        sizes={sizes}
+        src={target.baseAsset.path}
+        unoptimized
+      />
+      <div
+        className="training-radar-object-target training-radar-ball-target"
+        data-dom-tactical-visible={showDomTactical ? "true" : "false"}
+        data-dom-volume-visible={showDomVolumeScan ? "true" : "false"}
+        data-tactical-active="false"
+        data-tactical-phase="hidden"
+        data-volume-scan-phase="hidden"
+      >
         <Image
           alt=""
           aria-hidden="true"
-          className="training-grounded-actor-base"
+          className="training-radar-ball-volume-surface"
           draggable={false}
           fill
           sizes={sizes}
-          src={target.baseAsset.path}
+          src={target.surfaceAsset.path}
           unoptimized
         />
-      ) : null}
-      <div
-        className="training-radar-object-target training-radar-ball-target"
-        data-tactical-phase={tacticalPhase}
-        data-volume-scan-phase={volumeScanPhase}
-      >
-        {showDomVolumeScan ? (
-          <>
-            <Image
-              alt=""
-              aria-hidden="true"
-              className="training-radar-ball-volume-surface"
-              draggable={false}
-              fill
-              sizes={sizes}
-              src={target.surfaceAsset.path}
-              unoptimized
-            />
-            <Image
-              alt=""
-              aria-hidden="true"
-              className="training-radar-ball-volume-contour"
-              draggable={false}
-              fill
-              sizes={sizes}
-              src={target.contourAsset.path}
-              unoptimized
-            />
-          </>
-        ) : null}
+        <Image
+          alt=""
+          aria-hidden="true"
+          className="training-radar-ball-volume-contour"
+          draggable={false}
+          fill
+          sizes={sizes}
+          src={target.contourAsset.path}
+          unoptimized
+        />
         {showGpuVolumeCanvas ? (
           <canvas
             aria-hidden="true"
@@ -257,18 +236,16 @@ export function TrainingGroundedBall({
             ref={gpuVolumeCanvasRef}
           />
         ) : null}
-        {showDomTactical ? (
-          <Image
-            alt=""
-            aria-hidden="true"
-            className="training-radar-ball-energy"
-            draggable={false}
-            fill
-            sizes={sizes}
-            src={target.energyAsset.path}
-            unoptimized
-          />
-        ) : null}
+        <Image
+          alt=""
+          aria-hidden="true"
+          className="training-radar-ball-energy"
+          draggable={false}
+          fill
+          sizes={sizes}
+          src={target.energyAsset.path}
+          unoptimized
+        />
       </div>
       <Image
         alt=""

@@ -17,6 +17,7 @@ import { TrainingGpuDebugPanel } from "@/components/home/illustrations/gpu/Train
 import { TrainingRadarOverlay } from "@/components/home/illustrations/TrainingRadarOverlay";
 import { useTrainingRadarSequence } from "@/components/home/illustrations/TrainingRadarSequence";
 import { TrainingParticleField } from "@/components/home/illustrations/TrainingParticleField";
+import { useTrainingDomRadarDriver } from "@/hooks/useTrainingDomRadarDriver";
 import { useTrainingGpuObjectAssets } from "@/hooks/useTrainingGpuObjectAssets";
 import { useTrainingRadarClock } from "@/hooks/useTrainingRadarClock";
 import { useTrainingRendererMode } from "@/hooks/useTrainingRendererMode";
@@ -29,8 +30,6 @@ import {
   trainingCarRadarTargets,
   trainingFennecVolumeScanTarget,
   type TrainingCarRadarTarget,
-  type TrainingRadarTargetId,
-  type TrainingVolumeScanTargetId,
 } from "@/lib/home/trainingRadarTargets";
 
 const assets = homeIllustrationAssets.training;
@@ -88,16 +87,25 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
   const trainingRendererMode = useTrainingRendererMode();
   const { debugEnabled, debugCollector } = useTrainingRendererDebug();
   const {
-    fennecSurfaceMode,
-    fennecTacticalActive,
+    absolutePassIndex,
+    callbackLatenessMs,
+    cumulativeTheoreticalDriftMs,
+    globalTimersActive,
+    nextPassBoundaryMs,
+    objectTimersActive,
     passKey,
     passMode,
+    passStartedAtMs,
     running,
     sceneRef,
-    tacticalPhases,
-    volumeScanPhases,
+    skippedPasses,
   } = useTrainingRadarSequence({ active, launching });
-  const radarClock = useTrainingRadarClock({ passKey, passMode, running });
+  const radarClock = useTrainingRadarClock({
+    passKey,
+    passMode,
+    passStartedAtMs,
+    running,
+  });
   const leftCarVolumeCanvasRef = useRef<HTMLCanvasElement>(null);
   const backRightCarVolumeCanvasRef = useRef<HTMLCanvasElement>(null);
   const frontRightCarVolumeCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -145,15 +153,19 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
   const showDomParticles = !useGpuRenderer || !gpuParticlesReady;
   const showDomVolumeScan = !useGpuRenderer || !gpuVolumeScansReady;
   const showDomTactical = !useGpuRenderer || !gpuTacticalReady;
+  const applyDomSnapshot = useTrainingDomRadarDriver({
+    active,
+    debugCollector,
+    mode: trainingRendererMode,
+    radarClock,
+    rootRef: sceneRef,
+    running,
+  });
   const gpuVolumeAssets =
     gpuObjectAssetState.status === "ready" ||
     gpuObjectAssetState.status === "error"
       ? gpuObjectAssetState.objects
       : null;
-  const getTacticalPhase = (targetId: TrainingRadarTargetId) =>
-    tacticalPhases[targetId];
-  const getVolumeScanPhase = (targetId: TrainingVolumeScanTargetId) =>
-    volumeScanPhases[targetId];
   const trainingFennecScanStyle = getTrainingFennecScanStyle();
 
   useEffect(() => {
@@ -161,8 +173,29 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       mode: trainingRendererMode,
       illustrationActive: active,
       radarRunning: running,
+      globalTimersActive,
+      objectTimersActive,
+      absolutePassIndex,
+      nextPassBoundaryMs,
+      callbackLatenessMs,
+      skippedPasses,
+      cumulativeTheoreticalDriftMs,
+      passStartedAtMs,
     });
-  }, [active, debugCollector, running, trainingRendererMode]);
+  }, [
+    absolutePassIndex,
+    active,
+    callbackLatenessMs,
+    cumulativeTheoreticalDriftMs,
+    debugCollector,
+    globalTimersActive,
+    nextPassBoundaryMs,
+    objectTimersActive,
+    passStartedAtMs,
+    running,
+    skippedPasses,
+    trainingRendererMode,
+  ]);
 
   return (
     <div
@@ -192,6 +225,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       }
       data-radar-pass-mode={passMode}
       data-scene="training"
+      data-training-time-source="master-clock"
       data-training-renderer={trainingRendererMode}
       ref={sceneRef}
     >
@@ -229,29 +263,24 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         <SceneLayer asset={assets.parallaxGround} preload />
       </SceneGroup>
 
-      {showDomRadar ? (
-        <>
-          <SceneGroup blendMode="screen" depth="trainingGround" layer={6} name="training-radar-surface">
-            <TrainingRadarOverlay
-              active={running}
-              key={`training-radar-surface-${passKey}`}
-              variant="surface"
-            />
-          </SceneGroup>
+      <SceneGroup blendMode="screen" depth="trainingGround" layer={6} name="training-radar-surface">
+        <TrainingRadarOverlay
+          domVisible={showDomRadar}
+          variant="surface"
+        />
+      </SceneGroup>
 
-          <SceneGroup depth="trainingGround" layer={7} name="training-radar-sweep">
-            <TrainingRadarOverlay
-              active={running}
-              key={`training-radar-sweep-${passKey}`}
-              variant="sweep"
-            />
-          </SceneGroup>
-        </>
-      ) : null}
+      <SceneGroup depth="trainingGround" layer={7} name="training-radar-sweep">
+        <TrainingRadarOverlay
+          domVisible={showDomRadar}
+          variant="sweep"
+        />
+      </SceneGroup>
 
       {useGpuRenderer ? (
         <TrainingGpuCanvas
           active={active}
+          applyDomSnapshot={applyDomSnapshot}
           debugCollector={debugCollector}
           onBasesReadyChange={handleGpuBasesReadyChange}
           onFennecBaseReadyChange={handleGpuFennecBaseReadyChange}
@@ -276,15 +305,12 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         <SceneLayer asset={assets.parallaxBarrier} preload />
       </SceneGroup>
 
-      {showDomParticles ? (
-        <SceneGroup blendMode="screen" depth="trainingParticlesFar" layer={9} name="training-particles-far">
-          <TrainingParticleField
-            active={running}
-            passKey={passKey}
-            preset="far"
-          />
-        </SceneGroup>
-      ) : null}
+      <SceneGroup blendMode="screen" depth="trainingParticlesFar" layer={9} name="training-particles-far">
+        <TrainingParticleField
+          domVisible={showDomParticles}
+          preset="far"
+        />
+      </SceneGroup>
 
       <SceneGroup depth={trainingFarCarTarget.depth} layer={10} name={`training-${trainingFarCarTarget.id}`}>
         <TrainingGroundedCar
@@ -294,20 +320,15 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
           showDomTactical={showDomTactical}
           showGpuVolumeCanvas={useGpuRenderer}
           target={trainingFarCarTarget}
-          tacticalPhase={getTacticalPhase(trainingFarCarTarget.id)}
-          volumeScanPhase={getVolumeScanPhase(trainingFarCarTarget.id)}
         />
       </SceneGroup>
 
-      {showDomParticles ? (
-        <SceneGroup blendMode="screen" depth="trainingParticlesMid" layer={11} name="training-particles-mid">
-          <TrainingParticleField
-            active={running}
-            passKey={passKey}
-            preset="mid"
-          />
-        </SceneGroup>
-      ) : null}
+      <SceneGroup blendMode="screen" depth="trainingParticlesMid" layer={11} name="training-particles-mid">
+        <TrainingParticleField
+          domVisible={showDomParticles}
+          preset="mid"
+        />
+      </SceneGroup>
 
       <SceneGroup depth={trainingMidCarTarget.depth} layer={12} name={`training-${trainingMidCarTarget.id}`}>
         <TrainingGroundedCar
@@ -317,8 +338,6 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
           showDomTactical={showDomTactical}
           showGpuVolumeCanvas={useGpuRenderer}
           target={trainingMidCarTarget}
-          tacticalPhase={getTacticalPhase(trainingMidCarTarget.id)}
-          volumeScanPhase={getVolumeScanPhase(trainingMidCarTarget.id)}
         />
       </SceneGroup>
 
@@ -330,8 +349,6 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
           showDomTactical={showDomTactical}
           showGpuVolumeCanvas={useGpuRenderer}
           target={trainingNearCarTarget}
-          tacticalPhase={getTacticalPhase(trainingNearCarTarget.id)}
-          volumeScanPhase={getVolumeScanPhase(trainingNearCarTarget.id)}
         />
       </SceneGroup>
 
@@ -343,26 +360,21 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
           showDomTactical={showDomTactical}
           showGpuVolumeCanvas={useGpuRenderer}
           target={trainingBallRadarTarget}
-          tacticalPhase={getTacticalPhase(trainingBallRadarTarget.id)}
-          volumeScanPhase={getVolumeScanPhase(trainingBallRadarTarget.id)}
         />
       </SceneGroup>
 
-      {showDomParticles ? (
-        <SceneGroup blendMode="screen" depth="trainingParticlesNear" layer={15} name="training-particles-near">
-          <TrainingParticleField
-            active={running}
-            passKey={passKey}
-            preset="near"
-          />
-        </SceneGroup>
-      ) : null}
+      <SceneGroup blendMode="screen" depth="trainingParticlesNear" layer={15} name="training-particles-near">
+        <TrainingParticleField
+          domVisible={showDomParticles}
+          preset="near"
+        />
+      </SceneGroup>
 
       <SceneGroup depth="trainingFennec" layer={16} name="fennec">
         <div aria-hidden="true" className="training-fennec-contact-shadow" />
         <div
           className="training-fennec-base-frame"
-          data-tactical-active={fennecTacticalActive ? "true" : "false"}
+          data-tactical-active="false"
           style={trainingFennecScanStyle}
         >
           <SceneLayer asset={assets.fennecBase} className="training-fennec-base" />
@@ -376,9 +388,9 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         ) : null}
         <div
           className="training-radar-fennec-target"
-          data-surface-scan-mode={fennecSurfaceMode}
-          data-tactical-active={fennecTacticalActive ? "true" : "false"}
-          data-volume-scan-phase={getVolumeScanPhase(trainingFennecVolumeScanTarget.id)}
+          data-surface-scan-mode="hidden"
+          data-tactical-active="false"
+          data-volume-scan-phase="hidden"
           style={trainingFennecScanStyle}
         >
           <div className="training-radar-fennec-surface-mask">
