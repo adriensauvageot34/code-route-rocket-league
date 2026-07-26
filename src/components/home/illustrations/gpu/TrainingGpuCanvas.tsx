@@ -108,6 +108,7 @@ export function TrainingGpuCanvas({
       return;
     }
 
+    const stackElement: HTMLDivElement = stack;
     const canvases: TrainingGpuConsolidatedCanvases = {
       radar: {
         surface: surfaceCanvas,
@@ -172,7 +173,7 @@ export function TrainingGpuCanvas({
 
         const handleResize = () => {
           const { width: cssWidth, height: cssHeight } =
-            stack.getBoundingClientRect();
+            stackElement.getBoundingClientRect();
           if (
             !Number.isFinite(cssWidth) ||
             !Number.isFinite(cssHeight) ||
@@ -198,7 +199,7 @@ export function TrainingGpuCanvas({
         };
         resizeCanvases = handleResize;
         resizeObserver = new ResizeObserver(handleResize);
-        resizeObserver.observe(stack);
+        resizeObserver.observe(stackElement);
         window.addEventListener("resize", handleResize);
         handleResize();
 
