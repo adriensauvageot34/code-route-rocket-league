@@ -137,6 +137,7 @@ const EMPTY_FRAME_METRICS: TrainingGpuSceneFrameMetrics = {
 };
 
 const FENNEC_MASK_SCALE = { x: 0.34, y: 1 } as const;
+const LOCAL_CAR_SURFACE_MASK_KIND = 4;
 
 function getWebGl2Context(canvas: HTMLCanvasElement) {
   return canvas.getContext(
@@ -811,13 +812,15 @@ export class TrainingGpuSceneRenderer {
         ? Number.parseFloat(registration.target.objectScan.angle)
         : 0;
     const maskKind =
-      kind === "car"
-        ? layer === "surface"
-          ? 0
-          : 1
-        : layer === "surface"
-          ? 2
-          : 3;
+      registration.id === "left-car" && layer === "surface"
+        ? LOCAL_CAR_SURFACE_MASK_KIND
+        : kind === "car"
+          ? layer === "surface"
+            ? 0
+            : 1
+          : layer === "surface"
+            ? 2
+            : 3;
     const texture =
       layer === "surface"
         ? resources.volume.surfaceTexture
