@@ -1,0 +1,378 @@
+{
+  "version": 1,
+  "project": "RLGS",
+  "description": "Plans de parallaxe optimisés. Le dossier cropped nécessite l'application des offsets du manifest. Le dossier drop-in-full-scene conserve les dimensions d'origine.",
+  "assets": {
+    "matrice-analyse": {
+      "role": "Matrice tactique dorée",
+      "source": {
+        "file": "matrice_analyse (2).png",
+        "size": {
+          "width": 1536,
+          "height": 1024
+        },
+        "bytes": 1957134,
+        "sha256": "b28754b43ba4bf07587106896d4d9e2882c0b84836679f2e3091627ea5f5cac3"
+      },
+      "cropped": {
+        "file": "cropped/matrice-analyse.webp",
+        "crop": {
+          "x": 0,
+          "y": 392,
+          "width": 1536,
+          "height": 632
+        },
+        "outputSize": {
+          "width": 1536,
+          "height": 632
+        },
+        "paddingPx": 16,
+        "bytes": 1008722,
+        "sha256": "16441b2da2e7c89e050f872fa15c2d0e50c554334eeda65d04dd4f200b01c14e",
+        "losslessRgbaExact": true
+      },
+      "dropIn": {
+        "file": "drop-in-full-scene/matrice-analyse.webp",
+        "outputSize": {
+          "width": 1536,
+          "height": 1024
+        },
+        "bytes": 1022072,
+        "sha256": "45c6d36d22919b75a021df40ada6e022ad122b201ab5cc17533709568809f407"
+      },
+      "encoding": {
+        "format": "webp",
+        "mode": "lossless",
+        "quality": 100,
+        "method": 6
+      },
+      "alpha": "transparent",
+      "blendModeRecommended": "screen",
+      "placement": {
+        "coordinateSpace": "source-scene",
+        "offsetX": 0,
+        "offsetY": 392,
+        "note": "Pour la version cropped, replacer le coin supérieur gauche à cet offset dans le repère source."
+      }
+    },
+    "parallax-plan-01-barriere": {
+      "role": "Barrière du terrain",
+      "source": {
+        "file": "parallax-plan-01-barriere (2).png",
+        "size": {
+          "width": 1672,
+          "height": 941
+        },
+        "bytes": 902034,
+        "sha256": "04f3d9d3978b413edd522eedda6c3909c10534d4c142c74c9c78185f3ad84c2e"
+      },
+      "cropped": {
+        "file": "cropped/parallax-plan-01-barriere.webp",
+        "crop": {
+          "x": 0,
+          "y": 344,
+          "width": 1672,
+          "height": 128
+        },
+        "outputSize": {
+          "width": 1672,
+          "height": 128
+        },
+        "paddingPx": 16,
+        "bytes": 167536,
+        "sha256": "bdab581a8e0e8a4ab7136a5563b1424ed6e40e37266da6fa1019907ee1e44286",
+        "losslessRgbaExact": true
+      },
+      "dropIn": {
+        "file": "drop-in-full-scene/parallax-plan-01-barriere.webp",
+        "outputSize": {
+          "width": 1672,
+          "height": 941
+        },
+        "bytes": 694360,
+        "sha256": "043ce88cf0598921a6ba281e934082d00a27b67f095d6dba9d0b4d90a53643fa"
+      },
+      "encoding": {
+        "format": "webp",
+        "mode": "lossless",
+        "quality": 100,
+        "method": 6
+      },
+      "alpha": "transparent",
+      "blendModeRecommended": "normal",
+      "placement": {
+        "coordinateSpace": "source-scene",
+        "offsetX": 0,
+        "offsetY": 344,
+        "note": "Pour la version cropped, replacer le coin supérieur gauche à cet offset dans le repère source."
+      }
+    },
+    "parallax-plan-01-sol": {
+      "role": "Sol du terrain",
+      "source": {
+        "file": "parallax-plan-01-sol (1).png",
+        "size": {
+          "width": 1672,
+          "height": 941
+        },
+        "bytes": 1973661,
+        "sha256": "3e65ed9eaa00529d9f3042d7b8786487bc78d1779f6d46e91657a1409a049ef7"
+      },
+      "cropped": {
+        "file": "cropped/parallax-plan-01-sol.webp",
+        "crop": {
+          "x": 0,
+          "y": 365,
+          "width": 1672,
+          "height": 576
+        },
+        "outputSize": {
+          "width": 1672,
+          "height": 576
+        },
+        "paddingPx": 16,
+        "bytes": 950478,
+        "sha256": "297afe65f2fad12480d2b681c9b799a9312c969fa328fac4d4da5954956c48fb",
+        "losslessRgbaExact": true
+      },
+      "dropIn": {
+        "file": "drop-in-full-scene/parallax-plan-01-sol.webp",
+        "outputSize": {
+          "width": 1672,
+          "height": 941
+        },
+        "bytes": 948390,
+        "sha256": "acdede8b11a28a99131492f5f66dfad1277996b75cea96b5d9283736f279bfb0"
+      },
+      "encoding": {
+        "format": "webp",
+        "mode": "lossless",
+        "quality": 100,
+        "method": 6
+      },
+      "alpha": "transparent",
+      "blendModeRecommended": "normal",
+      "placement": {
+        "coordinateSpace": "source-scene",
+        "offsetX": 0,
+        "offsetY": 365,
+        "note": "Pour la version cropped, replacer le coin supérieur gauche à cet offset dans le repère source."
+      }
+    },
+    "parallax-plan-02-batiments-proches": {
+      "role": "Bâtiments proches",
+      "source": {
+        "file": "parallax-plan-02-batiments-proches.png",
+        "size": {
+          "width": 1672,
+          "height": 941
+        },
+        "bytes": 460188,
+        "sha256": "9dec09e66b8f439b82fb7350aef0600c749595ccf20349f0cb301a9f20667c83"
+      },
+      "cropped": {
+        "file": "cropped/parallax-plan-02-batiments-proches.webp",
+        "crop": {
+          "x": 0,
+          "y": 244,
+          "width": 1672,
+          "height": 400
+        },
+        "outputSize": {
+          "width": 1672,
+          "height": 400
+        },
+        "paddingPx": 16,
+        "bytes": 319720,
+        "sha256": "1c7d01c4c0ade0ec60e50bea52e7ecac8692e7da7554b47345771083b892b463",
+        "losslessRgbaExact": true
+      },
+      "dropIn": {
+        "file": "drop-in-full-scene/parallax-plan-02-batiments-proches.webp",
+        "outputSize": {
+          "width": 1672,
+          "height": 941
+        },
+        "bytes": 324592,
+        "sha256": "16305179663c25a426a9d6020d365d267fab057e59f5656b84d6a13a9af6e068"
+      },
+      "encoding": {
+        "format": "webp",
+        "mode": "lossless",
+        "quality": 100,
+        "method": 6
+      },
+      "alpha": "transparent",
+      "blendModeRecommended": "normal",
+      "placement": {
+        "coordinateSpace": "source-scene",
+        "offsetX": 0,
+        "offsetY": 244,
+        "note": "Pour la version cropped, replacer le coin supérieur gauche à cet offset dans le repère source."
+      }
+    },
+    "parallax-plan-03-batiments-intermediaires": {
+      "role": "Bâtiments intermédiaires",
+      "source": {
+        "file": "parallax-plan-03-batiments-intermediaires.png",
+        "size": {
+          "width": 1672,
+          "height": 941
+        },
+        "bytes": 479776,
+        "sha256": "77ae943a05c7e06ddb9e19475fd3fdca38dc4905640976bd1bf37ae5961808a0"
+      },
+      "cropped": {
+        "file": "cropped/parallax-plan-03-batiments-intermediaires.webp",
+        "crop": {
+          "x": 0,
+          "y": 253,
+          "width": 1672,
+          "height": 336
+        },
+        "outputSize": {
+          "width": 1672,
+          "height": 336
+        },
+        "paddingPx": 16,
+        "bytes": 351064,
+        "sha256": "e58c51ca55d490c5d976d49c4729cd0ce825cb8027aa7f5976087b9e7476f057",
+        "losslessRgbaExact": true
+      },
+      "dropIn": {
+        "file": "drop-in-full-scene/parallax-plan-03-batiments-intermediaires.webp",
+        "outputSize": {
+          "width": 1672,
+          "height": 941
+        },
+        "bytes": 365434,
+        "sha256": "a6d5a153af721e570c54ffc2e6ddf18baa47ea57e92f6897528da3a9aa3ac6aa"
+      },
+      "encoding": {
+        "format": "webp",
+        "mode": "lossless",
+        "quality": 100,
+        "method": 6
+      },
+      "alpha": "transparent",
+      "blendModeRecommended": "normal",
+      "placement": {
+        "coordinateSpace": "source-scene",
+        "offsetX": 0,
+        "offsetY": 253,
+        "note": "Pour la version cropped, replacer le coin supérieur gauche à cet offset dans le repère source."
+      }
+    },
+    "parallax-plan-04-skyline-lointaine": {
+      "role": "Skyline lointaine",
+      "source": {
+        "file": "parallax-plan-04-skyline-lointaine.png",
+        "size": {
+          "width": 1672,
+          "height": 941
+        },
+        "bytes": 712665,
+        "sha256": "0486de9b34ed2c1344c9c10284db6afed65fdec9b17ea5918c0c1ea6bbc2a339"
+      },
+      "cropped": {
+        "file": "cropped/parallax-plan-04-skyline-lointaine.webp",
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "width": 1672,
+          "height": 360
+        },
+        "outputSize": {
+          "width": 1672,
+          "height": 360
+        },
+        "paddingPx": 16,
+        "bytes": 535126,
+        "sha256": "371daaf36c0230276d208cef750c6869c2c8f8bd565ab9b8714f89e26ee42c24",
+        "losslessRgbaExact": true
+      },
+      "dropIn": {
+        "file": "drop-in-full-scene/parallax-plan-04-skyline-lointaine.webp",
+        "outputSize": {
+          "width": 1672,
+          "height": 941
+        },
+        "bytes": 553540,
+        "sha256": "d126ab89053e4b2cfb0d471c86e0d3f9d2b691afbb69b37be8924d8821fe642c"
+      },
+      "encoding": {
+        "format": "webp",
+        "mode": "lossless",
+        "quality": 100,
+        "method": 6
+      },
+      "alpha": "transparent",
+      "blendModeRecommended": "normal",
+      "placement": {
+        "coordinateSpace": "source-scene",
+        "offsetX": 0,
+        "offsetY": 0,
+        "note": "Pour la version cropped, replacer le coin supérieur gauche à cet offset dans le repère source."
+      }
+    },
+    "parallax-plan-05-ciel": {
+      "role": "Ciel étoilé opaque",
+      "source": {
+        "file": "parallax-plan-05-ciel.png",
+        "size": {
+          "width": 1672,
+          "height": 941
+        },
+        "bytes": 2440238,
+        "sha256": "31beee74d888016dba4a2550d163a0ccf1cadca74594c35ee116f45a9bd2d202"
+      },
+      "cropped": {
+        "file": "cropped/parallax-plan-05-ciel.webp",
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "width": 1672,
+          "height": 941
+        },
+        "outputSize": {
+          "width": 1672,
+          "height": 941
+        },
+        "paddingPx": 0,
+        "bytes": 39114,
+        "sha256": "490e4ca046ee247c606684349dbc8bbad7a694af3419c1ee8934519ea54ff4e3",
+        "losslessRgbaExact": null
+      },
+      "dropIn": {
+        "file": "drop-in-full-scene/parallax-plan-05-ciel.webp",
+        "outputSize": {
+          "width": 1672,
+          "height": 941
+        },
+        "bytes": 39114,
+        "sha256": "490e4ca046ee247c606684349dbc8bbad7a694af3419c1ee8934519ea54ff4e3"
+      },
+      "encoding": {
+        "format": "webp",
+        "mode": "lossy",
+        "quality": 88,
+        "method": 6
+      },
+      "alpha": "opaque",
+      "blendModeRecommended": "normal",
+      "placement": {
+        "coordinateSpace": "source-scene",
+        "offsetX": 0,
+        "offsetY": 0,
+        "note": "Pour la version cropped, replacer le coin supérieur gauche à cet offset dans le repère source."
+      }
+    }
+  },
+  "summary": {
+    "sourceBytes": 8925696,
+    "croppedWebpBytes": 3371760,
+    "dropInWebpBytes": 3947502,
+    "croppedSavingsPercent": 62.22,
+    "dropInSavingsPercent": 55.77
+  }
+}
