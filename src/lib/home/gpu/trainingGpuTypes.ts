@@ -1,3 +1,6 @@
+import type {
+  TrainingRadarFrameState,
+} from "@/lib/home/trainingRadarSnapshots";
 import type { TrainingRadarPassMode } from "@/lib/home/trainingRadarClock";
 
 export type TrainingRendererMode = "dom" | "gpu";
@@ -15,14 +18,4 @@ export type TrainingGpuViewport = {
   renderScale: number;
 };
 
-export type TrainingGpuFrameState = {
-  active: boolean;
-  running: boolean;
-  passKey: number;
-  passMode: TrainingRadarPassMode;
-  passStartedAtMs: number;
-  nowMs: number;
-  elapsedMs: number;
-  radarProgress: number;
-  passDurationMs: number;
-};
+export type TrainingGpuFrameState = TrainingRadarFrameState;

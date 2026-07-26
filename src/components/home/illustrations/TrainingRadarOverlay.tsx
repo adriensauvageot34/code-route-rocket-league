@@ -1,23 +1,9 @@
-import type { CSSProperties } from "react";
 import { homeIllustrationAssets } from "@/lib/home/homeIllustrationAssets";
-import {
-  TRAINING_RADAR_FIELD_PATH,
-  TRAINING_RADAR_SWEEP,
-  TRAINING_RADAR_TIMING,
-  TRAINING_RADAR_TRAVEL_EASING,
-} from "@/lib/home/trainingRadarTargets";
+import { TRAINING_RADAR_FIELD_PATH } from "@/lib/home/trainingRadarTargets";
 
 type TrainingRadarOverlayProps = {
-  active: boolean;
+  domVisible: boolean;
   variant: "surface" | "sweep";
-};
-
-type TrainingRadarStyle = CSSProperties & {
-  "--radar-entry-duration": string;
-  "--radar-end-x": string;
-  "--radar-start-x": string;
-  "--radar-travel-duration": string;
-  "--radar-travel-easing": string;
 };
 
 const terrainAsset = homeIllustrationAssets.training.tacticalTerrain;
@@ -28,25 +14,17 @@ const SWEEP_PATH = "M -286 340 L 2 340 L 238 941 L -50 941 Z";
 const CORE_PATH = "M 2 340 L 238 941";
 
 export function TrainingRadarOverlay({
-  active,
+  domVisible,
   variant,
 }: TrainingRadarOverlayProps) {
-  const style: TrainingRadarStyle = {
-    "--radar-entry-duration": `${TRAINING_RADAR_TIMING.entryDurationMs}ms`,
-    "--radar-travel-duration": `${TRAINING_RADAR_TIMING.travelDurationMs}ms`,
-    "--radar-travel-easing": TRAINING_RADAR_TRAVEL_EASING,
-    "--radar-start-x": `${TRAINING_RADAR_SWEEP.startX}px`,
-    "--radar-end-x": `${TRAINING_RADAR_SWEEP.endX}px`,
-  };
-
   if (variant === "surface") {
     return (
       <svg
         aria-hidden="true"
-        className={`training-radar-overlay training-radar-surface${active ? " is-active" : ""}`}
+        className="training-radar-overlay training-radar-surface"
+        data-dom-visible={domVisible ? "true" : "false"}
         data-radar-direction="ltr"
         preserveAspectRatio="xMidYMid slice"
-        style={style}
         viewBox="0 0 1672 941"
       >
         <defs>
@@ -127,10 +105,10 @@ export function TrainingRadarOverlay({
   return (
     <svg
       aria-hidden="true"
-      className={`training-radar-overlay training-radar-sweep${active ? " is-active" : ""}`}
+      className="training-radar-overlay training-radar-sweep"
+      data-dom-visible={domVisible ? "true" : "false"}
       data-radar-direction="ltr"
       preserveAspectRatio="xMidYMid slice"
-      style={style}
       viewBox="0 0 1672 941"
     >
       <defs>
@@ -176,14 +154,8 @@ export function TrainingRadarOverlay({
             d={SWEEP_PATH}
             fill="url(#training-radar-trail-gradient)"
           />
-          <path
-            className="training-radar-core-glow"
-            d={CORE_PATH}
-          />
-          <path
-            className="training-radar-core-line"
-            d={CORE_PATH}
-          />
+          <path className="training-radar-core-glow" d={CORE_PATH} />
+          <path className="training-radar-core-line" d={CORE_PATH} />
         </g>
       </g>
     </svg>

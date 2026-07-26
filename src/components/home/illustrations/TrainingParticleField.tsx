@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  memo,
-  useEffect,
-  useState,
-  type CSSProperties,
-} from "react";
+import { memo, type CSSProperties } from "react";
 import {
   trainingParticlePresets,
   type TrainingParticle,
@@ -14,13 +9,8 @@ import {
 import { getTrainingParticleBirthDelayMs } from "@/lib/home/trainingParticleTiming";
 
 type TrainingParticleFieldProps = {
-  active: boolean;
-  passKey: number;
+  domVisible: boolean;
   preset: TrainingParticlePresetName;
-};
-
-type TrainingParticlePass = {
-  key: number;
 };
 
 type TrainingParticleStyle = CSSProperties & {
@@ -45,6 +35,7 @@ type TrainingParticleStyle = CSSProperties & {
   "--particle-rise-mid": string;
   "--particle-rise-soft": string;
   "--particle-rotation": string;
+  "--particle-sample-delay": string;
   "--particle-size": string;
   "--particle-spark-height": string;
   "--particle-spark-width": string;
@@ -64,6 +55,7 @@ function createParticleStyle(
     "--particle-opacity": String(particle.opacity),
     "--particle-duration": `${particle.durationMs}ms`,
     "--particle-delay": `${getTrainingParticleBirthDelayMs(particle)}ms`,
+    "--particle-sample-delay": "0ms",
     "--particle-drift-x": `${directionalDriftX.toFixed(2)}px`,
     "--particle-drift-x-mid": `${(directionalDriftX * 0.52).toFixed(2)}px`,
     "--particle-drift-x-soft": `${(directionalDriftX * 0.8).toFixed(2)}px`,
@@ -99,6 +91,8 @@ const TrainingParticleSprite = memo(function TrainingParticleSprite({
   return (
     <span
       className="training-particle"
+      data-particle-birth-ms={getTrainingParticleBirthDelayMs(particle)}
+      data-particle-duration-ms={particle.durationMs}
       data-particle-index={index + 1}
       data-particle-kind={particle.kind}
       style={createParticleStyle(particle)}
@@ -110,45 +104,30 @@ const TrainingParticleSprite = memo(function TrainingParticleSprite({
 });
 
 export const TrainingParticleField = memo(function TrainingParticleField({
-  active,
-  passKey,
+  domVisible,
   preset,
 }: TrainingParticleFieldProps) {
-  const [passes, setPasses] = useState<TrainingParticlePass[]>([]);
-  const displayedPasses =
-    !active || passKey === 0
-      ? []
-      : passes.some((pass) => pass.key === passKey)
-        ? passes
-        : [...passes, { key: passKey }].slice(-2);
-
-  useEffect(() => {
-    setPasses((current) => {
-      if (!active || passKey === 0) return current.length === 0 ? current : [];
-      if (current.some((pass) => pass.key === passKey)) return current;
-
-      return [...current, { key: passKey }].slice(-2);
-    });
-  }, [active, passKey]);
-
   return (
     <div
       aria-hidden="true"
       className="training-particle-field"
-      data-active={active ? "true" : "false"}
+      data-active="false"
+      data-dom-visible={domVisible ? "true" : "false"}
       data-particle-preset={preset}
     >
-      {displayedPasses.map((pass) => (
+      {[0, 1].map((slot) => (
         <div
           className="training-particle-band"
-          data-particle-pass={pass.key}
+          data-particle-pass="0"
+          data-particle-slot={slot}
+          data-pass-active="false"
           data-radar-direction="ltr"
-          key={pass.key}
+          key={slot}
         >
           {trainingParticlePresets[preset].map((particle, index) => (
             <TrainingParticleSprite
               index={index}
-              key={`${pass.key}-${particle.id}`}
+              key={`${slot}-${particle.id}`}
               particle={particle}
             />
           ))}

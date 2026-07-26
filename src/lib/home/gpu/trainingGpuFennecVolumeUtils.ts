@@ -80,43 +80,11 @@ function getLayerStyle(
   layer: TrainingGpuFennecVolumeLayer,
   state: TrainingGpuVolumeScanState,
 ): TrainingGpuFennecLayerStyle {
-  if (state.phase === "hidden") {
-    return {
-      brightness: layer === "surface" ? 1.18 : 1.06,
-      opacity: 0,
-      saturation: layer === "surface" ? 1.2 : 1.08,
-    };
-  }
-
-  if (layer === "surface") {
-    return {
-      brightness: 1.18,
-      opacity:
-        state.phase === "fade"
-          ? 0.48 * state.surfaceOpacityFactor
-          : 0.48,
-      saturation: 1.2,
-    };
-  }
-
-  let opacity = 0.14;
-  if (state.phase === "active") {
-    opacity =
-      state.contourProgress <= 0.28
-        ? interpolate(0.06, 0.18, state.contourProgress / 0.28)
-        : interpolate(
-            0.18,
-            0,
-            (state.contourProgress - 0.28) / 0.72,
-          );
-  } else if (state.phase === "fade") {
-    opacity *= state.contourOpacityFactor;
-  }
-
+  const layerState = state[layer];
   return {
-    brightness: 1.06,
-    opacity,
-    saturation: 1.08,
+    brightness: layerState.brightness,
+    opacity: layerState.opacity,
+    saturation: layerState.saturation,
   };
 }
 
@@ -596,14 +564,14 @@ export class TrainingGpuFennecVolumeSubsystem {
       this.renderEffectLayer(
         effectsResources.rearTexture,
         this.rearQuad,
-        0.08,
+        state.rearAccentOpacity,
         0.98,
         1.1,
       );
       this.renderEffectLayer(
         effectsResources.headlightTexture,
         this.headlightQuad,
-        0.05,
+        state.headlightOpacity,
         0.92,
         1.04,
       );

@@ -214,33 +214,22 @@ function getLayerStyle(
   role: TrainingGpuTacticalTextureRole,
   state: TrainingGpuTacticalState,
 ): TrainingGpuTacticalLayerStyle {
-  if (state.phase === "hidden") {
-    return { opacity: 0, brightness: 1, saturation: 1 };
-  }
-
   if (objectId === "ball") {
-    if (state.phase === "contact") {
-      return { opacity: 0.86, brightness: 1.55, saturation: 1.32 };
-    }
     return {
-      opacity: 0.52 * state.opacityFactor,
-      brightness: 1.3,
-      saturation: 1.2,
+      opacity: state.energyOpacity,
+      brightness: state.energyBrightness,
+      saturation: state.energySaturation,
     };
-  }
-
-  if (state.phase === "contact") {
-    return { opacity: 0, brightness: 1, saturation: 1 };
   }
 
   return role === "tacticalWireframe"
     ? {
-        opacity: 0.3 * state.opacityFactor,
+        opacity: state.wireframeOpacity,
         brightness: 1.08,
         saturation: 1.18,
       }
     : {
-        opacity: 0.09 * state.opacityFactor,
+        opacity: state.glowOpacity,
         brightness: 1.08,
         saturation: 1.16,
       };

@@ -18,10 +18,15 @@ import type { TrainingGpuDebugCollector } from "@/lib/home/gpu/debug/TrainingGpu
 import type { TrainingGpuPreparedObjectId } from "@/lib/home/gpu/trainingGpuObjectAssetCatalog";
 import type { TrainingGpuDecodedObjectAssetSet } from "@/lib/home/gpu/TrainingGpuObjectAssetLoader";
 import type { TrainingRadarClock } from "@/lib/home/trainingRadarClock";
+import {
+  createTrainingRadarFrameState,
+  type TrainingRadarTemporalSnapshot,
+} from "@/lib/home/trainingRadarSnapshots";
 import { homeIllustrationAssets } from "@/lib/home/homeIllustrationAssets";
 
 type TrainingGpuCanvasProps = {
   active: boolean;
+  applyDomSnapshot: (snapshot: TrainingRadarTemporalSnapshot) => void;
   debugCollector: TrainingGpuDebugCollector | null;
   onBasesReadyChange: (ready: boolean) => void;
   onFennecBaseReadyChange: (ready: boolean) => void;
@@ -57,16 +62,16 @@ function createGpuFrameState(
   nowMs: number,
 ): TrainingGpuFrameState {
   const clockSnapshot = radarClock.sample(nowMs);
-
-  return {
-    ...clockSnapshot,
-    active: lifecycle.active,
-    running: lifecycle.running && clockSnapshot.running,
-  };
+  return createTrainingRadarFrameState(
+    lifecycle.active,
+    lifecycle.running,
+    clockSnapshot,
+  );
 }
 
 export function TrainingGpuCanvas({
   active,
+  applyDomSnapshot,
   debugCollector,
   onBasesReadyChange,
   onFennecBaseReadyChange,
@@ -204,6 +209,7 @@ export function TrainingGpuCanvas({
             },
           },
           {
+            applyDomSnapshot,
             createFrameState: (nowMs) =>
               createGpuFrameState(
                 lifecycleRef.current,
@@ -338,6 +344,7 @@ export function TrainingGpuCanvas({
       onTacticalReadyChange(false);
     };
   }, [
+    applyDomSnapshot,
     backRightCarVolumeCanvasRef,
     ballVolumeCanvasRef,
     debugCollector,

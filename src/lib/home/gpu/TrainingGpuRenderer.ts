@@ -28,16 +28,16 @@ import {
   TrainingGpuVolumeSubsystem,
   type TrainingGpuVolumeCanvases,
 } from "@/lib/home/gpu/trainingGpuVolumeUtils";
-import { getTrainingGpuVolumeScanSnapshot } from "@/lib/home/gpu/trainingGpuVolumeScanTiming";
-import { getTrainingGpuTacticalSnapshot } from "@/lib/home/gpu/trainingGpuTacticalTiming";
-import type { TrainingRadarPassMode } from "@/lib/home/trainingRadarClock";
 import type { TrainingGpuDebugCollector } from "@/lib/home/gpu/debug/TrainingGpuDebugCollector";
 import { TrainingGpuFennecVolumeSubsystem } from "@/lib/home/gpu/trainingGpuFennecVolumeUtils";
-import { getTrainingGpuFennecEffectsState } from "@/lib/home/gpu/trainingGpuFennecTiming";
 import {
   TRAINING_RADAR_SWEEP,
   TRAINING_RADAR_TIMING,
 } from "@/lib/home/trainingRadarTargets";
+import {
+  getTrainingRadarTemporalSnapshot,
+  type TrainingRadarTemporalSnapshot,
+} from "@/lib/home/trainingRadarSnapshots";
 
 type TrainingGpuFrameStateFactory = (nowMs: number) => TrainingGpuFrameState;
 
@@ -49,12 +49,6 @@ type TrainingGpuCanvases = {
     sweep: HTMLCanvasElement;
   };
   volume: TrainingGpuVolumeCanvases;
-};
-
-type TrainingGpuParticlePass = {
-  passKey: number;
-  passMode: TrainingRadarPassMode;
-  passStartedAtMs: number;
 };
 
 type TrainingGpuRadarTarget = {
@@ -78,6 +72,9 @@ type TrainingGpuParticleTarget = {
 };
 
 type TrainingGpuRendererOptions = {
+  applyDomSnapshot:
+    | ((snapshot: TrainingRadarTemporalSnapshot) => void)
+    | null;
   createFrameState: TrainingGpuFrameStateFactory;
   debugCollector: TrainingGpuDebugCollector | null;
   fieldMaskPixels: Uint8Array | null;
@@ -104,14 +101,6 @@ const INITIAL_FRAME_STATE: TrainingGpuFrameState = {
   passDurationMs: TRAINING_RADAR_TIMING.passDurationMs,
 };
 
-function getRadarVisibility(progress: number) {
-  if (progress <= 0) return 0;
-  if (progress < 0.08) return progress / 0.08;
-  if (progress <= 0.88) return 1;
-  if (progress < 1) return (1 - progress) / 0.12;
-  return 0;
-}
-
 function getWebGl2Context(canvas: HTMLCanvasElement) {
   return canvas.getContext(
     "webgl2",
@@ -124,7 +113,6 @@ export class TrainingGpuRenderer {
   private frameState = INITIAL_FRAME_STATE;
   private particlesInitialized = false;
   private particlesReady = false;
-  private readonly particlePasses: TrainingGpuParticlePass[] = [];
   private radarInitialized = false;
   private radarReady = false;
   private shouldRun = false;
@@ -205,6 +193,7 @@ export class TrainingGpuRenderer {
     this.completeFirstRender();
     this.syncAnimationLoop();
     return (
+      this.options.applyDomSnapshot !== null ||
       this.radarInitialized ||
       this.particlesInitialized ||
       this.fennecVolumeSubsystem.isBaseInitialized() ||
@@ -277,7 +266,6 @@ export class TrainingGpuRenderer {
 
   setFrameState(state: TrainingGpuFrameState) {
     this.frameState = state;
-    if (!state.active || !state.running) this.resetParticlePasses();
     this.updateGlobalDebugState();
     this.syncAnimationLoop();
   }
@@ -291,13 +279,19 @@ export class TrainingGpuRenderer {
   stop() {
     this.shouldRun = false;
     this.cancelAnimationFrame();
-    this.resetParticlePasses();
     this.clearAnimatedCanvases();
     this.renderStaticObjectFrame();
     this.updateGlobalDebugState();
   }
 
   render(nowMs: number) {
+    const frameState = this.options.createFrameState(nowMs);
+    const temporalSnapshot = getTrainingRadarTemporalSnapshot(frameState);
+    this.frameState = frameState;
+    this.options.applyDomSnapshot?.(temporalSnapshot);
+    this.options.debugCollector?.recordFrame(nowMs);
+    this.updateGlobalDebugState();
+
     if (
       !this.radarReady &&
       !this.particlesReady &&
@@ -309,11 +303,7 @@ export class TrainingGpuRenderer {
       !this.volumeSubsystem.isTacticalReady()
     ) return;
 
-    const frameState = this.options.createFrameState(nowMs);
-    this.frameState = frameState;
-    this.options.debugCollector?.recordFrame(nowMs);
-    this.updateGlobalDebugState();
-    this.renderFrame(frameState);
+    this.renderFrame(temporalSnapshot);
   }
 
   destroy() {
@@ -321,7 +311,6 @@ export class TrainingGpuRenderer {
     this.cancelAnimationFrame();
     this.setRadarReady(false);
     this.setParticlesReady(false);
-    this.resetParticlePasses();
     this.clear();
     this.releaseRadarResources();
     this.releaseParticleResources();
@@ -480,19 +469,21 @@ export class TrainingGpuRenderer {
 
   private completeFirstRender() {
     const firstFrameState = this.options.createFrameState(performance.now());
+    const temporalSnapshot =
+      getTrainingRadarTemporalSnapshot(firstFrameState);
     this.frameState = firstFrameState;
-    this.updateParticlePassHistory(firstFrameState);
+    this.options.applyDomSnapshot?.(temporalSnapshot);
 
     if (this.viewport) {
       if (this.radarInitialized && this.hasRadarResources()) {
-        this.renderRadarFrame(firstFrameState);
+        this.renderRadarFrame(temporalSnapshot);
         this.setRadarReady(true);
       } else {
         this.setRadarReady(false);
       }
 
       if (this.particlesInitialized && this.hasParticleResources()) {
-        this.renderParticleFrame(firstFrameState);
+        this.renderParticleFrame(temporalSnapshot);
         this.setParticlesReady(true);
       } else {
         this.setParticlesReady(false);
@@ -511,19 +502,18 @@ export class TrainingGpuRenderer {
       performance.now() - baseStartedAtMs,
     );
     this.volumeSubsystem.renderVolume(
-      getTrainingGpuVolumeScanSnapshot(firstFrameState),
+      temporalSnapshot.volume,
       firstFrameState.active && firstFrameState.running,
     );
     this.volumeSubsystem.renderTactical(
-      getTrainingGpuTacticalSnapshot(firstFrameState),
+      temporalSnapshot.tactical,
       firstFrameState.active && firstFrameState.running,
     );
-    const fennecEffectsState =
-      getTrainingGpuFennecEffectsState(firstFrameState);
+    const fennecEffectsState = temporalSnapshot.fennecEffects;
     this.fennecVolumeSubsystem.beginFrame();
     this.fennecVolumeSubsystem.renderBase(fennecEffectsState, true);
     this.fennecVolumeSubsystem.render(
-      getTrainingGpuVolumeScanSnapshot(firstFrameState).fennec,
+      temporalSnapshot.volume.fennec,
       firstFrameState.active && firstFrameState.running,
     );
     this.fennecVolumeSubsystem.renderEffects(
@@ -531,14 +521,14 @@ export class TrainingGpuRenderer {
     );
   }
 
-  private renderFrame(frameState: TrainingGpuFrameState) {
+  private renderFrame(snapshot: TrainingRadarTemporalSnapshot) {
     if (!this.viewport) return;
 
+    const frameState = snapshot.frameState;
     const debugCollector = this.options.debugCollector;
-    this.updateParticlePassHistory(frameState);
     if (this.radarReady) {
       const startedAtMs = debugCollector ? performance.now() : 0;
-      this.renderRadarFrame(frameState);
+      this.renderRadarFrame(snapshot);
       debugCollector?.recordSubsystemCpu(
         "radar",
         performance.now() - startedAtMs,
@@ -546,7 +536,7 @@ export class TrainingGpuRenderer {
     }
     if (this.particlesReady) {
       const startedAtMs = debugCollector ? performance.now() : 0;
-      this.renderParticleFrame(frameState);
+      this.renderParticleFrame(snapshot);
       debugCollector?.recordSubsystemCpu(
         "particles",
         performance.now() - startedAtMs,
@@ -561,7 +551,7 @@ export class TrainingGpuRenderer {
     );
     const volumeStartedAtMs = debugCollector ? performance.now() : 0;
     this.volumeSubsystem.renderVolume(
-      getTrainingGpuVolumeScanSnapshot(frameState),
+      snapshot.volume,
       frameState.active && frameState.running,
     );
     debugCollector?.recordSubsystemCpu(
@@ -570,15 +560,14 @@ export class TrainingGpuRenderer {
     );
     const tacticalStartedAtMs = debugCollector ? performance.now() : 0;
     this.volumeSubsystem.renderTactical(
-      getTrainingGpuTacticalSnapshot(frameState),
+      snapshot.tactical,
       frameState.active && frameState.running,
     );
     debugCollector?.recordSubsystemCpu(
       "tactical",
       performance.now() - tacticalStartedAtMs,
     );
-    const fennecEffectsState =
-      getTrainingGpuFennecEffectsState(frameState);
+    const fennecEffectsState = snapshot.fennecEffects;
     this.fennecVolumeSubsystem.beginFrame();
     const fennecBaseStartedAtMs = debugCollector ? performance.now() : 0;
     this.fennecVolumeSubsystem.renderBase(fennecEffectsState);
@@ -588,7 +577,7 @@ export class TrainingGpuRenderer {
     );
     const fennecVolumeStartedAtMs = debugCollector ? performance.now() : 0;
     this.fennecVolumeSubsystem.render(
-      getTrainingGpuVolumeScanSnapshot(frameState).fennec,
+      snapshot.volume.fennec,
       frameState.active && frameState.running,
     );
     debugCollector?.recordSubsystemCpu(
@@ -605,17 +594,15 @@ export class TrainingGpuRenderer {
     );
   }
 
-  private renderRadarFrame(frameState: TrainingGpuFrameState) {
+  private renderRadarFrame(snapshot: TrainingRadarTemporalSnapshot) {
     if (!this.viewport) return;
 
+    const frameState = snapshot.frameState;
     const radarX =
       TRAINING_RADAR_SWEEP.startX +
       (TRAINING_RADAR_SWEEP.endX - TRAINING_RADAR_SWEEP.startX) *
         frameState.radarProgress;
-    const radarVisibility =
-      frameState.active && frameState.running
-        ? getRadarVisibility(frameState.radarProgress)
-        : 0;
+    const radarVisibility = snapshot.radarVisibility;
 
     this.renderRadarTarget(
       this.radarTargets.surface,
@@ -672,28 +659,12 @@ export class TrainingGpuRenderer {
     gl.useProgram(null);
   }
 
-  private updateParticlePassHistory(frameState: TrainingGpuFrameState) {
-    if (!frameState.active || !frameState.running || frameState.passKey === 0) {
-      this.resetParticlePasses();
-      return;
-    }
-
-    const lastPass = this.particlePasses[this.particlePasses.length - 1];
-    if (lastPass?.passKey === frameState.passKey) return;
-
-    this.particlePasses.push({
-      passKey: frameState.passKey,
-      passMode: frameState.passMode,
-      passStartedAtMs: frameState.passStartedAtMs,
-    });
-    if (this.particlePasses.length > 2) this.particlePasses.shift();
-  }
-
-  private renderParticleFrame(frameState: TrainingGpuFrameState) {
+  private renderParticleFrame(snapshot: TrainingRadarTemporalSnapshot) {
     if (!this.viewport) return;
 
-    const firstPass = this.particlePasses[0];
-    const secondPass = this.particlePasses[1];
+    const frameState = snapshot.frameState;
+    const firstPass = snapshot.particlePasses[0];
+    const secondPass = snapshot.particlePasses[1];
     const firstElapsed = firstPass
       ? frameState.nowMs - firstPass.passStartedAtMs
       : 0;
@@ -744,7 +715,8 @@ export class TrainingGpuRenderer {
   private canAnimate() {
     return (
       this.shouldRun &&
-      (this.radarReady ||
+      (this.options.applyDomSnapshot !== null ||
+        this.radarReady ||
         this.particlesReady ||
         this.fennecVolumeSubsystem.isEffectsReady() ||
         this.fennecVolumeSubsystem.isReady() ||
@@ -760,7 +732,6 @@ export class TrainingGpuRenderer {
     if (!this.canAnimate()) {
       this.cancelAnimationFrame();
       if (!this.frameState.active || !this.frameState.running) {
-        this.resetParticlePasses();
         this.clearAnimatedCanvases();
         this.renderStaticObjectFrame();
       }
@@ -783,11 +754,14 @@ export class TrainingGpuRenderer {
     this.updateGlobalDebugState();
   }
 
-  private resetParticlePasses() {
-    if (this.particlePasses.length > 0) this.particlePasses.length = 0;
-  }
-
   private renderStaticObjectFrame() {
+    const staticFrameState: TrainingGpuFrameState = {
+      ...this.frameState,
+      running: false,
+    };
+    const temporalSnapshot =
+      getTrainingRadarTemporalSnapshot(staticFrameState);
+    this.options.applyDomSnapshot?.(temporalSnapshot);
     const debugCollector = this.options.debugCollector;
     this.volumeSubsystem.beginFrame();
     const startedAtMs = debugCollector ? performance.now() : 0;
@@ -797,10 +771,7 @@ export class TrainingGpuRenderer {
       performance.now() - startedAtMs,
     );
     this.fennecVolumeSubsystem.beginFrame();
-    const fennecEffectsState = getTrainingGpuFennecEffectsState({
-      ...this.frameState,
-      running: false,
-    });
+    const fennecEffectsState = temporalSnapshot.fennecEffects;
     const fennecBaseStartedAtMs = debugCollector ? performance.now() : 0;
     this.fennecVolumeSubsystem.renderBase(fennecEffectsState, true);
     debugCollector?.recordSubsystemCpu(
@@ -808,7 +779,7 @@ export class TrainingGpuRenderer {
       performance.now() - fennecBaseStartedAtMs,
     );
     this.fennecVolumeSubsystem.render(
-      getTrainingGpuVolumeScanSnapshot(this.frameState).fennec,
+      temporalSnapshot.volume.fennec,
       false,
     );
     this.fennecVolumeSubsystem.renderEffects(fennecEffectsState);
@@ -946,7 +917,6 @@ export class TrainingGpuRenderer {
 
     if (!this.canAnimate()) {
       if (!this.frameState.active || !this.frameState.running) {
-        this.resetParticlePasses();
         this.clearAnimatedCanvases();
         this.renderStaticObjectFrame();
       }
@@ -968,15 +938,18 @@ export class TrainingGpuRenderer {
     if (!debugCollector) return;
     const active = this.canAnimate();
     debugCollector.setGlobal({
+      activeDriver: active ? "gpu" : "none",
       rendererActive: active,
       rendererSuspended: !active,
       rafActive: this.animationFrameId !== null,
+      trainingRafCount: this.animationFrameId !== null ? 1 : 0,
       illustrationActive: this.frameState.active,
       radarRunning: this.frameState.running,
       tabVisibility: document.visibilityState,
       passMode: this.frameState.passMode,
       passProgress: this.frameState.radarProgress,
       passKey: this.frameState.passKey,
+      passStartedAtMs: this.frameState.passStartedAtMs,
       masterClockNowMs: this.frameState.nowMs,
     });
   }
