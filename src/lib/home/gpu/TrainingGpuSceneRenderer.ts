@@ -247,12 +247,26 @@ function leftCarSurfaceSceneQuad(
     viewport,
     parallax,
   );
-  const scaleX =
-    baseQuad.width / surfaceAsset.entry.outputSize.width;
-  const scaleY =
-    baseQuad.height / surfaceAsset.entry.outputSize.height;
-  const width = surfaceAsset.entry.outputSize.width * scaleX;
-  const height = surfaceAsset.entry.outputSize.height * scaleY;
+  const baseOutputSize = baseAsset.entry.outputSize;
+  const surfaceOutputSize = surfaceAsset.entry.outputSize;
+  const baseContentWidthPx =
+    baseOutputSize.width - 2 * baseAsset.entry.paddingPx;
+  const baseContentHeightPx =
+    baseOutputSize.height - 2 * baseAsset.entry.paddingPx;
+  const surfaceContentWidthPx =
+    surfaceOutputSize.width - 2 * surfaceAsset.entry.paddingPx;
+  const surfaceContentHeightPx =
+    surfaceOutputSize.height - 2 * surfaceAsset.entry.paddingPx;
+  const baseContentWidth =
+    baseQuad.width * (baseContentWidthPx / baseOutputSize.width);
+  const baseContentHeight =
+    baseQuad.height * (baseContentHeightPx / baseOutputSize.height);
+  const width =
+    baseContentWidth /
+    (surfaceContentWidthPx / surfaceOutputSize.width);
+  const height =
+    baseContentHeight /
+    (surfaceContentHeightPx / surfaceOutputSize.height);
 
   return {
     x: baseQuad.x + (baseQuad.width - width) / 2,
