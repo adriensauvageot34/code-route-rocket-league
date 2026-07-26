@@ -33,6 +33,8 @@ const expectedFiles = [
   "src/lib/home/trainingRadarTargets.ts",
   "src/lib/home/gpu/TrainingGpuRenderer.ts",
   "src/lib/home/gpu/TrainingGpuObjectAssetLoader.ts",
+  "src/lib/home/gpu/trainingGpuObjectAssetCatalog.ts",
+  "src/lib/home/gpu/trainingGpuObjectManifest.ts",
   "src/lib/home/gpu/trainingGpuBaseUtils.ts",
   "src/lib/home/gpu/trainingGpuObjectPlacement.ts",
   "src/lib/home/gpu/debug/TrainingGpuDebugCollector.ts",
@@ -100,6 +102,8 @@ const trainingParticleTiming = files["src/lib/home/trainingParticleTiming.ts"];
 const trainingRadarTargets = files["src/lib/home/trainingRadarTargets.ts"];
 const trainingGpuRenderer = files["src/lib/home/gpu/TrainingGpuRenderer.ts"];
 const trainingGpuObjectAssetLoader = files["src/lib/home/gpu/TrainingGpuObjectAssetLoader.ts"];
+const trainingGpuObjectAssetCatalog = files["src/lib/home/gpu/trainingGpuObjectAssetCatalog.ts"];
+const trainingGpuObjectManifest = files["src/lib/home/gpu/trainingGpuObjectManifest.ts"];
 const trainingGpuBaseUtils = files["src/lib/home/gpu/trainingGpuBaseUtils.ts"];
 const trainingGpuObjectPlacement = files["src/lib/home/gpu/trainingGpuObjectPlacement.ts"];
 const trainingGpuDebugCollector = files["src/lib/home/gpu/debug/TrainingGpuDebugCollector.ts"];
@@ -183,7 +187,11 @@ assert(trainingGpuVolumeUtils.includes('textures: baseResourceTargets.length') &
 assert(css.includes(".training-gpu-volume-canvas") && /\.training-gpu-volume-canvas\s*\{[\s\S]*?z-index:\s*0;[\s\S]*?mix-blend-mode:\s*normal;/s.test(css) && css.includes('.training-scene[data-gpu-bases-ready="false"] .training-gpu-volume-canvas') && trainingGpuVolumeUtils.includes("gl.ONE_MINUS_SRC_COLOR") && trainingGpuTacticalUtils.includes("gl.ONE_MINUS_SRC_COLOR"), "The shared object canvas must composite GPU bases normally, preserve screen blending over a DOM-base fallback, and restore screen-style effect blending in WebGL.");
 assert(trainingGroundedActor.includes("target.baseAsset.path") && trainingGroundedActor.includes("training-ball-launch-energy") && (trainingGroundedActor.match(/<canvas/g) ?? []).length === 2, "DOM base fallbacks and launch energy must remain intact without any new object canvas.");
 assert(trainingRadarTargets.includes("contactDurationMs: 360") && trainingRadarTargets.includes("tacticalHoldDurationMs: 1800") && trainingRadarTargets.includes("fadeDurationMs: 800"), "Central tactical timings must remain unchanged.");
-assert(trainingScene.includes('name="fennec"') && !trainingGpuVolumeUtils.includes('"fennec"') && !trainingGpuTacticalUtils.includes('"fennec"') && !trainingGpuBaseUtils.includes('"fennec"'), "The Fennec must remain outside the prepared GPU object subsystem.");
+assert(trainingScene.includes('name="fennec"') && trainingGpuObjectAssetCatalog.includes('"fennec"') && trainingGpuObjectAssetCatalog.includes("/ui/training-objects/fennec/manifest.json") && !trainingGpuVolumeUtils.includes('"fennec"') && !trainingGpuTacticalUtils.includes('"fennec"') && !trainingGpuBaseUtils.includes('"fennec"'), "The Fennec assets must be prepared without rendering the Fennec in WebGL yet.");
+assert((trainingGpuObjectAssetCatalog.match(/"left-car"|"back-right-car"|"front-right-car"|"ball"|"fennec"/g) ?? []).length >= 10 && trainingGpuObjectAssetLoader.includes("estimatedTextureBytes") && trainingGpuObjectAssetLoader.includes("entry.outputSize.width * entry.outputSize.height * 4"), "The GPU loader must load five prepared manifests and expose their future RGBA texture memory.");
+assert(trainingGpuObjectManifest.includes("crop must stay inside sourceSize") && trainingGpuObjectManifest.includes("outputSize must match crop size exactly") && trainingGpuObjectAssetLoader.includes("image.naturalWidth !== entry.outputSize.width"), "Fennec manifests and decoded image dimensions must retain the shared strict validation.");
+assert(!trainingScene.includes("training-gpu-fennec-canvas") && !trainingGpuRenderer.includes("Fennec") && !trainingGpuObjectAssetLoader.includes("requestAnimationFrame") && !trainingGpuObjectAssetLoader.includes("setTimeout") && !trainingGpuObjectAssetLoader.includes("setInterval"), "Preparing Fennec assets must not add a Fennec canvas, visual renderer, RAF or timer.");
+assert(homeIllustrationAssets.includes("/ui/training-lights-violet-glow-screen.png") && !trainingGpuObjectAssetCatalog.includes("lights-violet-glow-screen") && !trainingGpuObjectAssetCatalog.includes("headlightGlow:") && trainingScene.includes('name="fennec-lights-glow"'), "The full-scene violet screen halo must stay separate from the local Fennec headlight role.");
 
 assert(
   trainingRendererDebugHook.includes('TRAINING_RENDERER_DEBUG_PARAM = "debugRenderer"') &&

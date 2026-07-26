@@ -5,6 +5,7 @@ export const TRAINING_GPU_PREPARED_OBJECT_IDS = [
   "back-right-car",
   "front-right-car",
   "ball",
+  "fennec",
 ] as const satisfies readonly TrainingGpuObjectId[];
 
 export type TrainingGpuPreparedObjectId =
@@ -15,6 +16,7 @@ export const TRAINING_GPU_OBJECT_MANIFEST_URLS = {
   "back-right-car": "/ui/training-objects/back-right-car/manifest.json",
   "front-right-car": "/ui/training-objects/front-right-car/manifest.json",
   ball: "/ui/training-objects/ball/manifest.json",
+  fennec: "/ui/training-objects/fennec/manifest.json",
 } as const satisfies Record<TrainingGpuPreparedObjectId, `/ui/${string}`>;
 
 export function isTrainingGpuPreparedObjectId(

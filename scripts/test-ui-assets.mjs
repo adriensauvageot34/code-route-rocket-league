@@ -45,6 +45,37 @@ function displayPath(filePath) {
   return relative(uiRoot, filePath).split(sep).join("/");
 }
 
+function readWebpDimensions(buffer, filePath) {
+  assert(
+    buffer.subarray(0, 4).toString("ascii") === "RIFF" &&
+      buffer.subarray(8, 12).toString("ascii") === "WEBP",
+    `Training object asset must be WebP: ${displayPath(filePath)}`,
+  );
+  const chunk = buffer.subarray(12, 16).toString("ascii");
+  if (chunk === "VP8X") {
+    return {
+      width: 1 + buffer.readUIntLE(24, 3),
+      height: 1 + buffer.readUIntLE(27, 3),
+    };
+  }
+  if (chunk === "VP8L") {
+    const bits = buffer.readUInt32LE(21);
+    return {
+      width: (bits & 0x3fff) + 1,
+      height: ((bits >> 14) & 0x3fff) + 1,
+    };
+  }
+  if (chunk === "VP8 ") {
+    return {
+      width: buffer.readUInt16LE(26) & 0x3fff,
+      height: buffer.readUInt16LE(28) & 0x3fff,
+    };
+  }
+  throw new Error(
+    `Unsupported WebP chunk in Training object asset: ${displayPath(filePath)}`,
+  );
+}
+
 const uiFiles = collectFiles(uiRoot);
 const binaryAssetFiles = uiFiles.filter((filePath) =>
   [".png", ".webp"].includes(extname(filePath).toLowerCase()),
@@ -153,11 +184,66 @@ for (const objectManifestPath of trainingObjectManifestPaths) {
       `Training object manifest asset is missing: ${displayPath(referencedPath)}`,
     );
     assert(
-      [".png", ".webp"].includes(extname(referencedPath).toLowerCase()),
-      `Training object manifest asset must be PNG or WebP: ${displayPath(referencedPath)}`,
+      extname(referencedPath).toLowerCase() === ".webp",
+      `Training object manifest asset must be WebP: ${displayPath(referencedPath)}`,
+    );
+    const sourceSize = entry.sourceSize;
+    const crop = entry.crop;
+    const outputSize = entry.outputSize;
+    assert(
+      sourceSize?.width > 0 &&
+        sourceSize?.height > 0 &&
+        crop?.width > 0 &&
+        crop?.height > 0 &&
+        outputSize?.width > 0 &&
+        outputSize?.height > 0,
+      `Training object manifest dimensions must be positive: ${displayPath(objectManifestPath)}#${role}`,
+    );
+    assert(
+      crop.x >= 0 &&
+        crop.y >= 0 &&
+        crop.x + crop.width <= sourceSize.width &&
+        crop.y + crop.height <= sourceSize.height &&
+        outputSize.width === crop.width &&
+        outputSize.height === crop.height,
+      `Training object manifest crop/output mismatch: ${displayPath(objectManifestPath)}#${role}`,
+    );
+    const decodedSize = readWebpDimensions(
+      readFileSync(referencedPath),
+      referencedPath,
+    );
+    assert(
+      decodedSize.width === outputSize.width &&
+        decodedSize.height === outputSize.height,
+      `Training object WebP dimensions do not match outputSize: ${displayPath(referencedPath)}`,
     );
   }
 }
+
+const fennecManifestPath = join(
+  uiRoot,
+  "training-objects",
+  "fennec",
+  "manifest.json",
+);
+const fennecManifest = JSON.parse(readFileSync(fennecManifestPath, "utf8"));
+const fennecLocalRoles = [
+  "base",
+  "volumeSurface",
+  "volumeContour",
+  "tacticalImpact",
+  "headlightGlow",
+  "rearAccent",
+];
+assert(
+  fennecLocalRoles.every((role) => fennecManifest.assets[role]) &&
+    Object.keys(fennecManifest.assets).length === fennecLocalRoles.length,
+  "The Fennec manifest must expose exactly its six local GPU roles.",
+);
+assert(
+  !JSON.stringify(fennecManifest).includes("lights-violet-glow-screen"),
+  "The full-scene violet screen halo must not be declared as a local Fennec role.",
+);
 
 const manifest = readFileSync(manifestPath, "utf8");
 const manifestPaths = [
