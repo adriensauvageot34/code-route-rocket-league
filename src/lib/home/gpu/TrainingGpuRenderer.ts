@@ -32,6 +32,7 @@ import { getTrainingGpuVolumeScanSnapshot } from "@/lib/home/gpu/trainingGpuVolu
 import { getTrainingGpuTacticalSnapshot } from "@/lib/home/gpu/trainingGpuTacticalTiming";
 import type { TrainingRadarPassMode } from "@/lib/home/trainingRadarClock";
 import type { TrainingGpuDebugCollector } from "@/lib/home/gpu/debug/TrainingGpuDebugCollector";
+import { TrainingGpuFennecVolumeSubsystem } from "@/lib/home/gpu/trainingGpuFennecVolumeUtils";
 import {
   TRAINING_RADAR_SWEEP,
   TRAINING_RADAR_TIMING,
@@ -40,6 +41,7 @@ import {
 type TrainingGpuFrameStateFactory = (nowMs: number) => TrainingGpuFrameState;
 
 type TrainingGpuCanvases = {
+  fennec: HTMLCanvasElement;
   particles: Record<TrainingGpuParticleDepth, HTMLCanvasElement>;
   radar: {
     surface: HTMLCanvasElement;
@@ -79,6 +81,7 @@ type TrainingGpuRendererOptions = {
   debugCollector: TrainingGpuDebugCollector | null;
   fieldMaskPixels: Uint8Array | null;
   onBasesReadyChange: (ready: boolean) => void;
+  onFennecVolumeReadyChange: (ready: boolean) => void;
   onParticlesReadyChange: (ready: boolean) => void;
   onRadarReadyChange: (ready: boolean) => void;
   onVolumeScansReadyChange: (ready: boolean) => void;
@@ -131,6 +134,7 @@ export class TrainingGpuRenderer {
     TrainingGpuParticleDepth,
     TrainingGpuParticleTarget
   >;
+  private readonly fennecVolumeSubsystem: TrainingGpuFennecVolumeSubsystem;
   private readonly volumeSubsystem: TrainingGpuVolumeSubsystem;
 
   constructor(
@@ -146,6 +150,17 @@ export class TrainingGpuRenderer {
       mid: this.createParticleTarget("mid", canvases.particles.mid),
       near: this.createParticleTarget("near", canvases.particles.near),
     };
+    this.fennecVolumeSubsystem = new TrainingGpuFennecVolumeSubsystem(
+      canvases.fennec,
+      {
+        debugCollector: options.debugCollector,
+        onReadyChange: options.onFennecVolumeReadyChange,
+        onContextRestored: () => {
+          this.completeFirstRender();
+          this.syncAnimationLoop();
+        },
+      },
+    );
     this.volumeSubsystem = new TrainingGpuVolumeSubsystem(canvases.volume, {
       debugCollector: options.debugCollector,
       onBaseReadyChange: options.onBasesReadyChange,
@@ -181,11 +196,13 @@ export class TrainingGpuRenderer {
     this.initializeRadarSubsystem();
     this.initializeParticleSubsystem();
     this.volumeSubsystem.initialize();
+    this.fennecVolumeSubsystem.initialize();
     this.completeFirstRender();
     this.syncAnimationLoop();
     return (
       this.radarInitialized ||
       this.particlesInitialized ||
+      this.fennecVolumeSubsystem.isInitialized() ||
       this.volumeSubsystem.isBaseInitialized() ||
       this.volumeSubsystem.isVolumeInitialized() ||
       this.volumeSubsystem.isTacticalInitialized()
@@ -221,6 +238,7 @@ export class TrainingGpuRenderer {
     if (
       this.radarInitialized ||
       this.particlesInitialized ||
+      this.fennecVolumeSubsystem.isInitialized() ||
       this.volumeSubsystem.isBaseInitialized()
     ) {
       this.completeFirstRender();
@@ -233,6 +251,7 @@ export class TrainingGpuRenderer {
 
   resizeVolumeTargets() {
     this.volumeSubsystem.resize();
+    this.fennecVolumeSubsystem.resize();
     this.completeFirstRender();
   }
 
@@ -242,6 +261,7 @@ export class TrainingGpuRenderer {
     > | null,
   ) {
     this.volumeSubsystem.setAssets(assets);
+    this.fennecVolumeSubsystem.setAssets(assets?.fennec ?? null);
     this.completeFirstRender();
     this.syncAnimationLoop();
   }
@@ -272,6 +292,7 @@ export class TrainingGpuRenderer {
     if (
       !this.radarReady &&
       !this.particlesReady &&
+      !this.fennecVolumeSubsystem.isReady() &&
       !this.volumeSubsystem.isBaseReady() &&
       !this.volumeSubsystem.isVolumeReady() &&
       !this.volumeSubsystem.isTacticalReady()
@@ -293,6 +314,7 @@ export class TrainingGpuRenderer {
     this.clear();
     this.releaseRadarResources();
     this.releaseParticleResources();
+    this.fennecVolumeSubsystem.destroy();
     this.volumeSubsystem.destroy();
 
     for (const target of Object.values(this.radarTargets)) {
@@ -485,6 +507,11 @@ export class TrainingGpuRenderer {
       getTrainingGpuTacticalSnapshot(firstFrameState),
       firstFrameState.active && firstFrameState.running,
     );
+    this.fennecVolumeSubsystem.beginFrame();
+    this.fennecVolumeSubsystem.render(
+      getTrainingGpuVolumeScanSnapshot(firstFrameState).fennec,
+      firstFrameState.active && firstFrameState.running,
+    );
   }
 
   private renderFrame(frameState: TrainingGpuFrameState) {
@@ -532,6 +559,16 @@ export class TrainingGpuRenderer {
     debugCollector?.recordSubsystemCpu(
       "tactical",
       performance.now() - tacticalStartedAtMs,
+    );
+    this.fennecVolumeSubsystem.beginFrame();
+    const fennecVolumeStartedAtMs = debugCollector ? performance.now() : 0;
+    this.fennecVolumeSubsystem.render(
+      getTrainingGpuVolumeScanSnapshot(frameState).fennec,
+      frameState.active && frameState.running,
+    );
+    debugCollector?.recordSubsystemCpu(
+      "fennec-volume",
+      performance.now() - fennecVolumeStartedAtMs,
     );
   }
 
@@ -676,6 +713,7 @@ export class TrainingGpuRenderer {
       this.shouldRun &&
       (this.radarReady ||
         this.particlesReady ||
+        this.fennecVolumeSubsystem.isReady() ||
         this.volumeSubsystem.isVolumeReady() ||
         this.volumeSubsystem.isTacticalReady()) &&
       this.frameState.active &&
@@ -724,6 +762,11 @@ export class TrainingGpuRenderer {
       "bases",
       performance.now() - startedAtMs,
     );
+    this.fennecVolumeSubsystem.beginFrame();
+    this.fennecVolumeSubsystem.render(
+      getTrainingGpuVolumeScanSnapshot(this.frameState).fennec,
+      false,
+    );
   }
 
   private clearAnimatedCanvases() {
@@ -733,6 +776,7 @@ export class TrainingGpuRenderer {
 
   private clear() {
     this.clearAnimatedCanvases();
+    this.fennecVolumeSubsystem.clear();
     this.volumeSubsystem.clear();
   }
 

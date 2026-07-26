@@ -74,7 +74,7 @@ export function useTrainingGpuObjectAssets(
     ][];
     debugCollectorRef.current?.setExpectedManifests(entries.length);
 
-    void Promise.all(
+    void Promise.allSettled(
       entries.map(async ([expectedObjectId, manifestUrl]) => {
         const assetSet = await loader.load(
           manifestUrl,
@@ -88,13 +88,27 @@ export function useTrainingGpuObjectAssets(
         return [expectedObjectId, assetSet] as const;
       }),
     )
-      .then((loadedEntries) => {
+      .then((results) => {
         if (!current || abortController.signal.aborted) return;
-        debugCollectorRef.current?.setAssetStatus("ready");
+        const loadedEntries = results.flatMap((result) =>
+          result.status === "fulfilled" ? [result.value] : [],
+        );
+        const firstFailure = results.find(
+          (result) => result.status === "rejected",
+        );
+        const error =
+          firstFailure?.status === "rejected"
+            ? firstFailure.reason instanceof Error
+              ? firstFailure.reason
+              : new Error("Unable to load a Training GPU object asset set.")
+            : null;
+        debugCollectorRef.current?.setAssetStatus(
+          error ? "error" : "ready",
+        );
         setState({
-          status: "ready",
+          status: error ? "error" : "ready",
           objects: Object.fromEntries(loadedEntries),
-          error: null,
+          error,
         });
       })
       .catch((error: unknown) => {

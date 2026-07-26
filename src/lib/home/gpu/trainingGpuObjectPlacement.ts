@@ -273,6 +273,22 @@ export function convertTrainingGpuSceneRectToLocalCanvasRect(
   };
 }
 
+export function convertTrainingGpuLogicalSceneRectToLocalCanvasRect(
+  sceneRect: TrainingGpuObjectRenderRect,
+  localFrame: TrainingGpuObjectLocalFrame,
+): TrainingGpuObjectRenderRect {
+  return convertTrainingGpuSceneRectToLocalCanvasRect(
+    sceneRect,
+    {
+      x: 0,
+      y: 0,
+      width: TRAINING_GPU_LOGICAL_WIDTH,
+      height: TRAINING_GPU_LOGICAL_HEIGHT,
+    },
+    localFrame,
+  );
+}
+
 function getTrainingGpuObjectCanvasSceneRect(
   registration: TrainingGpuObjectRegistration,
 ): TrainingGpuObjectRenderRect {
