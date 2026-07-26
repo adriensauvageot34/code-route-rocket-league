@@ -234,6 +234,34 @@ function applyDepthTransform(
   };
 }
 
+function leftCarSurfaceSceneQuad(
+  registration: TrainingGpuObjectRegistration,
+  baseAsset: TrainingGpuDecodedObjectAsset,
+  surfaceAsset: TrainingGpuDecodedObjectAsset,
+  viewport: TrainingGpuViewport,
+  parallax: TrainingGpuParallaxSnapshot,
+) {
+  const baseQuad = sceneQuad(
+    registration,
+    baseAsset,
+    viewport,
+    parallax,
+  );
+  const scaleX =
+    baseQuad.width / surfaceAsset.entry.outputSize.width;
+  const scaleY =
+    baseQuad.height / surfaceAsset.entry.outputSize.height;
+  const width = surfaceAsset.entry.outputSize.width * scaleX;
+  const height = surfaceAsset.entry.outputSize.height * scaleY;
+
+  return {
+    x: baseQuad.x + (baseQuad.width - width) / 2,
+    y: baseQuad.y + (baseQuad.height - height) / 2,
+    width,
+    height,
+  };
+}
+
 function ballVolumeSceneQuad(
   registration: TrainingGpuObjectRegistration,
   asset: TrainingGpuDecodedObjectAsset,
@@ -784,6 +812,9 @@ export class TrainingGpuSceneRenderer {
     if (!gl || !viewport || !asset) return;
     const layerState = state[layer];
     if (layerState.opacity <= 0) return;
+    const isLocalLeftCarSurface =
+      registration.id === "left-car" && layer === "surface";
+    const baseAsset = resources.assetSet.assets.base;
     const quad =
       kind === "ball"
         ? ballVolumeSceneQuad(
@@ -793,7 +824,15 @@ export class TrainingGpuSceneRenderer {
             viewport,
             parallax,
           )
-        : sceneQuad(registration, asset, viewport, parallax);
+        : isLocalLeftCarSurface && baseAsset
+          ? leftCarSurfaceSceneQuad(
+              registration,
+              baseAsset,
+              asset,
+              viewport,
+              parallax,
+            )
+          : sceneQuad(registration, asset, viewport, parallax);
     const mask =
       kind === "ball"
         ? TRAINING_GPU_VOLUME_BALL_MASK
@@ -802,9 +841,11 @@ export class TrainingGpuSceneRenderer {
       layer === "surface"
         ? state.surfaceProgress
         : state.contourProgress;
+    const reverseMaskDirection =
+      kind === "ball" || isLocalLeftCarSurface;
     const maskCenter = interpolate(
-      kind === "ball" ? mask.endCenterX : mask.startCenterX,
-      kind === "ball" ? mask.startCenterX : mask.endCenterX,
+      reverseMaskDirection ? mask.endCenterX : mask.startCenterX,
+      reverseMaskDirection ? mask.startCenterX : mask.endCenterX,
       progress,
     );
     const angleDegrees =
@@ -812,7 +853,7 @@ export class TrainingGpuSceneRenderer {
         ? Number.parseFloat(registration.target.objectScan.angle)
         : 0;
     const maskKind =
-      registration.id === "left-car" && layer === "surface"
+      isLocalLeftCarSurface
         ? LOCAL_CAR_SURFACE_MASK_KIND
         : kind === "car"
           ? layer === "surface"
