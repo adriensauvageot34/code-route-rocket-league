@@ -389,42 +389,46 @@ float polygon5Distance(
   return inside ? -distanceToEdge : distanceToEdge;
 }
 
-float particleShapeDistance(vec2 uv) {
+vec2 shapeUvToLocalPx(vec2 pointUv, vec2 shapeSize) {
+  return (pointUv - vec2(0.5)) * shapeSize;
+}
+
+float particleShapeDistancePx(vec2 pointPx, vec2 shapeSize) {
   if (v_component > 1.5) {
     return polygon4Distance(
-      uv,
-      vec2(0.5, 0.0),
-      vec2(1.0, 0.48),
-      vec2(0.52, 1.0),
-      vec2(0.0, 0.55)
+      pointPx,
+      shapeUvToLocalPx(vec2(0.5, 0.0), shapeSize),
+      shapeUvToLocalPx(vec2(1.0, 0.48), shapeSize),
+      shapeUvToLocalPx(vec2(0.52, 1.0), shapeSize),
+      shapeUvToLocalPx(vec2(0.0, 0.55), shapeSize)
     );
   }
   if (v_kind < 0.5) {
     return polygon5Distance(
-      uv,
-      vec2(0.0, 0.42),
-      vec2(0.67, 0.0),
-      vec2(1.0, 0.48),
-      vec2(0.64, 1.0),
-      vec2(0.08, 0.72)
+      pointPx,
+      shapeUvToLocalPx(vec2(0.0, 0.42), shapeSize),
+      shapeUvToLocalPx(vec2(0.67, 0.0), shapeSize),
+      shapeUvToLocalPx(vec2(1.0, 0.48), shapeSize),
+      shapeUvToLocalPx(vec2(0.64, 1.0), shapeSize),
+      shapeUvToLocalPx(vec2(0.08, 0.72), shapeSize)
     );
   }
   if (v_kind < 1.5) {
     return polygon4Distance(
-      uv,
-      vec2(0.5, 0.0),
-      vec2(1.0, 0.5),
-      vec2(0.5, 1.0),
-      vec2(0.0, 0.5)
+      pointPx,
+      shapeUvToLocalPx(vec2(0.5, 0.0), shapeSize),
+      shapeUvToLocalPx(vec2(1.0, 0.5), shapeSize),
+      shapeUvToLocalPx(vec2(0.5, 1.0), shapeSize),
+      shapeUvToLocalPx(vec2(0.0, 0.5), shapeSize)
     );
   }
   return polygon5Distance(
-    uv,
-    vec2(0.0, 0.38),
-    vec2(0.84, 0.0),
-    vec2(1.0, 0.5),
-    vec2(0.82, 1.0),
-    vec2(0.0, 0.62)
+    pointPx,
+    shapeUvToLocalPx(vec2(0.0, 0.38), shapeSize),
+    shapeUvToLocalPx(vec2(0.84, 0.0), shapeSize),
+    shapeUvToLocalPx(vec2(1.0, 0.5), shapeSize),
+    shapeUvToLocalPx(vec2(0.82, 1.0), shapeSize),
+    shapeUvToLocalPx(vec2(0.0, 0.62), shapeSize)
   );
 }
 
@@ -497,12 +501,12 @@ void main() {
 
   vec2 uv = v_local_px / v_shape_size + 0.5;
   vec3 primaryColor = mainParticleColor();
-  float minimumSize = max(min(v_shape_size.x, v_shape_size.y), 0.25);
   float signedDistance = 0.0;
   float shapeAlpha;
   float glowAlpha = 0.0;
   vec3 shapeColor = primaryColor;
   float colorCoverage = 1.0;
+  float glowCoverage = 1.0;
 
   if (v_component > 0.5 && v_component < 1.5) {
     float flashUvX = clamp(
@@ -543,7 +547,10 @@ void main() {
           smoothstep(0.52, 1.0, flashUvX)
         );
   } else {
-    signedDistance = particleShapeDistance(uv) * minimumSize;
+    signedDistance = particleShapeDistancePx(
+      v_local_px,
+      v_shape_size
+    );
     float antialias = max(fwidth(signedDistance), 0.35);
     shapeAlpha = 1.0 - smoothstep(
       -antialias,
@@ -576,7 +583,9 @@ void main() {
         colorCoverage = mix(0.88, 0.0, progress);
       }
       shapeAlpha *= colorCoverage;
+      glowCoverage = colorCoverage;
     }
+    glowAlpha *= glowCoverage;
   }
 
   float particleAlpha = clamp(
