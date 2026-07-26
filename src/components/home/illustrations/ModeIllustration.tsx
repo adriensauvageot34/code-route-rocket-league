@@ -23,7 +23,11 @@ export type ModeIllustrationHandle = {
 
 export const ModeIllustration = forwardRef<ModeIllustrationHandle, ModeIllustrationProps>(
   function ModeIllustration({ active = true, launching = false, mode }, ref) {
-    const { containerRef, resetToCenter } = useParallaxController({ active });
+    const {
+      applyTrainingCameraSnapshot,
+      containerRef,
+      resetToCenter,
+    } = useParallaxController({ active, launching, mode });
     const getLaunchGeometry = useCallback(() => {
       const container = containerRef.current;
       if (!container) return null;
@@ -50,11 +54,17 @@ export const ModeIllustration = forwardRef<ModeIllustrationHandle, ModeIllustrat
         ref={containerRef}
       >
         <div className="scene-canvas">
-          {mode === "training" ? (
-            <TrainingScene active={active} launching={launching} />
-          ) : (
-            <CompetitiveScene />
-          )}
+          <div className="scene-camera">
+            {mode === "training" ? (
+              <TrainingScene
+                active={active}
+                applyCameraSnapshot={applyTrainingCameraSnapshot}
+                launching={launching}
+              />
+            ) : (
+              <CompetitiveScene />
+            )}
+          </div>
         </div>
       </div>
     );

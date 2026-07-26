@@ -18,6 +18,7 @@ import type { TrainingGpuDebugCollector } from "@/lib/home/gpu/debug/TrainingGpu
 import type { TrainingGpuPreparedObjectId } from "@/lib/home/gpu/trainingGpuObjectAssetCatalog";
 import type { TrainingGpuDecodedObjectAssetSet } from "@/lib/home/gpu/TrainingGpuObjectAssetLoader";
 import type { TrainingRadarClock } from "@/lib/home/trainingRadarClock";
+import type { TrainingCameraFrameApplier } from "@/lib/home/trainingCamera";
 import {
   createTrainingRadarFrameState,
   type TrainingRadarTemporalSnapshot,
@@ -26,6 +27,7 @@ import { homeIllustrationAssets } from "@/lib/home/homeIllustrationAssets";
 
 type TrainingGpuCanvasProps = {
   active: boolean;
+  applyCameraSnapshot: TrainingCameraFrameApplier;
   applyDomSnapshot: (snapshot: TrainingRadarTemporalSnapshot) => void;
   debugCollector: TrainingGpuDebugCollector | null;
   onBasesReadyChange: (ready: boolean) => void;
@@ -70,6 +72,7 @@ function createGpuFrameState(
 
 export function TrainingGpuCanvas({
   active,
+  applyCameraSnapshot,
   applyDomSnapshot,
   debugCollector,
   onBasesReadyChange,
@@ -149,6 +152,7 @@ export function TrainingGpuCanvas({
         const renderer = new TrainingGpuConsolidatedRenderer(
           canvases,
           {
+            applyCameraSnapshot,
             applyDomSnapshot,
             createFrameState: (nowMs) =>
               createGpuFrameState(
@@ -246,6 +250,7 @@ export function TrainingGpuCanvas({
       resetReadiness();
     };
   }, [
+    applyCameraSnapshot,
     applyDomSnapshot,
     debugCollector,
     onBasesReadyChange,

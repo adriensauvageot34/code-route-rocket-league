@@ -221,8 +221,9 @@ function applyDepthTransform(
   const translationX =
     parallax.effectiveTranslationX[depth] ??
     configuration.translationX;
-  const offsetX = parallax.point.x * translationX;
-  const offsetY = parallax.point.y * configuration.translationY;
+  const point = parallax.pointsByDepth[depth] ?? parallax.point;
+  const offsetX = point.x * translationX;
+  const offsetY = point.y * configuration.translationY;
   const centerX = viewport.cssWidth / 2;
   const centerY = viewport.cssHeight / 2;
 
@@ -706,10 +707,12 @@ export class TrainingGpuSceneRenderer {
       secondPass ? 1 : 0,
     );
     if (resources.uniforms.parallaxOffset) {
+      const point =
+        parallax.pointsByDepth[depthName] ?? parallax.point;
       gl.uniform2f(
         resources.uniforms.parallaxOffset,
-        parallax.point.x * translationX,
-        parallax.point.y * configuration.translationY,
+        point.x * translationX,
+        point.y * configuration.translationY,
       );
     }
     if (resources.uniforms.parallaxScale) {

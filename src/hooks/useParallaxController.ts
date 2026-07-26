@@ -1,293 +1,457 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import {
   calculateTrainingParallaxSafety,
   homeSceneDepths,
-  trainingParallaxSafetyDepths
+  trainingParallaxSafetyDepths,
+  type HomeSceneDepth,
 } from "@/lib/home/homeSceneParallax";
 import { setTrainingGpuParallaxSnapshot } from "@/lib/home/gpu/trainingGpuParallaxState";
-
-type Point = {
-  x: number;
-  y: number;
-};
+import {
+  getCenteredTrainingCameraSnapshot,
+  getTrainingCameraSnapshot,
+  sampleTrainingCameraSpring,
+  TRAINING_CAMERA_PROFILES,
+  TRAINING_CAMERA_DEPTH_PROFILES,
+  type TrainingCameraApplyMetrics,
+  type TrainingCameraFrameApplier,
+  type TrainingCameraPoint,
+  type TrainingCameraProfile,
+  type TrainingCameraSnapshot,
+} from "@/lib/home/trainingCamera";
+import type { TrainingRadarTemporalSnapshot } from "@/lib/home/trainingRadarSnapshots";
+import type { HomeModeId } from "@/types/home";
 
 type CenterReset = {
   durationMs: number;
-  from: Point;
+  from: TrainingCameraSnapshot;
   resolve: () => void;
-  startedAt: number;
+  startedAtMs: number;
 };
 
 type UseParallaxControllerOptions = {
   active: boolean;
+  launching: boolean;
+  mode: HomeModeId;
 };
 
-const POINTER_IDLE_DELAY_MS = 1200;
-const AUTO_DRIFT_PERIOD_MS = 20000;
-const AUTO_DRIFT_Y = 0.03;
+type CssWriteMetrics = {
+  avoided: number;
+  writes: number;
+};
 
-function clamp(value: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, value));
-}
+const HOME_SCENE_DEPTH_ENTRIES = Object.entries(
+  homeSceneDepths,
+) as [HomeSceneDepth, (typeof homeSceneDepths)[HomeSceneDepth]][];
 
-function writeParallaxVariables(
+function writeCssValue(
   element: HTMLElement,
-  point: Point,
-  effectiveTranslationX: Readonly<Record<string, number>>,
-  effectiveScaleX: Readonly<Record<string, number>>
+  cache: Map<string, string>,
+  name: string,
+  value: string,
+  metrics: CssWriteMetrics,
 ) {
-  for (const [name, depth] of Object.entries(homeSceneDepths)) {
-    const translationX = effectiveTranslationX[name] ?? depth.translationX;
-    element.style.setProperty(`--parallax-${name}-x`, `${(point.x * translationX).toFixed(3)}px`);
-    element.style.setProperty(`--parallax-${name}-y`, `${(point.y * depth.translationY).toFixed(3)}px`);
-    element.style.setProperty(`--parallax-${name}-rotation`, `${(point.x * depth.rotation).toFixed(3)}deg`);
+  if (cache.get(name) === value) {
+    metrics.avoided += 1;
+    return;
   }
-  setTrainingGpuParallaxSnapshot(point, effectiveTranslationX, effectiveScaleX);
+  cache.set(name, value);
+  element.style.setProperty(name, value);
+  metrics.writes += 1;
 }
 
-function updateTrainingParallaxSafety(
-  element: HTMLElement,
-  renderedContainerWidth: number,
-  effectiveTranslationX: Record<string, number>,
-  effectiveScaleX: Record<string, number>
-) {
-  if (!Number.isFinite(renderedContainerWidth) || renderedContainerWidth <= 0) return;
+function resetSnapshotAt(
+  reset: CenterReset,
+  nowMs: number,
+): TrainingCameraSnapshot {
+  const elapsedMs = Math.max(0, nowMs - reset.startedAtMs);
+  const globalX = sampleTrainingCameraSpring(
+    reset.from.x,
+    0,
+    0,
+    elapsedMs,
+    reset.durationMs,
+  );
+  const globalY = sampleTrainingCameraSpring(
+    reset.from.y,
+    0,
+    0,
+    elapsedMs,
+    reset.durationMs,
+  );
+  const globalScale = sampleTrainingCameraSpring(
+    reset.from.scale,
+    0,
+    1,
+    elapsedMs,
+    reset.durationMs,
+  );
+  const profilePoints = {} as Record<
+    TrainingCameraProfile,
+    TrainingCameraPoint
+  >;
+  const depthPoints = {} as Record<HomeSceneDepth, TrainingCameraPoint>;
 
-  for (const name of trainingParallaxSafetyDepths) {
-    const safety = calculateTrainingParallaxSafety(
-      renderedContainerWidth,
-      homeSceneDepths[name].translationX
-    );
-    effectiveTranslationX[name] = safety.translationX;
-    effectiveScaleX[name] = safety.scaleX;
-    element.style.setProperty(`--parallax-${name}-scale-x`, safety.scaleX.toFixed(6));
+  for (const profile of TRAINING_CAMERA_PROFILES) {
+    const from = reset.from.profilePoints[profile];
+    profilePoints[profile] = {
+      x: sampleTrainingCameraSpring(
+        from.x,
+        0,
+        0,
+        elapsedMs,
+        reset.durationMs,
+      ).position,
+      y: sampleTrainingCameraSpring(
+        from.y,
+        0,
+        0,
+        elapsedMs,
+        reset.durationMs,
+      ).position,
+    };
   }
+  for (const [depth] of HOME_SCENE_DEPTH_ENTRIES) {
+    depthPoints[depth] =
+      profilePoints[TRAINING_CAMERA_DEPTH_PROFILES[depth]];
+  }
+
+  const stabilized =
+    globalX.stabilized &&
+    globalY.stabilized &&
+    globalScale.stabilized;
+  return {
+    x: globalX.position,
+    y: globalY.position,
+    scale: globalScale.position,
+    contactCount: reset.from.contactCount,
+    depthPoints,
+    phase: "recentering",
+    profilePoints,
+    progress: Math.min(
+      globalX.progress,
+      globalY.progress,
+      globalScale.progress,
+    ),
+    sourceEvent: "reset-to-center",
+    stabilized,
+    startedAtMs: reset.startedAtMs,
+    targetScale: 1,
+    targetX: 0,
+    targetY: 0,
+  };
 }
 
-export function useParallaxController({ active }: UseParallaxControllerOptions) {
+export function useParallaxController({
+  active,
+  launching,
+  mode,
+}: UseParallaxControllerOptions) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const currentRef = useRef<Point>({ x: 0, y: 0 });
+  const activeRef = useRef(active);
+  const launchingRef = useRef(launching);
+  const modeRef = useRef(mode);
+  const reducedMotionRef = useRef(false);
+  const cameraAvailableRef = useRef(active);
+  const currentSnapshotRef = useRef<TrainingCameraSnapshot>(
+    getCenteredTrainingCameraSnapshot(),
+  );
   const resetRef = useRef<CenterReset | null>(null);
-  const animationFrameRef = useRef<number | null>(null);
-  const animationRunningRef = useRef(false);
   const centerLockedRef = useRef(false);
+  const lastSampleAtRef = useRef(0);
+  const missedFramesRef = useRef(0);
+  const cssValueCacheRef = useRef(new Map<string, string>());
   const effectiveTranslationXRef = useRef<Record<string, number>>({});
   const effectiveScaleXRef = useRef<Record<string, number>>({});
 
-  const resetToCenter = useCallback((durationMs = 200) => {
-    const container = containerRef.current;
-    const safeDuration = Math.max(0, durationMs);
-    centerLockedRef.current = true;
+  useLayoutEffect(() => {
+    activeRef.current = active;
+    launchingRef.current = launching;
+    modeRef.current = mode;
+  }, [active, launching, mode]);
 
-    if (!container || !animationRunningRef.current || safeDuration === 0) {
-      currentRef.current = { x: 0, y: 0 };
+  const writeCameraVariables = useCallback(
+    (snapshot: TrainingCameraSnapshot): TrainingCameraApplyMetrics => {
+      const container = containerRef.current;
+      const cssMetrics: CssWriteMetrics = { avoided: 0, writes: 0 };
+      let gpuUpdates = 0;
+      let gpuUpdatesAvoided = 0;
+
+      currentSnapshotRef.current = snapshot;
       if (container) {
-        writeParallaxVariables(
+        for (const [name, depth] of HOME_SCENE_DEPTH_ENTRIES) {
+          const point = snapshot.depthPoints[name];
+          const translationX =
+            effectiveTranslationXRef.current[name] ??
+            depth.translationX;
+          writeCssValue(
+            container,
+            cssValueCacheRef.current,
+            `--parallax-${name}-x`,
+            `${(point.x * translationX).toFixed(3)}px`,
+            cssMetrics,
+          );
+          writeCssValue(
+            container,
+            cssValueCacheRef.current,
+            `--parallax-${name}-y`,
+            `${(point.y * depth.translationY).toFixed(3)}px`,
+            cssMetrics,
+          );
+          writeCssValue(
+            container,
+            cssValueCacheRef.current,
+            `--parallax-${name}-rotation`,
+            `${(point.x * depth.rotation).toFixed(3)}deg`,
+            cssMetrics,
+          );
+        }
+        writeCssValue(
           container,
-          currentRef.current,
-          effectiveTranslationXRef.current,
-          effectiveScaleXRef.current,
+          cssValueCacheRef.current,
+          "--training-camera-scale",
+          snapshot.scale.toFixed(6),
+          cssMetrics,
         );
       }
-      return Promise.resolve();
-    }
 
-    resetRef.current?.resolve();
+      if (
+        setTrainingGpuParallaxSnapshot(
+          snapshot,
+          effectiveTranslationXRef.current,
+          effectiveScaleXRef.current,
+        )
+      ) {
+        gpuUpdates = 1;
+      } else {
+        gpuUpdatesAvoided = 1;
+      }
 
-    return new Promise<void>((resolve) => {
-      resetRef.current = {
-        durationMs: safeDuration,
-        from: { ...currentRef.current },
-        resolve,
-        startedAt: performance.now()
+      return {
+        absoluteResumeCorrect: true,
+        cameraSnapshot: snapshot,
+        cssWrites: cssMetrics.writes,
+        cssWritesAvoided: cssMetrics.avoided,
+        gpuUpdates,
+        gpuUpdatesAvoided,
+        missedFrames: missedFramesRef.current,
       };
-    });
-  }, []);
+    },
+    [],
+  );
+
+  const applyTrainingCameraSnapshot =
+    useCallback<TrainingCameraFrameApplier>(
+      (temporalSnapshot: TrainingRadarTemporalSnapshot) => {
+        const nowMs =
+          temporalSnapshot.frameState.nowMs > 0
+            ? temporalSnapshot.frameState.nowMs
+            : performance.now();
+        if (
+          lastSampleAtRef.current > 0 &&
+          nowMs - lastSampleAtRef.current > 50
+        ) {
+          missedFramesRef.current += Math.max(
+            1,
+            Math.round((nowMs - lastSampleAtRef.current) / (1000 / 60)) -
+              1,
+          );
+        }
+        lastSampleAtRef.current = nowMs;
+
+        let snapshot: TrainingCameraSnapshot;
+        const reset = resetRef.current;
+        if (
+          modeRef.current !== "training" ||
+          reducedMotionRef.current ||
+          !cameraAvailableRef.current
+        ) {
+          snapshot = getCenteredTrainingCameraSnapshot();
+        } else if (launchingRef.current) {
+          snapshot = getCenteredTrainingCameraSnapshot("launch");
+        } else if (reset) {
+          snapshot = resetSnapshotAt(reset, nowMs);
+        } else if (centerLockedRef.current) {
+          snapshot = getCenteredTrainingCameraSnapshot("recentering");
+        } else {
+          snapshot = getTrainingCameraSnapshot(
+            temporalSnapshot.frameState,
+            {
+              active: activeRef.current,
+              launching: launchingRef.current,
+              reducedMotion: reducedMotionRef.current,
+            },
+          );
+        }
+
+        const metrics = writeCameraVariables(snapshot);
+        if (
+          reset &&
+          (snapshot.stabilized ||
+            launchingRef.current ||
+            !cameraAvailableRef.current)
+        ) {
+          resetRef.current = null;
+          reset.resolve();
+        }
+        return metrics;
+      },
+      [writeCameraVariables],
+    );
+
+  const resetToCenter = useCallback(
+    (durationMs = 200) => {
+      const safeDuration = Math.max(0, durationMs);
+      centerLockedRef.current = true;
+      resetRef.current?.resolve();
+      resetRef.current = null;
+
+      if (
+        modeRef.current !== "training" ||
+        reducedMotionRef.current ||
+        !cameraAvailableRef.current ||
+        safeDuration === 0
+      ) {
+        writeCameraVariables(
+          getCenteredTrainingCameraSnapshot("recentering"),
+        );
+        return Promise.resolve();
+      }
+
+      return new Promise<void>((resolve) => {
+        resetRef.current = {
+          durationMs: safeDuration,
+          from: currentSnapshotRef.current,
+          resolve,
+          startedAtMs: performance.now(),
+        };
+      });
+    },
+    [writeCameraVariables],
+  );
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
     const updateSafety = (renderedContainerWidth: number) => {
-      updateTrainingParallaxSafety(
-        container,
-        renderedContainerWidth,
-        effectiveTranslationXRef.current,
-        effectiveScaleXRef.current,
-      );
-      writeParallaxVariables(
-        container,
-        currentRef.current,
-        effectiveTranslationXRef.current,
-        effectiveScaleXRef.current,
-      );
+      if (
+        !Number.isFinite(renderedContainerWidth) ||
+        renderedContainerWidth <= 0
+      ) {
+        return;
+      }
+      const cssMetrics: CssWriteMetrics = { avoided: 0, writes: 0 };
+      for (const name of trainingParallaxSafetyDepths) {
+        const safety = calculateTrainingParallaxSafety(
+          renderedContainerWidth,
+          homeSceneDepths[name].translationX,
+        );
+        effectiveTranslationXRef.current[name] =
+          safety.translationX;
+        effectiveScaleXRef.current[name] = safety.scaleX;
+        writeCssValue(
+          container,
+          cssValueCacheRef.current,
+          `--parallax-${name}-scale-x`,
+          safety.scaleX.toFixed(6),
+          cssMetrics,
+        );
+      }
+      writeCameraVariables(currentSnapshotRef.current);
     };
 
     updateSafety(container.clientWidth);
-
     const resizeObserver = new ResizeObserver(([entry]) => {
       if (entry) updateSafety(entry.contentRect.width);
     });
     resizeObserver.observe(container);
     return () => resizeObserver.disconnect();
-  }, []);
+  }, [writeCameraVariables]);
 
   useEffect(() => {
-    const currentContainer = containerRef.current;
-    if (!currentContainer) return;
-    const container: HTMLDivElement = currentContainer;
-
-    writeParallaxVariables(
-      container,
-      { x: 0, y: 0 },
-      effectiveTranslationXRef.current,
-      effectiveScaleXRef.current,
+    const container = containerRef.current;
+    if (!container) return;
+    const reducedMotionQuery = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
     );
-    if (!active) return;
-
-    const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const finePointerQuery = window.matchMedia("(hover: hover) and (pointer: fine)");
-    const pointerTarget: Point = { x: 0, y: 0 };
     let documentVisible = document.visibilityState === "visible";
     let illustrationVisible = true;
     let intersectionObserver: IntersectionObserver | null = null;
-    let pointerInside = false;
-    let lastPointerAt = 0;
-    let lastFrameAt = performance.now();
-    let autoStartedAt = lastFrameAt;
 
-    function handlePointerMove(event: PointerEvent) {
-      if (!finePointerQuery.matches || resetRef.current) return;
-
-      const bounds = container.getBoundingClientRect();
-      pointerTarget.x = clamp(((event.clientX - bounds.left) / bounds.width) * 2 - 1, -1, 1);
-      pointerTarget.y = clamp(((event.clientY - bounds.top) / bounds.height) * 2 - 1, -1, 1);
-      pointerInside = true;
-      lastPointerAt = performance.now();
-      centerLockedRef.current = false;
-    }
-
-    function handlePointerLeave() {
-      pointerInside = false;
-      lastPointerAt = 0;
-    }
-
-    function animate(timestamp: number) {
-      const frameDuration = clamp(timestamp - lastFrameAt, 0, 64);
-      const centerReset = resetRef.current;
-      lastFrameAt = timestamp;
-
-      if (centerReset) {
-        const progress = clamp((timestamp - centerReset.startedAt) / centerReset.durationMs, 0, 1);
-        const easedProgress = 1 - Math.pow(1 - progress, 3);
-        currentRef.current.x = centerReset.from.x * (1 - easedProgress);
-        currentRef.current.y = centerReset.from.y * (1 - easedProgress);
-
-        if (progress === 1) {
-          currentRef.current = { x: 0, y: 0 };
-          resetRef.current = null;
-          centerReset.resolve();
-        }
-      } else if (centerLockedRef.current) {
-        currentRef.current = { x: 0, y: 0 };
-      } else {
-        const pointerIsFresh =
-          finePointerQuery.matches && pointerInside && timestamp - lastPointerAt < POINTER_IDLE_DELAY_MS;
-        const autoProgress = ((timestamp - autoStartedAt) % AUTO_DRIFT_PERIOD_MS) / AUTO_DRIFT_PERIOD_MS;
-        const autoAngle = autoProgress * Math.PI * 2;
-        const targetX = pointerIsFresh ? pointerTarget.x : -Math.sin(autoAngle);
-        const targetY = pointerIsFresh ? pointerTarget.y : Math.sin(autoAngle * 2) * AUTO_DRIFT_Y;
-        const interpolation = 1 - Math.exp(-frameDuration / 190);
-
-        currentRef.current.x += (targetX - currentRef.current.x) * interpolation;
-        currentRef.current.y += (targetY - currentRef.current.y) * interpolation;
+    const syncAvailability = () => {
+      reducedMotionRef.current = reducedMotionQuery.matches;
+      cameraAvailableRef.current =
+        activeRef.current &&
+        documentVisible &&
+        illustrationVisible &&
+        !reducedMotionRef.current;
+      container.dataset.motionActive = cameraAvailableRef.current
+        ? "true"
+        : "false";
+      if (!cameraAvailableRef.current) {
+        writeCameraVariables(getCenteredTrainingCameraSnapshot());
+        resetRef.current?.resolve();
+        resetRef.current = null;
       }
-
-      writeParallaxVariables(
-        container,
-        currentRef.current,
-        effectiveTranslationXRef.current,
-        effectiveScaleXRef.current,
-      );
-      animationFrameRef.current = window.requestAnimationFrame(animate);
-    }
-
-    function stopAnimation() {
-      if (animationFrameRef.current !== null) {
-        window.cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
-      }
-      animationRunningRef.current = false;
-      const centerReset = resetRef.current;
-      resetRef.current = null;
-      centerReset?.resolve();
-      currentRef.current = { x: 0, y: 0 };
-      writeParallaxVariables(
-        container,
-        currentRef.current,
-        effectiveTranslationXRef.current,
-        effectiveScaleXRef.current,
-      );
-    }
-
-    function startAnimation() {
-      if (animationFrameRef.current !== null || reducedMotionQuery.matches) return;
-      lastFrameAt = performance.now();
-      autoStartedAt = lastFrameAt;
-      animationRunningRef.current = true;
-      animationFrameRef.current = window.requestAnimationFrame(animate);
-    }
-
-    function syncAnimationState() {
-      const shouldAnimate = documentVisible && illustrationVisible && !reducedMotionQuery.matches;
-      container.dataset.motionActive = shouldAnimate ? "true" : "false";
-
-      if (shouldAnimate) startAnimation();
-      else stopAnimation();
-    }
-
-    function handleMotionPreferenceChange() {
-      syncAnimationState();
-    }
-
-    function handleVisibilityChange() {
+    };
+    const handleVisibilityChange = () => {
       documentVisible = document.visibilityState === "visible";
-      syncAnimationState();
-    }
+      syncAvailability();
+    };
 
-    if (finePointerQuery.matches) {
-      container.addEventListener("pointermove", handlePointerMove, { passive: true });
-      container.addEventListener("pointerleave", handlePointerLeave, { passive: true });
-    }
-    reducedMotionQuery.addEventListener("change", handleMotionPreferenceChange);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
+    reducedMotionQuery.addEventListener("change", syncAvailability);
+    document.addEventListener(
+      "visibilitychange",
+      handleVisibilityChange,
+    );
     if ("IntersectionObserver" in window) {
       intersectionObserver = new IntersectionObserver(
         ([entry]) => {
           illustrationVisible = entry?.isIntersecting ?? true;
-          syncAnimationState();
+          syncAvailability();
         },
-        { rootMargin: "80px", threshold: 0.01 }
+        { rootMargin: "80px", threshold: 0.01 },
       );
       intersectionObserver.observe(container);
     }
-
-    syncAnimationState();
+    syncAvailability();
 
     return () => {
-      container.removeEventListener("pointermove", handlePointerMove);
-      container.removeEventListener("pointerleave", handlePointerLeave);
-      reducedMotionQuery.removeEventListener("change", handleMotionPreferenceChange);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      reducedMotionQuery.removeEventListener(
+        "change",
+        syncAvailability,
+      );
+      document.removeEventListener(
+        "visibilitychange",
+        handleVisibilityChange,
+      );
       intersectionObserver?.disconnect();
-      stopAnimation();
+      resetRef.current?.resolve();
+      resetRef.current = null;
       delete container.dataset.motionActive;
-      centerLockedRef.current = false;
     };
-  }, [active]);
+  }, [active, writeCameraVariables]);
 
-  return { containerRef, resetToCenter };
+  useEffect(() => {
+    if (active && !launching) {
+      centerLockedRef.current = false;
+    }
+    if (launching) {
+      writeCameraVariables(
+        getCenteredTrainingCameraSnapshot(
+          reducedMotionRef.current ? "neutral" : "launch",
+        ),
+      );
+      resetRef.current?.resolve();
+      resetRef.current = null;
+    }
+  }, [active, launching, writeCameraVariables]);
+
+  return {
+    applyTrainingCameraSnapshot,
+    containerRef,
+    resetToCenter,
+  };
 }

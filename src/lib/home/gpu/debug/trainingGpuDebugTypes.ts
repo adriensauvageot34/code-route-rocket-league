@@ -1,4 +1,5 @@
 import type { TrainingRendererMode } from "@/lib/home/gpu/trainingGpuTypes";
+import type { TrainingCameraPhase } from "@/lib/home/trainingCamera";
 import type { TrainingRadarPassMode } from "@/lib/home/trainingRadarClock";
 
 export type TrainingGpuDebugSubsystemName =
@@ -63,7 +64,27 @@ export type TrainingGpuDebugSubsystemSnapshot = {
 export type TrainingGpuDebugGlobalSnapshot = {
   absolutePassIndex: number;
   activeDriver: "gpu" | "dom" | "none";
+  additionalParallaxRafCount: number;
   callbackLatenessMs: number;
+  cameraAbsoluteResumeCorrect: boolean;
+  cameraContactsObserved: number;
+  cameraCssWrites: number;
+  cameraCssWritesAvoided: number;
+  cameraDepthProfile: string;
+  cameraGpuUpdates: number;
+  cameraGpuUpdatesAvoided: number;
+  cameraMissedFrames: number;
+  cameraPhase: TrainingCameraPhase;
+  cameraScale: number;
+  cameraSegmentStartedAtMs: number;
+  cameraSource: "master-clock";
+  cameraSourceEvent: string;
+  cameraStabilized: boolean;
+  cameraTargetScale: number;
+  cameraTargetX: number;
+  cameraTargetY: number;
+  cameraX: number;
+  cameraY: number;
   cumulativeTheoreticalDriftMs: number;
   domChangedValuesPerFrame: number;
   domUpdatesPerFrame: number;
@@ -81,6 +102,7 @@ export type TrainingGpuDebugGlobalSnapshot = {
   passProgress: number;
   passKey: number;
   passStartedAtMs: number;
+  pointerListenersActive: number;
   skippedPasses: number;
   trainingRafCount: number;
   masterClockNowMs: number;

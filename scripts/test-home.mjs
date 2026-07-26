@@ -27,6 +27,7 @@ const expectedFiles = [
   "src/lib/home/getHomeDashboardViewModel.ts",
   "src/lib/home/homeIllustrationAssets.ts",
   "src/lib/home/homeSceneParallax.ts",
+  "src/lib/home/trainingCamera.ts",
   "src/lib/home/homeLaunch.ts",
   "src/lib/home/trainingParticlePresets.ts",
   "src/lib/home/trainingParticleTiming.ts",
@@ -107,6 +108,7 @@ const trainingGpuDebugPanel = files["src/components/home/illustrations/gpu/Train
 const competitiveScene = files["src/components/home/illustrations/CompetitiveScene.tsx"];
 const sceneGroup = files["src/components/home/illustrations/SceneGroup.tsx"];
 const sceneDepths = files["src/lib/home/homeSceneParallax.ts"];
+const trainingCamera = files["src/lib/home/trainingCamera.ts"];
 const homeLaunch = files["src/lib/home/homeLaunch.ts"];
 const parallaxController = files["src/hooks/useParallaxController.ts"];
 const trainingParticlePresets = files["src/lib/home/trainingParticlePresets.ts"];
@@ -193,11 +195,11 @@ assert(!trainingGpuTacticalTiming.includes("requestAnimationFrame") && !training
 assert(trainingRadarSnapshots.includes('"hidden"') && trainingRadarSnapshots.includes('"contact"') && trainingRadarSnapshots.includes('"active"') && trainingRadarSnapshots.includes('"hold"') && trainingRadarSnapshots.includes('"fade"') && trainingRadarSnapshots.includes("getTrainingRadarTacticalState"), "Canonical tactical snapshots must cover contact, stable activation, global hold and next-volume fade.");
 assert(trainingGpuVolumeUtils.includes("target.contextLost = true") && trainingGpuVolumeUtils.includes("this.setBaseReady(false)") && trainingGpuVolumeUtils.includes("this.setVolumeReady(false)") && trainingGpuVolumeUtils.includes("this.setTacticalReady(false)") && trainingGpuVolumeUtils.includes("this.options.onContextRestored()"), "A shared object context loss must restore all independent DOM fallbacks until current-time rendering succeeds.");
 assert(trainingGpuVolumeUtils.includes("cssWidth <= 0") && trainingGpuVolumeUtils.includes("target.viewport = null") && trainingGpuVolumeUtils.includes("if (!this.hasViewports())"), "Zero-sized object canvases must never be reported ready.");
-assert(trainingGpuSceneRenderer.includes('removeEventListener(\n      "webglcontextlost"') && trainingGpuSceneRenderer.includes("this.releaseParticleResources();") && trainingGpuSceneRenderer.includes("this.releaseObjectResources();") && !trainingGpuVolumeUtils.includes("addEventListener"), "Consolidated teardown must release scene resources and its sole listener pair while utilities own no context listeners.");
-assert(trainingGpuVolumeUtils.includes("finally {\n    gl.deleteShader(vertexShader);") && trainingGpuTacticalUtils.includes("gl.deleteTexture(texture);") && trainingGpuTacticalUtils.includes("gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);"), "Failed tactical shader and texture creation must release partial GPU resources and restore upload state.");
+assert(/removeEventListener\(\s*"webglcontextlost"/.test(trainingGpuSceneRenderer) && trainingGpuSceneRenderer.includes("this.releaseParticleResources();") && trainingGpuSceneRenderer.includes("this.releaseObjectResources();") && !trainingGpuVolumeUtils.includes("addEventListener"), "Consolidated teardown must release scene resources and its sole listener pair while utilities own no context listeners.");
+assert(/finally\s*\{\s*gl\.deleteShader\(vertexShader\);/.test(trainingGpuVolumeUtils) && trainingGpuTacticalUtils.includes("gl.deleteTexture(texture);") && trainingGpuTacticalUtils.includes("gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);"), "Failed tactical shader and texture creation must release partial GPU resources and restore upload state.");
 assert(trainingScene.includes("const showDomBase = !useGpuRenderer || !gpuBasesReady") && trainingScene.includes('data-gpu-bases-ready=') && (trainingScene.match(/showDomBase=\{showDomBase\}/g) ?? []).length === 4 && (trainingGroundedActor.match(/data-dom-base-visible=/g) ?? []).length === 2, "The four object bases must stay mounted and switch atomically to their preserved DOM Image fallbacks.");
-assert(trainingScene.includes("const showDomVolumeScan = !useGpuRenderer || !gpuVolumeScansReady") && trainingScene.includes('data-gpu-volume-scans-ready='), "The four object volume scans must switch atomically to the DOM fallback.");
-assert(trainingScene.includes("const showDomTactical = !useGpuRenderer || !gpuTacticalReady") && trainingScene.includes('data-gpu-tactical-ready=') && trainingGpuCanvas.includes("onTacticalReadyChange"), "Tactical readiness and its four-object DOM fallback must remain independent from volume readiness.");
+assert(/const showDomVolumeScan\s*=\s*!useGpuRenderer \|\|\s*!gpuVolumeScansReady/.test(trainingScene) && trainingScene.includes('data-gpu-volume-scans-ready='), "The four object volume scans must switch atomically to the DOM fallback.");
+assert(/const showDomTactical\s*=\s*!useGpuRenderer \|\|\s*!gpuTacticalReady/.test(trainingScene) && trainingScene.includes('data-gpu-tactical-ready=') && trainingGpuCanvas.includes("onTacticalReadyChange"), "Tactical readiness and its four-object DOM fallback must remain independent from volume readiness.");
 assert(trainingGroundedActor.includes("showDomTactical") && trainingGroundedActor.includes("target.wireframeAsset.path") && trainingGroundedActor.includes("target.glowAsset.path") && trainingGroundedActor.includes("target.energyAsset.path"), "Wireframe, glow and tactical-energy images must remain available as DOM fallbacks.");
 assert(trainingGroundedActor.includes("training-grounded-actor-base") && trainingGroundedActor.includes("training-ball-launch-energy") && css.includes('.training-radar-car-target[data-tactical-phase="contact"]::before'), "Bases, launch energy and the procedural DOM contact pulse must remain intact.");
 assert((trainingGroundedActor.match(/<canvas/g) ?? []).length === 0 && !trainingGroundedActor.includes("tacticalCanvas") && !trainingGpuCanvas.includes("tacticalCanvas"), "Grounded actors must not retain per-object or tactical canvases after consolidation.");
@@ -213,13 +215,13 @@ assert(trainingGpuVolumeUtils.includes('textures: baseResourceTargets.length') &
 assert(css.includes(".training-gpu-scene-layer") && css.includes(".training-gpu-scene-canvas") && css.includes("mix-blend-mode: normal") && trainingGpuSceneRenderer.includes("gl.ONE_MINUS_SRC_COLOR"), "The consolidated scene canvas must composite normally while preserving screen-style effect blending inside WebGL.");
 assert(trainingGroundedActor.includes("target.baseAsset.path") && trainingGroundedActor.includes("training-ball-launch-energy") && (trainingGroundedActor.match(/<canvas/g) ?? []).length === 0, "DOM base fallbacks and launch energy must remain intact without any local object canvas.");
 assert(trainingRadarTargets.includes("contactDurationMs: 360") && trainingRadarTargets.includes("tacticalHoldDurationMs: 1800") && trainingRadarTargets.includes("fadeDurationMs: 800"), "Central tactical timings must remain unchanged.");
-assert(trainingScene.includes('name="fennec"') && trainingGpuObjectAssetCatalog.includes('"fennec"') && trainingGpuObjectAssetCatalog.includes("/ui/training-objects/fennec/manifest.json") && trainingGpuVolumeUtils.includes('TrainingGpuVolumeObjectId = Exclude<') && !trainingGpuTacticalUtils.includes('"fennec"') && !trainingGpuBaseUtils.includes('"fennec"'), "The Fennec volume path must stay isolated from the four established object renderers.");
-assert((trainingGpuObjectAssetCatalog.match(/"left-car"|"back-right-car"|"front-right-car"|"ball"|"fennec"/g) ?? []).length >= 10 && trainingGpuObjectAssetLoader.includes("estimatedTextureBytes") && trainingGpuObjectAssetLoader.includes("entry.outputSize.width * entry.outputSize.height * 4"), "The GPU loader must load five prepared manifests and expose their future RGBA texture memory.");
+assert(trainingScene.includes('name="fennec"') && trainingGpuObjectAssetCatalog.includes('"fennec"') && trainingGpuObjectAssetCatalog.includes("/ui/training-objects/fennec/manifest.json") && trainingGpuVolumeUtils.includes('TrainingGpuVolumeObjectId = Exclude<') && trainingGpuTacticalUtils.includes('TrainingGpuTacticalObjectId = Exclude<') && trainingGpuTacticalUtils.includes('"fennec"') && trainingGpuTacticalUtils.includes("dedicated Fennec pipeline") && !trainingGpuBaseUtils.includes('"fennec"'), "The Fennec volume path must stay isolated from the four established object renderers.");
+assert(["left-car", "back-right-car", "front-right-car", "ball", "fennec"].every((id) => trainingGpuObjectAssetCatalog.includes(id)) && (trainingGpuObjectAssetCatalog.match(/\/manifest\.json/g) ?? []).length === 5 && trainingGpuObjectAssetLoader.includes("estimatedTextureBytes") && trainingGpuObjectAssetLoader.includes("entry.outputSize.width * entry.outputSize.height * 4"), "The GPU loader must load five prepared manifests and expose their future RGBA texture memory.");
 assert(trainingGpuObjectManifest.includes("crop must stay inside sourceSize") && trainingGpuObjectManifest.includes("outputSize must match crop size exactly") && trainingGpuObjectAssetLoader.includes("image.naturalWidth !== entry.outputSize.width"), "Fennec manifests and decoded image dimensions must retain the shared strict validation.");
 assert(!trainingScene.includes("training-gpu-fennec-canvas") && trainingGpuSceneRenderer.includes('getTrainingGpuObjectRegistration("fennec")') && !trainingGpuObjectAssetLoader.includes("requestAnimationFrame") && !trainingGpuObjectAssetLoader.includes("setTimeout") && !trainingGpuObjectAssetLoader.includes("setInterval"), "Fennec rendering must reuse the consolidated scene owner without a local canvas, loop or timer.");
 assert(homeIllustrationAssets.includes("/ui/training-lights-violet-glow-screen.png") && !trainingGpuObjectAssetCatalog.includes("lights-violet-glow-screen") && !trainingGpuObjectAssetCatalog.includes("headlightGlow:") && trainingScene.includes('name="fennec-lights-glow"'), "The full-scene violet screen halo must stay separate from the local Fennec headlight role.");
 assert(!trainingGpuSceneRenderer.includes("TrainingGpuFennecVolumeSubsystem") && !trainingGpuSceneRenderer.includes("fennecCanvas") && trainingGpuSceneRenderer.includes("private renderFennec("), "Fennec must be drawn by the consolidated scene owner without another context or canvas.");
-assert(trainingGpuObjectRegistry.includes('"fennec-surface-frame"') && trainingGpuObjectRegistry.includes('"fennec:contour-scene"') && trainingGpuObjectRegistry.includes('"scene",\n      trainingFennecVolumeScanTarget.contourAsset') && trainingGpuSceneRenderer.includes("sceneQuad(registration, asset") && trainingGpuObjectPlacement.includes("convertTrainingGpuLogicalSceneRectToLocalCanvasRect"), "Fennec surface and contour must keep their distinct manifest placement spaces with scene conversion.");
+assert(trainingGpuObjectRegistry.includes('"fennec-surface-frame"') && trainingGpuObjectRegistry.includes('"fennec:contour-scene"') && /"scene",\s*trainingFennecVolumeScanTarget\.contourAsset/.test(trainingGpuObjectRegistry) && trainingGpuSceneRenderer.includes("sceneQuad(registration, asset") && trainingGpuObjectPlacement.includes("convertTrainingGpuLogicalSceneRectToLocalCanvasRect"), "Fennec surface and contour must keep their distinct manifest placement spaces with scene conversion.");
 const fennecVolumeRenderStart = trainingGpuSceneRenderer.indexOf("private renderFennecVolume(");
 const fennecVolumeRender = trainingGpuSceneRenderer.slice(fennecVolumeRenderStart, trainingGpuSceneRenderer.indexOf("\n  private renderFennecEffects(", fennecVolumeRenderStart));
 assert(fennecVolumeRender.includes('["surface", "contour"]') && !fennecVolumeRender.includes("getBoundingClientRect"), "The consolidated scene must render Fennec surface before contour without per-frame layout reads.");
@@ -325,8 +327,8 @@ assert(
   "Diagnostics must expose bounded frame metrics and CPU timings.",
 );
 assert(
-  trainingGpuConsolidatedRenderer.includes('recordSubsystemCpu(\n        "radar"') &&
-    trainingGpuConsolidatedRenderer.includes('recordSubsystemCpu(\n      "bases"') &&
+  /recordSubsystemCpu\(\s*"radar"/.test(trainingGpuConsolidatedRenderer) &&
+    /recordSubsystemCpu\(\s*"bases"/.test(trainingGpuConsolidatedRenderer) &&
     trainingGpuConsolidatedRenderer.includes("publishFrameMetrics(") &&
     trainingGpuSceneRenderer.includes("setSubsystemResources(") &&
     !trainingGpuConsolidatedRenderer.includes("TrainingGpuDebugPanel"),
@@ -346,10 +348,10 @@ assert(
 );
 assert(
   trainingRendererModeHook.includes('useState<TrainingRendererMode>("dom")') &&
-    trainingScene.includes("const showDomRadar = !useGpuRenderer || !gpuRadarReady") &&
-    trainingScene.includes("const showDomParticles = !useGpuRenderer || !gpuParticlesReady") &&
-    trainingScene.includes("const showDomVolumeScan = !useGpuRenderer || !gpuVolumeScansReady") &&
-    trainingScene.includes("const showDomTactical = !useGpuRenderer || !gpuTacticalReady"),
+    /const showDomRadar\s*=\s*!useGpuRenderer \|\|\s*!gpuRadarReady/.test(trainingScene) &&
+    /const showDomParticles\s*=\s*!useGpuRenderer \|\|\s*!gpuParticlesReady/.test(trainingScene) &&
+    /const showDomVolumeScan\s*=\s*!useGpuRenderer \|\|\s*!gpuVolumeScansReady/.test(trainingScene) &&
+    /const showDomTactical\s*=\s*!useGpuRenderer \|\|\s*!gpuTacticalReady/.test(trainingScene),
   "DOM mode and every existing DOM fallback must remain the default.",
 );
 assert(
@@ -393,7 +395,7 @@ assert(tooltip.includes('removeEventListener("pointerdown"'), "Tooltip outside-c
 assert(primaryAction.includes("AccessibleTooltip") && !primaryAction.includes(" disabled={isLaunching}"), "Locked Competitive info must stay interactive.");
 assert(primaryAction.includes("event.preventDefault()") && primaryAction.includes("onLaunch(action)"), "Training CTA must retain controlled launch.");
 
-assert(modeIllustration.includes("<TrainingScene active={active} launching={launching} />") && modeIllustration.includes("<CompetitiveScene />"), "One selected scene must render with Training lifecycle state.");
+assert(modeIllustration.includes("<TrainingScene") && modeIllustration.includes("active={active}") && modeIllustration.includes("launching={launching}") && modeIllustration.includes("applyCameraSnapshot={applyTrainingCameraSnapshot}") && modeIllustration.includes("<CompetitiveScene />"), "One selected scene must render with Training lifecycle state and the shared camera sampler.");
 assert(modeIllustration.includes("getLaunchGeometry") && modeIllustration.includes("resetParallax"), "Scene launch handle must stay intact.");
 assert(sceneGroup.includes("scene-parallax") && sceneGroup.includes("scene-idle") && sceneGroup.includes("scene-launch"), "Scene transform wrappers must stay independent.");
 assert(
@@ -545,8 +547,8 @@ assert(trainingGpuConsolidatedRenderer.includes("const snapshot = getTrainingRad
 assert((trainingGpuCanvas.match(/<canvas/g) ?? []).length === 3, "Training GPU mode must mount exactly three canvases.");
 assert(!trainingScene.includes("VolumeCanvasRef") && !trainingGroundedActor.includes("<canvas"), "Old per-object GPU canvases and refs must stay removed.");
 assert(trainingGpuCanvas.includes("TrainingGpuConsolidatedRenderer") && trainingGpuCanvas.includes("sceneCanvasRef"), "Training must use the consolidated scene owner.");
-assert((trainingGpuConsolidatedRenderer.match(/getWebGl2Context\\(/g) ?? []).length === 3 && (trainingGpuSceneRenderer.match(/getWebGl2Context\\(/g) ?? []).length === 3, "The runtime owners must centralize initial WebGL2 acquisition and explicit restore acquisition for the three remaining canvases.");
-assert(trainingGpuSceneRenderer.includes("gl.clear(gl.COLOR_BUFFER_BIT)") && (trainingGpuSceneRenderer.match(/gl\\.clear\\(gl\\.COLOR_BUFFER_BIT\\)/g) ?? []).length === 2, "The consolidated scene must use one frame clear plus one explicit idle clear path.");
+assert((trainingGpuConsolidatedRenderer.match(/getWebGl2Context\(/g) ?? []).length === 3 && (trainingGpuSceneRenderer.match(/getWebGl2Context\(/g) ?? []).length === 3, "The runtime owners must centralize initial WebGL2 acquisition and explicit restore acquisition for the three remaining canvases.");
+assert((trainingGpuSceneRenderer.match(/\bgl\.clear\(gl\.COLOR_BUFFER_BIT\)/g) ?? []).length === 1 && trainingGpuSceneRenderer.includes("this.gl.clear(this.gl.COLOR_BUFFER_BIT)"), "The consolidated scene must use one frame clear plus one explicit idle clear path.");
 assert(trainingGpuSceneRenderer.includes('this.renderParticles("far"') && trainingGpuSceneRenderer.indexOf('this.renderParticles("far"') < trainingGpuSceneRenderer.indexOf('this.renderObject("left-car"') && trainingGpuSceneRenderer.indexOf('this.renderParticles("mid"') < trainingGpuSceneRenderer.indexOf('this.renderObject("back-right-car"') && trainingGpuSceneRenderer.indexOf('this.renderParticles("near"') < trainingGpuSceneRenderer.indexOf("this.renderFennec("), "Consolidated draw order must preserve the original depth interleave.");
 assert(trainingGpuSceneRenderer.includes("sharedResources?.volume") && trainingGpuSceneRenderer.includes("sharedResources?.base") && trainingGpuSceneRenderer.includes("sharedResources?.tactical"), "Compatible object programs, VAOs and buffers must be shared inside the scene context.");
 assert(trainingGpuSceneRenderer.includes("Object.values(this.particleResources)[0]?.quadBuffer"), "Particle depths must share their compatible quad buffer.");
@@ -603,20 +605,88 @@ for (const amplitude of [3, 7, 22, 27, 23, 25, 28, 34]) {
   assert(sceneDepths.includes(`translationX: ${amplitude}`), `Missing Training horizontal amplitude: ${amplitude}px`);
 }
 assert(sceneDepths.includes("trainingParticlesFar: { translationX: 10, translationY: 0.8") && sceneDepths.includes("trainingParticlesMid: { translationX: 31, translationY: 2.6") && sceneDepths.includes("trainingParticlesNear: { translationX: 50, translationY: 4.4"), "Particle parallax must increase distinctly from far to near.");
-assert(parallaxController.includes("requestAnimationFrame") && parallaxController.includes("cancelAnimationFrame"), "Parallax must create and cancel its frame.");
+assert(
+  !parallaxController.includes("requestAnimationFrame") &&
+    !parallaxController.includes("cancelAnimationFrame") &&
+    !parallaxController.includes("setTimeout") &&
+    !parallaxController.includes("setInterval"),
+  "Parallax must reuse an existing Training MasterClock RAF without a private loop or timer."
+);
+assert(
+  !parallaxController.includes("pointermove") &&
+    !parallaxController.includes("pointerleave") &&
+    !parallaxController.includes("POINTER_IDLE_DELAY_MS") &&
+    !parallaxController.includes("AUTO_DRIFT_PERIOD_MS") &&
+    !parallaxController.includes("AUTO_DRIFT_Y") &&
+    !trainingCamera.includes("Math.sin"),
+  "Pointer input and permanent sinusoidal drift must be absent from cinematic parallax."
+);
 assert(
   parallaxController.includes("new ResizeObserver") &&
     parallaxController.includes("entry.contentRect.width") &&
     parallaxController.includes("resizeObserver.disconnect()"),
   "Training safety scale must be calculated at mount and recalculated by ResizeObserver."
 );
-const parallaxFrameBody =
-  parallaxController.match(/function animate\(timestamp: number\)([\s\S]*?)function stopAnimation/)?.[1] ?? "";
 assert(
-  !parallaxFrameBody.includes("clientWidth") &&
-    !parallaxFrameBody.includes("contentRect") &&
-    !parallaxFrameBody.includes("getBoundingClientRect"),
-  "Parallax animation frames must not measure layout."
+  !parallaxController.includes("getBoundingClientRect") &&
+    trainingGpuCanvas.includes("new ResizeObserver") &&
+    trainingGpuCanvas.includes("stackElement.getBoundingClientRect()"),
+  "Parallax must avoid per-frame layout reads while renderer resize keeps its cached measurement path."
+);
+assert(
+  trainingCamera.includes("getTrainingCameraSnapshot") &&
+    trainingCamera.includes("sampleTrainingCameraSpring") &&
+    trainingCamera.includes("Math.exp(-omega * elapsedSeconds)") &&
+    trainingCamera.includes("frameState.passStartedAtMs") &&
+    trainingCamera.includes("frameState.elapsedMs"),
+  "The camera snapshot and critically damped spring must be sampled from absolute MasterClock time."
+);
+assert(
+  trainingGpuConsolidatedRenderer.includes("applyCameraSnapshot(snapshot)") &&
+    trainingDomRadarDriver.includes("applyCameraSnapshot(snapshot)") &&
+    trainingGpuCanvas.includes("applyCameraSnapshot") &&
+    modeIllustration.includes("applyTrainingCameraSnapshot"),
+  "GPU and DOM drivers must consume the same MasterClock camera snapshot in their existing RAF."
+);
+assert(
+  trainingCamera.includes("TRAINING_CAMERA_PROFILE_SETTLE_MS") &&
+    trainingCamera.includes("TRAINING_CAMERA_DEPTH_PROFILES") &&
+    trainingCamera.includes('"particles-near": 320') &&
+    trainingCamera.includes("fennec: 600"),
+  "Depth response profiles must be centralized for sky, architecture, ground, particles, objects, ball and Fennec."
+);
+assert(
+  trainingCamera.includes("TRAINING_CAMERA_MAX_SCALE = 1.012") &&
+    trainingCamera.includes("Math.min(") &&
+    modeIllustration.includes('className="scene-camera"') &&
+    css.includes("scale(var(--training-camera-scale, 1))"),
+  "The shared DOM/GPU camera wrapper must cap global push-in at 1.012."
+);
+assert(
+  trainingCamera.includes("options.reducedMotion || !options.active") &&
+    parallaxController.includes("prefers-reduced-motion: reduce") &&
+    parallaxController.includes('modeRef.current !== "training"'),
+  "Reduced motion must stay centered and Competitive must not receive autonomous choreography."
+);
+assert(
+  parallaxController.includes("resetToCenter") &&
+    parallaxController.includes("sampleTrainingCameraSpring") &&
+    parallaxController.includes("resetRef.current?.resolve()"),
+  "resetToCenter must preserve its Promise API, use the analytic spring and never leave a pending reset."
+);
+assert(
+  parallaxController.includes("cssValueCacheRef") &&
+    parallaxController.includes("cache.get(name) === value") &&
+    trainingGpuParallaxState.includes("snapshotChanged") &&
+    trainingGpuParallaxState.includes("return false"),
+  "Stable camera frames must deduplicate both CSS writes and GPU parallax updates."
+);
+assert(
+  trainingCamera.includes("contactElapsedMs >= 0") &&
+    trainingCamera.includes("contactElapsedMs <= TRAINING_CAMERA_CONTACT_DURATION_MS") &&
+    trainingCamera.includes("4 * clamped * (1 - clamped)") &&
+    trainingCamera.includes("frameState.passMode === \"volume\""),
+  "Contact impulses must be short absolute-time envelopes that are not replayed after missed frames."
 );
 assert(
   sceneDepths.includes("calculateTrainingParallaxSafety") &&
@@ -701,11 +771,17 @@ assert(
 );
 assert(sceneDepths.includes("trainingMid: { translationX: 22") && sceneDepths.includes("trainingNear: { translationX: 34"), "The first two skyline planes must have strong and distinct foreground parallax.");
 assert(css.includes("inset: 11% -6% 61%") && css.includes("ellipse at 52% 82%"), "The skyline haze must retain the latest calibrated horizon placement.");
-assert(parallaxController.includes("AUTO_DRIFT_PERIOD_MS = 20000") && parallaxController.includes("-Math.sin(autoAngle)"), "Automatic camera must follow one continuous 20-second center-left-center-right cycle.");
-assert(parallaxController.includes('removeEventListener("pointermove"'), "Parallax pointer listener must clean up.");
-assert(parallaxController.includes('document.removeEventListener("visibilitychange"'), "Parallax visibility listener must clean up.");
+assert(/document\.removeEventListener\(\s*"visibilitychange"/.test(parallaxController), "Parallax visibility listener must clean up.");
 assert(parallaxController.includes("intersectionObserver?.disconnect()"), "Parallax observer must disconnect.");
 assert(!parallaxController.includes("useState"), "Parallax must not update React state per frame.");
+assert(
+  trainingGpuDebugTypes.includes("cameraSourceEvent") &&
+    trainingGpuDebugTypes.includes("pointerListenersActive") &&
+    trainingGpuDebugTypes.includes("additionalParallaxRafCount") &&
+    trainingGpuDebugPanel.includes("cameraCssWritesAvoided") &&
+    trainingGpuDebugPanel.includes("cameraGpuUpdatesAvoided"),
+  "debugRenderer must report camera state, avoided updates, pointer listeners and extra RAF count."
+);
 
 for (const line of css.split("\n")) {
   if (line.includes("font-size")) {
@@ -803,7 +879,7 @@ assert(/\.training-radar-fennec-surface-mask\s*\{[\s\S]*?z-index:\s*3;/s.test(cs
 assert(/@keyframes training-fennec-volume-surface-ltr\s*\{[\s\S]*?mask-position:\s*var\(--training-fennec-mask-start-position\) 50%;[\s\S]*?mask-position:\s*var\(--training-fennec-mask-end-position\) 50%;/s.test(css) && !fennecSurfaceKeyframes.includes("opacity:"), "The temporary Fennec volume pass must animate only its LTR mask position.");
 assert(trainingRadarTargets.includes("getTrainingRadarRangeTiming") && trainingRadarTargets.includes("startProgress: 0.613") && trainingRadarTargets.includes("endProgress: 0.924") && trainingRadarTargets.includes("scanDelayMs: 1783") && trainingRadarSnapshots.includes("getTrainingRadarRangeTiming(target.scanRange)"), "The Fennec volume lifecycle must use its calibrated start delay and exact linear duration across its measured width.");
 assert(trainingScene.includes("--training-volume-scan-easing") && trainingScene.includes("--training-fennec-mask-start-position") && trainingDomRadarApplier.includes('volume.phase === "active" ? "reveal" : "hidden"'), "The temporary Fennec surface scan must consume the central LTR range timing from the absolute DOM applier.");
-assert(trainingRadarSnapshots.includes('opacity: phase === "hidden" ? 0 : 0.48 * opacityFactor') && trainingDomRadarApplier.includes("--training-volume-surface-opacity") && trainingDomRadarApplier.includes("--training-volume-surface-mask-position"), "The Fennec surface scan must reveal then fade from canonical absolute opacity and mask values.");
+assert(trainingRadarSnapshots.includes('opacity: phase === "hidden" ? 0 : 0.48 * opacityFactor') && trainingDomRadarApplier.includes("`--training-volume-${layer}-opacity`") && trainingDomRadarApplier.includes("`--training-volume-${layer}-mask-position`"), "The Fennec surface scan must reveal then fade from canonical absolute opacity and mask values.");
 assert(/data-volume-scan-phase="hold"[\s\S]*?training-radar-fennec-surface-mask[\s\S]*?opacity:\s*0\.48;[\s\S]*?animation:\s*none;[\s\S]*?mask-position:\s*var\(--training-fennec-mask-end-position\) 50%;/s.test(fennecScanCss) && /data-volume-scan-phase="hold"[\s\S]*?training-radar-fennec-contour[\s\S]*?opacity:\s*0\.14;[\s\S]*?animation:\s*none;/s.test(fennecScanCss), "The Fennec volume scan must hold its fully revealed surface and discreet contour before fading.");
 assert(trainingScene.includes('className="training-fennec-base-frame"') && trainingScene.includes('className="training-fennec-base"') && trainingDomRadarApplier.includes("--training-fennec-base-opacity") && trainingDomRadarApplier.includes("--training-fennec-impact-opacity"), "The Fennec base and im-light must consume their separate canonical tactical values.");
 assert(/\.training-radar-fennec-impact\s*\{[\s\S]*?--training-fennec-detail-peak:\s*0\.3;[\s\S]*?filter:\s*none;/s.test(css), "The im-light must remain readable without diffuse glow.");
