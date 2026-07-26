@@ -126,6 +126,14 @@ const VOLUME_OBJECT_IDS = [
 
 const reportedVolumeFailures = new Set<string>();
 
+function clamp01(value: number) {
+  return Math.min(1, Math.max(0, value));
+}
+
+function interpolate(left: number, right: number, progress: number) {
+  return left + (right - left) * clamp01(progress);
+}
+
 function reportVolumeFailureOnce(scope: string, error: unknown) {
   if (
     process.env.NODE_ENV === "production" ||
