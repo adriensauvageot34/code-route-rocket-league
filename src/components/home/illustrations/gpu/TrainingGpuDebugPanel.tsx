@@ -235,6 +235,17 @@ export function TrainingGpuDebugPanel({
           valeurs modifiées/frame{" "}
           {formatNumber(global.domChangedValuesPerFrame, 1)}
         </span>
+        <span>
+          canvases {global.canvasCount} · contextes {global.contextCount} ·
+          draws {global.drawCallsPerFrame} · clears{" "}
+          {global.clearCallsPerFrame}
+        </span>
+        <span>
+          programmes/frame {global.programChangesPerFrame} · textures/frame{" "}
+          {global.textureBindsPerFrame} · blends/frame{" "}
+          {global.blendChangesPerFrame} · FBO/frame{" "}
+          {global.framebufferChangesPerFrame}
+        </span>
       </section>
 
       <section>

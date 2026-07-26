@@ -3481,40 +3481,29 @@
   mix-blend-mode: normal;
 }
 
-.training-gpu-particle-canvas {
-  z-index: 0;
-}
-
-.training-gpu-volume-canvas {
+.training-gpu-scene-layer {
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: 16;
   display: block;
   width: 100%;
   height: 100%;
   pointer-events: none;
-  mix-blend-mode: normal;
 }
 
-.training-gpu-fennec-canvas {
-  z-index: 2;
+.training-gpu-scene-canvas {
+  z-index: 0;
   opacity: 1;
   mix-blend-mode: normal;
 }
 
-.training-scene[data-gpu-fennec-base-ready="false"][data-gpu-fennec-volume-ready="false"][data-gpu-fennec-effects-ready="false"]
-  .training-gpu-fennec-canvas {
+.training-scene[data-launching="true"] .training-gpu-scene-layer {
   opacity: 0;
 }
 
 .training-scene[data-gpu-fennec-base-ready="true"]
   .training-fennec-base-frame {
   display: none;
-}
-
-.training-scene[data-gpu-fennec-base-ready="false"]
-  .training-gpu-fennec-canvas {
-  mix-blend-mode: screen;
 }
 
 .training-scene[data-gpu-fennec-volume-ready="true"]
@@ -3533,8 +3522,19 @@
   display: none;
 }
 
-.training-scene[data-gpu-bases-ready="false"] .training-gpu-volume-canvas {
-  mix-blend-mode: screen;
+.training-scene[data-launching="true"] .training-fennec-base-frame {
+  display: block;
+}
+
+.training-scene[data-launching="true"]
+  :is(
+    .training-radar-fennec-surface-mask,
+    .training-radar-fennec-contour,
+    .training-radar-fennec-impact,
+    .training-fennec-headlight-glow,
+    .training-fennec-rear-accent
+  ) {
+  display: block;
 }
 
 .training-radar-ball-energy {

@@ -180,6 +180,21 @@ export function getTrainingGpuObjectRenderRect(
   }
 }
 
+export function getTrainingGpuObjectSceneRenderRect(
+  registration: TrainingGpuObjectRegistration,
+  assetEntry: TrainingGpuObjectAssetEntry,
+): TrainingGpuObjectRenderRect {
+  const renderRect = getTrainingGpuObjectRenderRect(
+    registration,
+    assetEntry,
+  );
+
+  return assetEntry.placementSpace === "target-frame" &&
+    registration.kind === "car"
+    ? transformGroundedSceneRect(registration, renderRect)
+    : renderRect;
+}
+
 
 export type TrainingGpuObjectFitMode = "contain" | "cover" | "fill";
 

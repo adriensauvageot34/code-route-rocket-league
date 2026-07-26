@@ -1,0 +1,66 @@
+{
+  "scope": "Training WebGL context consolidation",
+  "baseMainSha": "4d2caac07fbbb432e15cc9bfd7f656a447e483b6",
+  "before": {
+    "canvases": 10,
+    "contexts": 10,
+    "programs": 18,
+    "textures": 28,
+    "buffers": 13,
+    "vertexArrays": 10,
+    "estimatedTextureBytes": 67711088,
+    "maximumDrawCallsPerAnimatedFrame": 30,
+    "clearCallsPerAnimatedFrame": 10,
+    "framebufferChangesPerFrame": 0
+  },
+  "afterStaticArchitecture": {
+    "canvases": 3,
+    "contexts": 3,
+    "radarContexts": 2,
+    "sceneContexts": 1,
+    "programs": 8,
+    "buffers": 7,
+    "vertexArrays": 6,
+    "sharedScenePrograms": {
+      "base": 1,
+      "volume": 1,
+      "tactical": 1,
+      "particles": 3
+    },
+    "sharedSceneBuffers": {
+      "objectQuad": 1,
+      "particleQuad": 1,
+      "particleInstances": 3
+    },
+    "textures": 28,
+    "estimatedTextureBytes": 67711088,
+    "maximumDrawCallsPerAnimatedFrame": 30,
+    "maximumProgramChangesPerAnimatedFrame": 20,
+    "maximumTextureBindsPerAnimatedFrame": 28,
+    "maximumBlendChangesPerAnimatedFrame": 18,
+    "clearCallsPerAnimatedFrame": 3,
+    "framebufferChangesPerFrame": 0
+  },
+  "reduction": {
+    "canvases": 7,
+    "contexts": 7,
+    "canvasAndContextPercent": 70,
+    "clearCallsPerAnimatedFrame": 7,
+    "clearPercent": 70
+  },
+  "drawOrder": [
+    "radar-surface",
+    "radar-sweep",
+    "particles-far",
+    "left-car",
+    "particles-mid",
+    "back-right-car",
+    "front-right-car",
+    "ball",
+    "particles-near",
+    "fennec"
+  ],
+  "runtimeValidationExecuted": false,
+  "visualValidationRequired": true,
+  "atlasDecision": "not-justified-without-runtime-measurements"
+}
