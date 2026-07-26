@@ -38,6 +38,7 @@ type TrainingGroundedCarProps = {
   volumeScanPhase: TrainingVolumeScanPhase;
   gpuVolumeCanvasRef?: Ref<HTMLCanvasElement>;
   showGpuVolumeCanvas?: boolean;
+  showDomBase?: boolean;
   showDomVolumeScan?: boolean;
   showDomTactical?: boolean;
 };
@@ -48,6 +49,7 @@ type TrainingGroundedBallProps = {
   volumeScanPhase: TrainingVolumeScanPhase;
   gpuVolumeCanvasRef?: Ref<HTMLCanvasElement>;
   showGpuVolumeCanvas?: boolean;
+  showDomBase?: boolean;
   showDomVolumeScan?: boolean;
   showDomTactical?: boolean;
 };
@@ -83,6 +85,7 @@ export function TrainingGroundedCar({
   volumeScanPhase,
   gpuVolumeCanvasRef,
   showGpuVolumeCanvas = false,
+  showDomBase = true,
   showDomVolumeScan = true,
   showDomTactical = true,
 }: TrainingGroundedCarProps) {
@@ -106,16 +109,18 @@ export function TrainingGroundedCar({
       style={getGroundedActorStyle(target)}
     >
       <div className="training-contact-shadow training-car-contact-shadow" />
-      <Image
-        alt=""
-        aria-hidden="true"
-        className="training-grounded-actor-base"
-        draggable={false}
-        fill
-        sizes="(max-width: 820px) 100vw, (max-width: 1180px) 66vw, 34vw"
-        src={target.baseAsset.path}
-        unoptimized
-      />
+      {showDomBase ? (
+        <Image
+          alt=""
+          aria-hidden="true"
+          className="training-grounded-actor-base"
+          draggable={false}
+          fill
+          sizes="(max-width: 820px) 100vw, (max-width: 1180px) 66vw, 34vw"
+          src={target.baseAsset.path}
+          unoptimized
+        />
+      ) : null}
       <div
         className="training-radar-object-target training-radar-car-target"
         data-object-scan="aligned"
@@ -190,6 +195,7 @@ export function TrainingGroundedBall({
   volumeScanPhase,
   gpuVolumeCanvasRef,
   showGpuVolumeCanvas = false,
+  showDomBase = true,
   showDomVolumeScan = true,
   showDomTactical = true,
 }: TrainingGroundedBallProps) {
@@ -203,16 +209,18 @@ export function TrainingGroundedBall({
       style={getGroundedActorStyle(target)}
     >
       <div className="training-contact-shadow training-ball-contact-shadow" />
-      <Image
-        alt=""
-        aria-hidden="true"
-        className="training-grounded-actor-base"
-        draggable={false}
-        fill
-        sizes={sizes}
-        src={target.baseAsset.path}
-        unoptimized
-      />
+      {showDomBase ? (
+        <Image
+          alt=""
+          aria-hidden="true"
+          className="training-grounded-actor-base"
+          draggable={false}
+          fill
+          sizes={sizes}
+          src={target.baseAsset.path}
+          unoptimized
+        />
+      ) : null}
       <div
         className="training-radar-object-target training-radar-ball-target"
         data-tactical-phase={tacticalPhase}

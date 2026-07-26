@@ -102,10 +102,14 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
   const backRightCarVolumeCanvasRef = useRef<HTMLCanvasElement>(null);
   const frontRightCarVolumeCanvasRef = useRef<HTMLCanvasElement>(null);
   const ballVolumeCanvasRef = useRef<HTMLCanvasElement>(null);
+  const [gpuBasesReady, setGpuBasesReady] = useState(false);
   const [gpuRadarReady, setGpuRadarReady] = useState(false);
   const [gpuParticlesReady, setGpuParticlesReady] = useState(false);
   const [gpuVolumeScansReady, setGpuVolumeScansReady] = useState(false);
   const [gpuTacticalReady, setGpuTacticalReady] = useState(false);
+  const handleGpuBasesReadyChange = useCallback((ready: boolean) => {
+    setGpuBasesReady(ready);
+  }, []);
   const handleGpuRadarReadyChange = useCallback((ready: boolean) => {
     setGpuRadarReady(ready);
   }, []);
@@ -123,6 +127,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
     useGpuRenderer,
     debugCollector,
   );
+  const showDomBase = !useGpuRenderer || !gpuBasesReady;
   const showDomRadar = !useGpuRenderer || !gpuRadarReady;
   const showDomParticles = !useGpuRenderer || !gpuParticlesReady;
   const showDomVolumeScan = !useGpuRenderer || !gpuVolumeScansReady;
@@ -150,6 +155,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       className="home-scene training-scene"
       data-launching={launching ? "true" : "false"}
       data-radar-active={running ? "true" : "false"}
+      data-gpu-bases-ready={useGpuRenderer && gpuBasesReady ? "true" : "false"}
       data-gpu-radar-ready={useGpuRenderer && gpuRadarReady ? "true" : "false"}
       data-gpu-particles-ready={
         useGpuRenderer && gpuParticlesReady ? "true" : "false"
@@ -224,6 +230,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         <TrainingGpuCanvas
           active={active}
           debugCollector={debugCollector}
+          onBasesReadyChange={handleGpuBasesReadyChange}
           onParticlesReadyChange={handleGpuParticlesReadyChange}
           onRadarReadyChange={handleGpuRadarReadyChange}
           onVolumeScansReadyChange={handleGpuVolumeScansReadyChange}
@@ -255,6 +262,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       <SceneGroup depth={trainingFarCarTarget.depth} layer={10} name={`training-${trainingFarCarTarget.id}`}>
         <TrainingGroundedCar
           gpuVolumeCanvasRef={leftCarVolumeCanvasRef}
+          showDomBase={showDomBase}
           showDomVolumeScan={showDomVolumeScan}
           showDomTactical={showDomTactical}
           showGpuVolumeCanvas={useGpuRenderer}
@@ -277,6 +285,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       <SceneGroup depth={trainingMidCarTarget.depth} layer={12} name={`training-${trainingMidCarTarget.id}`}>
         <TrainingGroundedCar
           gpuVolumeCanvasRef={backRightCarVolumeCanvasRef}
+          showDomBase={showDomBase}
           showDomVolumeScan={showDomVolumeScan}
           showDomTactical={showDomTactical}
           showGpuVolumeCanvas={useGpuRenderer}
@@ -289,6 +298,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       <SceneGroup depth={trainingNearCarTarget.depth} layer={13} name={`training-${trainingNearCarTarget.id}`}>
         <TrainingGroundedCar
           gpuVolumeCanvasRef={frontRightCarVolumeCanvasRef}
+          showDomBase={showDomBase}
           showDomVolumeScan={showDomVolumeScan}
           showDomTactical={showDomTactical}
           showGpuVolumeCanvas={useGpuRenderer}
@@ -301,6 +311,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
       <SceneGroup depth={trainingBallRadarTarget.depth} layer={14} name="ball">
         <TrainingGroundedBall
           gpuVolumeCanvasRef={ballVolumeCanvasRef}
+          showDomBase={showDomBase}
           showDomVolumeScan={showDomVolumeScan}
           showDomTactical={showDomTactical}
           showGpuVolumeCanvas={useGpuRenderer}

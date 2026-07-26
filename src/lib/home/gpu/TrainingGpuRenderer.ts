@@ -78,6 +78,7 @@ type TrainingGpuRendererOptions = {
   createFrameState: TrainingGpuFrameStateFactory;
   debugCollector: TrainingGpuDebugCollector | null;
   fieldMaskPixels: Uint8Array | null;
+  onBasesReadyChange: (ready: boolean) => void;
   onParticlesReadyChange: (ready: boolean) => void;
   onRadarReadyChange: (ready: boolean) => void;
   onVolumeScansReadyChange: (ready: boolean) => void;
@@ -147,6 +148,7 @@ export class TrainingGpuRenderer {
     };
     this.volumeSubsystem = new TrainingGpuVolumeSubsystem(canvases.volume, {
       debugCollector: options.debugCollector,
+      onBaseReadyChange: options.onBasesReadyChange,
       onVolumeReadyChange: options.onVolumeScansReadyChange,
       onTacticalReadyChange: options.onTacticalReadyChange,
       onContextRestored: () => {
@@ -184,6 +186,7 @@ export class TrainingGpuRenderer {
     return (
       this.radarInitialized ||
       this.particlesInitialized ||
+      this.volumeSubsystem.isBaseInitialized() ||
       this.volumeSubsystem.isVolumeInitialized() ||
       this.volumeSubsystem.isTacticalInitialized()
     );
@@ -215,7 +218,11 @@ export class TrainingGpuRenderer {
       target.gl?.viewport(0, 0, viewport.pixelWidth, viewport.pixelHeight);
     }
 
-    if (this.radarInitialized || this.particlesInitialized) {
+    if (
+      this.radarInitialized ||
+      this.particlesInitialized ||
+      this.volumeSubsystem.isBaseInitialized()
+    ) {
       this.completeFirstRender();
     } else {
       this.clear();
@@ -256,7 +263,8 @@ export class TrainingGpuRenderer {
     this.shouldRun = false;
     this.cancelAnimationFrame();
     this.resetParticlePasses();
-    this.clear();
+    this.clearAnimatedCanvases();
+    this.renderStaticObjectFrame();
     this.updateGlobalDebugState();
   }
 
@@ -264,6 +272,7 @@ export class TrainingGpuRenderer {
     if (
       !this.radarReady &&
       !this.particlesReady &&
+      !this.volumeSubsystem.isBaseReady() &&
       !this.volumeSubsystem.isVolumeReady() &&
       !this.volumeSubsystem.isTacticalReady()
     ) return;
@@ -437,31 +446,37 @@ export class TrainingGpuRenderer {
   }
 
   private completeFirstRender() {
-    if (!this.viewport) {
-      this.setRadarReady(false);
-      this.setParticlesReady(false);
-      return;
-    }
-
     const firstFrameState = this.options.createFrameState(performance.now());
     this.frameState = firstFrameState;
     this.updateParticlePassHistory(firstFrameState);
 
-    if (this.radarInitialized && this.hasRadarResources()) {
-      this.renderRadarFrame(firstFrameState);
-      this.setRadarReady(true);
+    if (this.viewport) {
+      if (this.radarInitialized && this.hasRadarResources()) {
+        this.renderRadarFrame(firstFrameState);
+        this.setRadarReady(true);
+      } else {
+        this.setRadarReady(false);
+      }
+
+      if (this.particlesInitialized && this.hasParticleResources()) {
+        this.renderParticleFrame(firstFrameState);
+        this.setParticlesReady(true);
+      } else {
+        this.setParticlesReady(false);
+      }
     } else {
       this.setRadarReady(false);
-    }
-
-    if (this.particlesInitialized && this.hasParticleResources()) {
-      this.renderParticleFrame(firstFrameState);
-      this.setParticlesReady(true);
-    } else {
       this.setParticlesReady(false);
     }
 
     this.volumeSubsystem.beginFrame();
+    const debugCollector = this.options.debugCollector;
+    const baseStartedAtMs = debugCollector ? performance.now() : 0;
+    this.volumeSubsystem.renderBases(true);
+    debugCollector?.recordSubsystemCpu(
+      "bases",
+      performance.now() - baseStartedAtMs,
+    );
     this.volumeSubsystem.renderVolume(
       getTrainingGpuVolumeScanSnapshot(firstFrameState),
       firstFrameState.active && firstFrameState.running,
@@ -494,6 +509,12 @@ export class TrainingGpuRenderer {
       );
     }
     this.volumeSubsystem.beginFrame();
+    const baseStartedAtMs = debugCollector ? performance.now() : 0;
+    this.volumeSubsystem.renderBases();
+    debugCollector?.recordSubsystemCpu(
+      "bases",
+      performance.now() - baseStartedAtMs,
+    );
     const volumeStartedAtMs = debugCollector ? performance.now() : 0;
     this.volumeSubsystem.renderVolume(
       getTrainingGpuVolumeScanSnapshot(frameState),
@@ -668,7 +689,8 @@ export class TrainingGpuRenderer {
       this.cancelAnimationFrame();
       if (!this.frameState.active || !this.frameState.running) {
         this.resetParticlePasses();
-        this.clear();
+        this.clearAnimatedCanvases();
+        this.renderStaticObjectFrame();
       }
       return;
     }
@@ -693,9 +715,24 @@ export class TrainingGpuRenderer {
     if (this.particlePasses.length > 0) this.particlePasses.length = 0;
   }
 
-  private clear() {
+  private renderStaticObjectFrame() {
+    const debugCollector = this.options.debugCollector;
+    this.volumeSubsystem.beginFrame();
+    const startedAtMs = debugCollector ? performance.now() : 0;
+    this.volumeSubsystem.renderBases(true);
+    debugCollector?.recordSubsystemCpu(
+      "bases",
+      performance.now() - startedAtMs,
+    );
+  }
+
+  private clearAnimatedCanvases() {
     this.clearRadarCanvases();
     this.clearParticleCanvases();
+  }
+
+  private clear() {
+    this.clearAnimatedCanvases();
     this.volumeSubsystem.clear();
   }
 
@@ -821,7 +858,8 @@ export class TrainingGpuRenderer {
     if (!this.canAnimate()) {
       if (!this.frameState.active || !this.frameState.running) {
         this.resetParticlePasses();
-        this.clear();
+        this.clearAnimatedCanvases();
+        this.renderStaticObjectFrame();
       }
       return;
     }

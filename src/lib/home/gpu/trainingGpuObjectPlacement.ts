@@ -78,9 +78,9 @@ function getPercentageFrameRect(
   };
 }
 
-function getGroundedSceneRect(
+function transformGroundedSceneRect(
   registration: TrainingGpuObjectRegistration,
-  entry: TrainingGpuObjectAssetEntry,
+  sourceRect: TrainingGpuObjectRenderRect,
 ): TrainingGpuObjectRenderRect {
   if (!("grounding" in registration.target)) {
     throw new Error(
@@ -88,7 +88,6 @@ function getGroundedSceneRect(
     );
   }
 
-  const sourceRect = getSceneCropRect(entry);
   const { sourceAnchor, target: destination } =
     registration.target.grounding;
   const originX = sourceAnchor.x * TRAINING_GPU_LOGICAL_WIDTH;
@@ -113,9 +112,15 @@ function getGroundedSceneRect(
   };
 }
 
-function getTargetFrameRect(
+function getGroundedSceneRect(
   registration: TrainingGpuObjectRegistration,
   entry: TrainingGpuObjectAssetEntry,
+): TrainingGpuObjectRenderRect {
+  return transformGroundedSceneRect(registration, getSceneCropRect(entry));
+}
+
+function getTargetFrameContainerRect(
+  registration: TrainingGpuObjectRegistration,
 ): TrainingGpuObjectRenderRect {
   if (!("placement" in registration.target)) {
     throw new Error(
@@ -126,14 +131,19 @@ function getTargetFrameRect(
   const placement = registration.target.placement;
   const frameWidth =
     parsePercentage(placement.width) * TRAINING_GPU_LOGICAL_WIDTH;
-  const frame = {
+  return {
     x: parsePercentage(placement.left) * TRAINING_GPU_LOGICAL_WIDTH,
     y: parsePercentage(placement.top) * TRAINING_GPU_LOGICAL_HEIGHT,
     width: frameWidth,
     height: frameWidth / parseAspectRatio(placement.aspectRatio),
   };
+}
 
-  return placeCropInFrame(entry, frame);
+function getTargetFrameRect(
+  registration: TrainingGpuObjectRegistration,
+  entry: TrainingGpuObjectAssetEntry,
+): TrainingGpuObjectRenderRect {
+  return placeCropInFrame(entry, getTargetFrameContainerRect(registration));
 }
 
 export function getTrainingGpuObjectRenderRect(
@@ -237,4 +247,60 @@ export function transformTrainingGpuObjectLocalQuad(
     width: quad.width * transform.scaleX,
     height: quad.height * transform.scaleY,
   };
+}
+
+export function convertTrainingGpuSceneRectToLocalCanvasRect(
+  sceneRect: TrainingGpuObjectRenderRect,
+  canvasSceneRect: TrainingGpuObjectRenderRect,
+  localFrame: TrainingGpuObjectLocalFrame,
+): TrainingGpuObjectRenderRect {
+  if (
+    canvasSceneRect.width <= 0 ||
+    canvasSceneRect.height <= 0 ||
+    localFrame.width <= 0 ||
+    localFrame.height <= 0
+  ) {
+    throw new Error("Training GPU object canvas geometry must be positive.");
+  }
+
+  const scaleX = localFrame.width / canvasSceneRect.width;
+  const scaleY = localFrame.height / canvasSceneRect.height;
+  return {
+    x: (sceneRect.x - canvasSceneRect.x) * scaleX,
+    y: (sceneRect.y - canvasSceneRect.y) * scaleY,
+    width: sceneRect.width * scaleX,
+    height: sceneRect.height * scaleY,
+  };
+}
+
+function getTrainingGpuObjectCanvasSceneRect(
+  registration: TrainingGpuObjectRegistration,
+): TrainingGpuObjectRenderRect {
+  if (registration.kind === "car") {
+    return transformGroundedSceneRect(
+      registration,
+      getTargetFrameContainerRect(registration),
+    );
+  }
+  if (registration.kind === "ball") {
+    return transformGroundedSceneRect(registration, {
+      x: 0,
+      y: 0,
+      width: TRAINING_GPU_LOGICAL_WIDTH,
+      height: TRAINING_GPU_LOGICAL_HEIGHT,
+    });
+  }
+  throw new Error(`${registration.id} has no prepared GPU base canvas.`);
+}
+
+export function getTrainingGpuObjectBaseQuadInCanvasSpace(
+  registration: TrainingGpuObjectRegistration,
+  baseEntry: TrainingGpuObjectAssetEntry,
+  localFrame: TrainingGpuObjectLocalFrame,
+): TrainingGpuObjectRenderRect {
+  return convertTrainingGpuSceneRectToLocalCanvasRect(
+    getTrainingGpuObjectRenderRect(registration, baseEntry),
+    getTrainingGpuObjectCanvasSceneRect(registration),
+    localFrame,
+  );
 }

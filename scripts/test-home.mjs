@@ -33,6 +33,8 @@ const expectedFiles = [
   "src/lib/home/trainingRadarTargets.ts",
   "src/lib/home/gpu/TrainingGpuRenderer.ts",
   "src/lib/home/gpu/TrainingGpuObjectAssetLoader.ts",
+  "src/lib/home/gpu/trainingGpuBaseUtils.ts",
+  "src/lib/home/gpu/trainingGpuObjectPlacement.ts",
   "src/lib/home/gpu/debug/TrainingGpuDebugCollector.ts",
   "src/lib/home/gpu/debug/trainingGpuDebugTypes.ts",
   "src/lib/home/gpu/trainingGpuTacticalShaders.ts",
@@ -98,6 +100,8 @@ const trainingParticleTiming = files["src/lib/home/trainingParticleTiming.ts"];
 const trainingRadarTargets = files["src/lib/home/trainingRadarTargets.ts"];
 const trainingGpuRenderer = files["src/lib/home/gpu/TrainingGpuRenderer.ts"];
 const trainingGpuObjectAssetLoader = files["src/lib/home/gpu/TrainingGpuObjectAssetLoader.ts"];
+const trainingGpuBaseUtils = files["src/lib/home/gpu/trainingGpuBaseUtils.ts"];
+const trainingGpuObjectPlacement = files["src/lib/home/gpu/trainingGpuObjectPlacement.ts"];
 const trainingGpuDebugCollector = files["src/lib/home/gpu/debug/TrainingGpuDebugCollector.ts"];
 const trainingGpuDebugTypes = files["src/lib/home/gpu/debug/trainingGpuDebugTypes.ts"];
 const trainingGpuTacticalTiming = files["src/lib/home/gpu/trainingGpuTacticalTiming.ts"];
@@ -150,17 +154,18 @@ assert(viewSelector.includes('view.id !== "statistics"'), "Statistics must not m
 assert(viewSelector.includes("modePreviews[view.id]"), "Training and Competitive must keep their detailed cards.");
 assert(!modePreview.includes("ModeIllustration"), "Mode detail cards must not contain scene canvases.");
 
-assert(trainingGpuCanvas.includes("const mountedCanvases = {") && trainingGpuCanvas.includes("} = mountedCanvases;"), "GPU canvas refs must be captured as mounted non-null nodes before asynchronous initialization.");
+assert(trainingGpuCanvas.includes("const mountedCanvases = {") && trainingGpuCanvas.includes("} = mountedCanvases;") && trainingGpuCanvas.includes('window.addEventListener("resize", resizeCanvases)') && trainingGpuCanvas.includes('window.removeEventListener("resize", resizeCanvases)'), "GPU canvas refs must be captured before asynchronous initialization and geometry/DPR refresh listeners must be cleaned up.");
 assert(trainingGpuRenderer.includes("function getWebGl2Context") && trainingGpuVolumeUtils.includes("function getWebGl2Context"), "All GPU subsystems must retain an explicitly typed WebGL2 context boundary.");
-assert(trainingGpuVolumeUtils.includes("if (assets === this.assets) return") && trainingGpuVolumeUtils.includes("this.initializeVolumeSubsystem()") && trainingGpuVolumeUtils.includes("this.initializeTacticalSubsystem()"), "Repeated object asset installation must be idempotent without recreating volume or tactical textures.");
+assert(trainingGpuVolumeUtils.includes("if (assets === this.assets) return") && trainingGpuVolumeUtils.includes("this.initializeVolumeSubsystem()") && trainingGpuVolumeUtils.includes("this.initializeBaseSubsystem()") && trainingGpuVolumeUtils.includes("this.initializeTacticalSubsystem()"), "Repeated object asset installation must be idempotent without recreating base, volume or tactical textures.");
 assert(trainingGpuVolumeUtils.includes('reportVolumeFailureOnce("initialization failed"') && trainingGpuVolumeUtils.includes('reportVolumeFailureOnce("render failed"') && trainingGpuVolumeUtils.includes('process.env.NODE_ENV === "production"'), "Volume failures must expose one development-only diagnostic without production noise.");
 assert(!trainingGpuVolumeUtils.includes("requestAnimationFrame") && !trainingGpuVolumeUtils.includes("setTimeout") && !trainingGpuVolumeUtils.includes("setInterval"), "Object effects must stay on the renderer MasterClock without their own loop or timers.");
 assert(!trainingGpuTacticalTiming.includes("requestAnimationFrame") && !trainingGpuTacticalTiming.includes("setTimeout") && !trainingGpuTacticalTiming.includes("setInterval") && trainingGpuTacticalTiming.includes("frameState.passMode") && trainingGpuTacticalTiming.includes("frameState.elapsedMs") && trainingGpuTacticalTiming.includes("target.tacticalDelayMs"), "GPU tactical timing must be an absolute MasterClock snapshot without timers.");
 assert(trainingGpuTacticalTiming.includes('"hidden"') && trainingGpuTacticalTiming.includes('"contact"') && trainingGpuTacticalTiming.includes('"active"') && trainingGpuTacticalTiming.includes('"hold"') && trainingGpuTacticalTiming.includes('"fade"') && trainingGpuTacticalTiming.includes("getTrainingGpuTacticalSnapshot"), "Tactical snapshots must cover contact, stable activation, global hold and next-volume fade.");
-assert(trainingGpuVolumeUtils.includes("target.contextLost = true") && trainingGpuVolumeUtils.includes("this.setVolumeReady(false)") && trainingGpuVolumeUtils.includes("this.setTacticalReady(false)") && trainingGpuVolumeUtils.includes("this.options.onContextRestored()"), "A shared object context loss must restore both independent DOM fallbacks until current-time rendering succeeds.");
+assert(trainingGpuVolumeUtils.includes("target.contextLost = true") && trainingGpuVolumeUtils.includes("this.setBaseReady(false)") && trainingGpuVolumeUtils.includes("this.setVolumeReady(false)") && trainingGpuVolumeUtils.includes("this.setTacticalReady(false)") && trainingGpuVolumeUtils.includes("this.options.onContextRestored()"), "A shared object context loss must restore all independent DOM fallbacks until current-time rendering succeeds.");
 assert(trainingGpuVolumeUtils.includes("cssWidth <= 0") && trainingGpuVolumeUtils.includes("target.viewport = null") && trainingGpuVolumeUtils.includes("if (!this.hasViewports())"), "Zero-sized object canvases must never be reported ready.");
-assert(trainingGpuVolumeUtils.includes('removeEventListener(\n        "webglcontextlost"') && trainingGpuVolumeUtils.includes("this.releaseVolumeResources();") && trainingGpuVolumeUtils.includes("this.releaseTacticalResources();"), "Object teardown must release volume and tactical resources plus context listeners.");
+assert(trainingGpuVolumeUtils.includes('removeEventListener(\n        "webglcontextlost"') && trainingGpuVolumeUtils.includes("this.releaseBaseResources();") && trainingGpuVolumeUtils.includes("this.releaseVolumeResources();") && trainingGpuVolumeUtils.includes("this.releaseTacticalResources();"), "Object teardown must release base, volume and tactical resources plus context listeners.");
 assert(trainingGpuVolumeUtils.includes("finally {\n    gl.deleteShader(vertexShader);") && trainingGpuTacticalUtils.includes("gl.deleteTexture(texture);") && trainingGpuTacticalUtils.includes("gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);"), "Failed tactical shader and texture creation must release partial GPU resources and restore upload state.");
+assert(trainingScene.includes("const showDomBase = !useGpuRenderer || !gpuBasesReady") && trainingScene.includes('data-gpu-bases-ready=') && (trainingScene.match(/showDomBase=\{showDomBase\}/g) ?? []).length === 4 && (trainingGroundedActor.match(/showDomBase \? \(/g) ?? []).length === 2, "The four object bases must switch atomically to their preserved DOM Image fallbacks.");
 assert(trainingScene.includes("const showDomVolumeScan = !useGpuRenderer || !gpuVolumeScansReady") && trainingScene.includes('data-gpu-volume-scans-ready='), "The four object volume scans must switch atomically to the DOM fallback.");
 assert(trainingScene.includes("const showDomTactical = !useGpuRenderer || !gpuTacticalReady") && trainingScene.includes('data-gpu-tactical-ready=') && trainingGpuCanvas.includes("onTacticalReadyChange"), "Tactical readiness and its four-object DOM fallback must remain independent from volume readiness.");
 assert(trainingGroundedActor.includes("showDomTactical") && trainingGroundedActor.includes("target.wireframeAsset.path") && trainingGroundedActor.includes("target.glowAsset.path") && trainingGroundedActor.includes("target.energyAsset.path"), "Wireframe, glow and tactical-energy images must remain available as DOM fallbacks.");
@@ -169,8 +174,16 @@ assert((trainingGroundedActor.match(/<canvas/g) ?? []).length === 2 && !training
 assert(!trainingGpuTacticalUtils.includes("getContext(") && !trainingGpuTacticalUtils.includes("requestAnimationFrame"), "Tactical resources must reuse existing WebGL2 contexts and the renderer RAF.");
 assert(trainingGpuTacticalUtils.includes('"left-car": ["tacticalWireframe", "tacticalGlow"]') && trainingGpuTacticalUtils.includes('"back-right-car": ["tacticalWireframe", "tacticalGlow"]') && trainingGpuTacticalUtils.includes('"front-right-car": ["tacticalWireframe", "tacticalGlow"]') && trainingGpuTacticalUtils.includes('ball: ["tacticalEnergy"]'), "Exactly six car tactical textures and one ball tactical texture must be installed.");
 assert(trainingGpuTacticalUtils.includes('fitMode = registration.kind === "ball" ? "cover" : "contain"') && trainingGpuTacticalUtils.includes("getTrainingGpuObjectLocalQuad(asset.entry"), "Every tactical role must derive its local quad independently from its validated manifest entry.");
+assert(trainingGpuBaseUtils.includes("createTrainingGpuBaseResources") && trainingGpuBaseUtils.includes("assets.assets.base") && trainingGpuBaseUtils.includes("gl.ONE_MINUS_SRC_ALPHA") && !trainingGpuBaseUtils.includes("requestAnimationFrame") && !trainingGpuBaseUtils.includes("getContext("), "Four independent base textures must reuse the object contexts, shared VAOs and renderer lifecycle with normal premultiplied blending.");
+assert(trainingGpuObjectPlacement.includes("getTrainingGpuObjectBaseQuadInCanvasSpace") && trainingGpuObjectPlacement.includes("convertTrainingGpuSceneRectToLocalCanvasRect") && trainingGpuObjectPlacement.includes("getTrainingGpuObjectRenderRect(registration, baseEntry)") && !trainingGpuObjectPlacement.includes("getBoundingClientRect"), "Grounded-scene base crops must be converted mechanically into cached local canvas rectangles without DOM layout reads.");
+assert(trainingGpuVolumeUtils.includes("target.baseQuad = baseAsset") && trainingGpuVolumeUtils.includes("this.renderBaseTarget(this.targets[objectId])") && trainingGpuVolumeUtils.indexOf("this.renderBaseTarget(this.targets[objectId])") < trainingGpuVolumeUtils.indexOf("renderVolume(snapshot"), "Base quads must be cached during geometry updates and rendered before object effects.");
+const trainingGpuAnimatedObjectFrame = trainingGpuRenderer.slice(trainingGpuRenderer.indexOf("private renderFrame("), trainingGpuRenderer.indexOf("private renderRadarFrame("));
+assert(trainingGpuAnimatedObjectFrame.includes("this.volumeSubsystem.renderBases();") && trainingGpuAnimatedObjectFrame.indexOf("this.volumeSubsystem.renderBases();") < trainingGpuAnimatedObjectFrame.indexOf("this.volumeSubsystem.renderVolume(") && trainingGpuAnimatedObjectFrame.indexOf("this.volumeSubsystem.renderVolume(") < trainingGpuAnimatedObjectFrame.indexOf("this.volumeSubsystem.renderTactical(") && trainingGpuRenderer.includes("renderStaticObjectFrame") && !trainingGpuRenderer.slice(trainingGpuRenderer.indexOf("private canAnimate()"), trainingGpuRenderer.indexOf("private syncAnimationLoop()")).includes("isBaseReady"), "Animated frames must draw bases before volume and tactical effects while static bases never keep the RAF alive.");
+assert(trainingGpuVolumeUtils.includes('textures: baseResourceTargets.length') && trainingGpuVolumeUtils.includes('programs: baseResourceTargets.length') && trainingGpuBaseUtils.includes("getTrainingGpuBaseTextureBytes"), "Base diagnostics must report exactly one texture and one program per prepared object.");
+assert(css.includes(".training-gpu-volume-canvas") && /\.training-gpu-volume-canvas\s*\{[\s\S]*?z-index:\s*0;[\s\S]*?mix-blend-mode:\s*normal;/s.test(css) && css.includes('.training-scene[data-gpu-bases-ready="false"] .training-gpu-volume-canvas') && trainingGpuVolumeUtils.includes("gl.ONE_MINUS_SRC_COLOR") && trainingGpuTacticalUtils.includes("gl.ONE_MINUS_SRC_COLOR"), "The shared object canvas must composite GPU bases normally, preserve screen blending over a DOM-base fallback, and restore screen-style effect blending in WebGL.");
+assert(trainingGroundedActor.includes("target.baseAsset.path") && trainingGroundedActor.includes("training-ball-launch-energy") && (trainingGroundedActor.match(/<canvas/g) ?? []).length === 2, "DOM base fallbacks and launch energy must remain intact without any new object canvas.");
 assert(trainingRadarTargets.includes("contactDurationMs: 360") && trainingRadarTargets.includes("tacticalHoldDurationMs: 1800") && trainingRadarTargets.includes("fadeDurationMs: 800"), "Central tactical timings must remain unchanged.");
-assert(trainingScene.includes('name="fennec"') && !trainingGpuVolumeUtils.includes('"fennec"') && !trainingGpuTacticalUtils.includes('"fennec"'), "The Fennec must remain outside the GPU object effects subsystem.");
+assert(trainingScene.includes('name="fennec"') && !trainingGpuVolumeUtils.includes('"fennec"') && !trainingGpuTacticalUtils.includes('"fennec"') && !trainingGpuBaseUtils.includes('"fennec"'), "The Fennec must remain outside the prepared GPU object subsystem.");
 
 assert(
   trainingRendererDebugHook.includes('TRAINING_RENDERER_DEBUG_PARAM = "debugRenderer"') &&
@@ -183,6 +196,13 @@ assert(
     trainingGpuDebugPanel.includes("window.setInterval(refresh, PANEL_REFRESH_MS)") &&
     trainingGpuDebugPanel.includes("window.clearInterval(panelTimerId)"),
   "The React diagnostics panel must poll at four hertz and clean up its timer.",
+);
+assert(
+  trainingGpuDebugTypes.includes('| "bases"') &&
+    trainingGpuDebugCollector.includes("bases: createSubsystemState()") &&
+    trainingGpuDebugCollector.includes('recordStaticRender(subsystem: TrainingGpuDebugSubsystemName)') &&
+    trainingGpuDebugPanel.includes('"bases"'),
+  "Local renderer diagnostics must expose base readiness, CPU, resources, errors, shared context events and static renders.",
 );
 assert(
   trainingGpuDebugTypes.includes('| "tactical"') &&
@@ -240,7 +260,8 @@ assert(
   "Diagnostics must expose bounded frame metrics and CPU timings.",
 );
 assert(
-  trainingGpuRenderer.includes('recordSubsystemCpu(\n        "radar"') &&
+  trainingGpuRenderer.includes('recordSubsystemCpu(\n      "bases"') &&
+    trainingGpuRenderer.includes('recordSubsystemCpu(\n        "radar"') &&
     trainingGpuRenderer.includes('recordSubsystemCpu(\n        "particles"') &&
     trainingGpuRenderer.includes('recordSubsystemCpu(\n      "volume"') &&
     trainingGpuRenderer.includes('recordSubsystemCpu(\n      "tactical"') &&
