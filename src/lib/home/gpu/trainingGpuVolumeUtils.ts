@@ -45,11 +45,16 @@ import {
 } from "@/lib/home/gpu/trainingGpuTacticalUtils";
 
 export type TrainingGpuVolumeCanvases = Record<
-  TrainingGpuPreparedObjectId,
+  TrainingGpuVolumeObjectId,
   HTMLCanvasElement
 >;
 
-type TrainingGpuVolumeUniforms = {
+export type TrainingGpuVolumeObjectId = Exclude<
+  TrainingGpuPreparedObjectId,
+  "fennec"
+>;
+
+export type TrainingGpuVolumeUniforms = {
   texture: WebGLUniformLocation;
   viewportCss: WebGLUniformLocation;
   quadCss: WebGLUniformLocation;
@@ -74,7 +79,7 @@ export type TrainingGpuVolumeResources = {
 };
 
 export type TrainingGpuVolumeTarget = {
-  objectId: TrainingGpuPreparedObjectId;
+  objectId: TrainingGpuVolumeObjectId;
   canvas: HTMLCanvasElement;
   gl: WebGL2RenderingContext | null;
   contextLost: boolean;
@@ -118,7 +123,7 @@ const VOLUME_OBJECT_IDS = [
   "back-right-car",
   "front-right-car",
   "ball",
-] as const satisfies readonly TrainingGpuPreparedObjectId[];
+] as const satisfies readonly TrainingGpuVolumeObjectId[];
 
 const reportedVolumeFailures = new Set<string>();
 
@@ -248,7 +253,7 @@ function createTexture(
   }
 }
 
-function createVolumeResources(
+export function createTrainingGpuVolumeResources(
   gl: WebGL2RenderingContext,
   assets: TrainingGpuDecodedObjectAssetSet,
   debugCollector: TrainingGpuDebugCollector | null,
@@ -334,7 +339,7 @@ function createVolumeResources(
   }
 }
 
-function destroyVolumeResources(
+export function destroyTrainingGpuVolumeResources(
   gl: WebGL2RenderingContext,
   resources: TrainingGpuVolumeResources | null,
 ) {
@@ -425,7 +430,7 @@ export class TrainingGpuVolumeSubsystem {
   private tacticalInitialized = false;
   private tacticalReady = false;
   private readonly targets: Record<
-    TrainingGpuPreparedObjectId,
+    TrainingGpuVolumeObjectId,
     TrainingGpuVolumeTarget
   >;
 
@@ -438,7 +443,7 @@ export class TrainingGpuVolumeSubsystem {
         objectId,
         this.createTarget(objectId, canvases[objectId]),
       ]),
-    ) as Record<TrainingGpuPreparedObjectId, TrainingGpuVolumeTarget>;
+    ) as Record<TrainingGpuVolumeObjectId, TrainingGpuVolumeTarget>;
 
     for (const target of Object.values(this.targets)) {
       target.canvas.addEventListener("webglcontextlost", target.onContextLost);
@@ -701,7 +706,7 @@ export class TrainingGpuVolumeSubsystem {
   }
 
   private createTarget(
-    objectId: TrainingGpuPreparedObjectId,
+    objectId: TrainingGpuVolumeObjectId,
     canvas: HTMLCanvasElement,
   ): TrainingGpuVolumeTarget {
     const target: TrainingGpuVolumeTarget = {
@@ -732,8 +737,8 @@ export class TrainingGpuVolumeSubsystem {
       throw new Error(`Training volume asset mismatch: ${target.objectId}.`);
     }
 
-    destroyVolumeResources(target.gl, target.resources);
-    target.resources = createVolumeResources(
+    destroyTrainingGpuVolumeResources(target.gl, target.resources);
+    target.resources = createTrainingGpuVolumeResources(
       target.gl,
       assets,
       this.options.debugCollector,
@@ -1095,7 +1100,7 @@ export class TrainingGpuVolumeSubsystem {
   private releaseVolumeResources() {
     for (const target of Object.values(this.targets)) {
       if (target.gl && !target.contextLost) {
-        destroyVolumeResources(target.gl, target.resources);
+        destroyTrainingGpuVolumeResources(target.gl, target.resources);
       }
       target.resources = null;
     }

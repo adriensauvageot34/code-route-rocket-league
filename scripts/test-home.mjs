@@ -36,6 +36,8 @@ const expectedFiles = [
   "src/lib/home/gpu/trainingGpuObjectAssetCatalog.ts",
   "src/lib/home/gpu/trainingGpuObjectManifest.ts",
   "src/lib/home/gpu/trainingGpuBaseUtils.ts",
+  "src/lib/home/gpu/trainingGpuFennecVolumeUtils.ts",
+  "src/lib/home/gpu/trainingGpuObjectRegistry.ts",
   "src/lib/home/gpu/trainingGpuObjectPlacement.ts",
   "src/lib/home/gpu/debug/TrainingGpuDebugCollector.ts",
   "src/lib/home/gpu/debug/trainingGpuDebugTypes.ts",
@@ -44,6 +46,7 @@ const expectedFiles = [
   "src/lib/home/gpu/trainingGpuTacticalUtils.ts",
   "src/lib/home/gpu/trainingGpuVolumeUtils.ts",
   "src/hooks/useParallaxController.ts",
+  "src/hooks/useTrainingGpuObjectAssets.ts",
   "src/hooks/useTrainingRendererDebug.ts",
   "src/hooks/useTrainingRendererMode.ts",
   "src/types/home.ts",
@@ -105,6 +108,8 @@ const trainingGpuObjectAssetLoader = files["src/lib/home/gpu/TrainingGpuObjectAs
 const trainingGpuObjectAssetCatalog = files["src/lib/home/gpu/trainingGpuObjectAssetCatalog.ts"];
 const trainingGpuObjectManifest = files["src/lib/home/gpu/trainingGpuObjectManifest.ts"];
 const trainingGpuBaseUtils = files["src/lib/home/gpu/trainingGpuBaseUtils.ts"];
+const trainingGpuFennecVolumeUtils = files["src/lib/home/gpu/trainingGpuFennecVolumeUtils.ts"];
+const trainingGpuObjectRegistry = files["src/lib/home/gpu/trainingGpuObjectRegistry.ts"];
 const trainingGpuObjectPlacement = files["src/lib/home/gpu/trainingGpuObjectPlacement.ts"];
 const trainingGpuDebugCollector = files["src/lib/home/gpu/debug/TrainingGpuDebugCollector.ts"];
 const trainingGpuDebugTypes = files["src/lib/home/gpu/debug/trainingGpuDebugTypes.ts"];
@@ -113,6 +118,7 @@ const trainingGpuTacticalUtils = files["src/lib/home/gpu/trainingGpuTacticalUtil
 const trainingRendererDebugHook = files["src/hooks/useTrainingRendererDebug.ts"];
 const trainingRendererModeHook = files["src/hooks/useTrainingRendererMode.ts"];
 const trainingGpuVolumeUtils = files["src/lib/home/gpu/trainingGpuVolumeUtils.ts"];
+const trainingGpuObjectAssetsHook = files["src/hooks/useTrainingGpuObjectAssets.ts"];
 const homeIllustrationAssets = files["src/lib/home/homeIllustrationAssets.ts"];
 const types = files["src/types/home.ts"];
 const viewModel = files["src/lib/home/homeDashboardViewModel.ts"];
@@ -159,10 +165,10 @@ assert(viewSelector.includes("modePreviews[view.id]"), "Training and Competitive
 assert(!modePreview.includes("ModeIllustration"), "Mode detail cards must not contain scene canvases.");
 
 assert(trainingGpuCanvas.includes("const mountedCanvases = {") && trainingGpuCanvas.includes("} = mountedCanvases;") && trainingGpuCanvas.includes('window.addEventListener("resize", resizeCanvases)') && trainingGpuCanvas.includes('window.removeEventListener("resize", resizeCanvases)'), "GPU canvas refs must be captured before asynchronous initialization and geometry/DPR refresh listeners must be cleaned up.");
-assert(trainingGpuRenderer.includes("function getWebGl2Context") && trainingGpuVolumeUtils.includes("function getWebGl2Context"), "All GPU subsystems must retain an explicitly typed WebGL2 context boundary.");
+assert(trainingGpuRenderer.includes("function getWebGl2Context") && trainingGpuVolumeUtils.includes("function getWebGl2Context") && trainingGpuFennecVolumeUtils.includes("function getFennecWebGl2Context"), "All GPU subsystems must retain an explicitly typed WebGL2 context boundary.");
 assert(trainingGpuVolumeUtils.includes("if (assets === this.assets) return") && trainingGpuVolumeUtils.includes("this.initializeVolumeSubsystem()") && trainingGpuVolumeUtils.includes("this.initializeBaseSubsystem()") && trainingGpuVolumeUtils.includes("this.initializeTacticalSubsystem()"), "Repeated object asset installation must be idempotent without recreating base, volume or tactical textures.");
 assert(trainingGpuVolumeUtils.includes('reportVolumeFailureOnce("initialization failed"') && trainingGpuVolumeUtils.includes('reportVolumeFailureOnce("render failed"') && trainingGpuVolumeUtils.includes('process.env.NODE_ENV === "production"'), "Volume failures must expose one development-only diagnostic without production noise.");
-assert(!trainingGpuVolumeUtils.includes("requestAnimationFrame") && !trainingGpuVolumeUtils.includes("setTimeout") && !trainingGpuVolumeUtils.includes("setInterval"), "Object effects must stay on the renderer MasterClock without their own loop or timers.");
+assert(!trainingGpuVolumeUtils.includes("requestAnimationFrame") && !trainingGpuVolumeUtils.includes("setTimeout") && !trainingGpuVolumeUtils.includes("setInterval") && !trainingGpuFennecVolumeUtils.includes("requestAnimationFrame") && !trainingGpuFennecVolumeUtils.includes("setTimeout") && !trainingGpuFennecVolumeUtils.includes("setInterval"), "Object effects must stay on the renderer MasterClock without their own loop or timers.");
 assert(!trainingGpuTacticalTiming.includes("requestAnimationFrame") && !trainingGpuTacticalTiming.includes("setTimeout") && !trainingGpuTacticalTiming.includes("setInterval") && trainingGpuTacticalTiming.includes("frameState.passMode") && trainingGpuTacticalTiming.includes("frameState.elapsedMs") && trainingGpuTacticalTiming.includes("target.tacticalDelayMs"), "GPU tactical timing must be an absolute MasterClock snapshot without timers.");
 assert(trainingGpuTacticalTiming.includes('"hidden"') && trainingGpuTacticalTiming.includes('"contact"') && trainingGpuTacticalTiming.includes('"active"') && trainingGpuTacticalTiming.includes('"hold"') && trainingGpuTacticalTiming.includes('"fade"') && trainingGpuTacticalTiming.includes("getTrainingGpuTacticalSnapshot"), "Tactical snapshots must cover contact, stable activation, global hold and next-volume fade.");
 assert(trainingGpuVolumeUtils.includes("target.contextLost = true") && trainingGpuVolumeUtils.includes("this.setBaseReady(false)") && trainingGpuVolumeUtils.includes("this.setVolumeReady(false)") && trainingGpuVolumeUtils.includes("this.setTacticalReady(false)") && trainingGpuVolumeUtils.includes("this.options.onContextRestored()"), "A shared object context loss must restore all independent DOM fallbacks until current-time rendering succeeds.");
@@ -187,11 +193,22 @@ assert(trainingGpuVolumeUtils.includes('textures: baseResourceTargets.length') &
 assert(css.includes(".training-gpu-volume-canvas") && /\.training-gpu-volume-canvas\s*\{[\s\S]*?z-index:\s*0;[\s\S]*?mix-blend-mode:\s*normal;/s.test(css) && css.includes('.training-scene[data-gpu-bases-ready="false"] .training-gpu-volume-canvas') && trainingGpuVolumeUtils.includes("gl.ONE_MINUS_SRC_COLOR") && trainingGpuTacticalUtils.includes("gl.ONE_MINUS_SRC_COLOR"), "The shared object canvas must composite GPU bases normally, preserve screen blending over a DOM-base fallback, and restore screen-style effect blending in WebGL.");
 assert(trainingGroundedActor.includes("target.baseAsset.path") && trainingGroundedActor.includes("training-ball-launch-energy") && (trainingGroundedActor.match(/<canvas/g) ?? []).length === 2, "DOM base fallbacks and launch energy must remain intact without any new object canvas.");
 assert(trainingRadarTargets.includes("contactDurationMs: 360") && trainingRadarTargets.includes("tacticalHoldDurationMs: 1800") && trainingRadarTargets.includes("fadeDurationMs: 800"), "Central tactical timings must remain unchanged.");
-assert(trainingScene.includes('name="fennec"') && trainingGpuObjectAssetCatalog.includes('"fennec"') && trainingGpuObjectAssetCatalog.includes("/ui/training-objects/fennec/manifest.json") && !trainingGpuVolumeUtils.includes('"fennec"') && !trainingGpuTacticalUtils.includes('"fennec"') && !trainingGpuBaseUtils.includes('"fennec"'), "The Fennec assets must be prepared without rendering the Fennec in WebGL yet.");
+assert(trainingScene.includes('name="fennec"') && trainingGpuObjectAssetCatalog.includes('"fennec"') && trainingGpuObjectAssetCatalog.includes("/ui/training-objects/fennec/manifest.json") && trainingGpuVolumeUtils.includes('TrainingGpuVolumeObjectId = Exclude<') && !trainingGpuTacticalUtils.includes('"fennec"') && !trainingGpuBaseUtils.includes('"fennec"'), "The Fennec volume path must stay isolated from the four established object renderers.");
 assert((trainingGpuObjectAssetCatalog.match(/"left-car"|"back-right-car"|"front-right-car"|"ball"|"fennec"/g) ?? []).length >= 10 && trainingGpuObjectAssetLoader.includes("estimatedTextureBytes") && trainingGpuObjectAssetLoader.includes("entry.outputSize.width * entry.outputSize.height * 4"), "The GPU loader must load five prepared manifests and expose their future RGBA texture memory.");
 assert(trainingGpuObjectManifest.includes("crop must stay inside sourceSize") && trainingGpuObjectManifest.includes("outputSize must match crop size exactly") && trainingGpuObjectAssetLoader.includes("image.naturalWidth !== entry.outputSize.width"), "Fennec manifests and decoded image dimensions must retain the shared strict validation.");
-assert(!trainingScene.includes("training-gpu-fennec-canvas") && !trainingGpuRenderer.includes("Fennec") && !trainingGpuObjectAssetLoader.includes("requestAnimationFrame") && !trainingGpuObjectAssetLoader.includes("setTimeout") && !trainingGpuObjectAssetLoader.includes("setInterval"), "Preparing Fennec assets must not add a Fennec canvas, visual renderer, RAF or timer.");
+assert((trainingScene.match(/training-gpu-fennec-canvas/g) ?? []).length === 1 && (trainingScene.match(/<canvas/g) ?? []).length === 1 && trainingGpuRenderer.includes("TrainingGpuFennecVolumeSubsystem") && !trainingGpuObjectAssetLoader.includes("requestAnimationFrame") && !trainingGpuObjectAssetLoader.includes("setTimeout") && !trainingGpuObjectAssetLoader.includes("setInterval"), "The Fennec volume migration must add exactly one local canvas and reuse the renderer lifecycle without a new loop or timer.");
 assert(homeIllustrationAssets.includes("/ui/training-lights-violet-glow-screen.png") && !trainingGpuObjectAssetCatalog.includes("lights-violet-glow-screen") && !trainingGpuObjectAssetCatalog.includes("headlightGlow:") && trainingScene.includes('name="fennec-lights-glow"'), "The full-scene violet screen halo must stay separate from the local Fennec headlight role.");
+assert((trainingGpuFennecVolumeUtils.match(/\.getContext\(/g) ?? []).length === 1 && (trainingGpuFennecVolumeUtils.match(/new TrainingGpuFennecVolumeSubsystem/g) ?? []).length === 0 && (trainingGpuRenderer.match(/new TrainingGpuFennecVolumeSubsystem/g) ?? []).length === 1, "Exactly one Fennec WebGL2 context must be owned by the existing Training GPU renderer.");
+assert(trainingGpuObjectRegistry.includes('"fennec-surface-frame"') && trainingGpuObjectRegistry.includes('"fennec:contour-scene"') && trainingGpuObjectRegistry.includes('"scene",\n      trainingFennecVolumeScanTarget.contourAsset') && trainingGpuFennecVolumeUtils.includes("getTrainingGpuObjectRenderRect(registration, asset.entry)") && trainingGpuFennecVolumeUtils.includes("convertTrainingGpuLogicalSceneRectToLocalCanvasRect"), "Fennec surface and contour must keep their distinct manifest placement spaces with cached logical-scene conversion.");
+const fennecVolumeRenderStart = trainingGpuFennecVolumeUtils.indexOf("render(state:");
+const fennecVolumeRender = trainingGpuFennecVolumeUtils.slice(fennecVolumeRenderStart, trainingGpuFennecVolumeUtils.indexOf("\n  clear() {", fennecVolumeRenderStart));
+assert(fennecVolumeRender.indexOf('this.renderLayer("surface"') < fennecVolumeRender.indexOf('this.renderLayer("contour"') && !fennecVolumeRender.includes("getBoundingClientRect"), "The Fennec canvas must render surface before contour without per-frame layout reads.");
+assert(trainingGpuRenderer.includes("getTrainingGpuVolumeScanSnapshot(frameState).fennec") && trainingGpuFennecVolumeUtils.includes("state.surfaceProgress") && trainingGpuFennecVolumeUtils.includes("state.contourProgress") && trainingGpuFennecVolumeUtils.includes("state.phase === \"fade\""), "The Fennec scan must join the absolute MasterClock volume snapshot and reproduce active, hold, fade and hidden states.");
+assert(trainingScene.includes("gpuFennecVolumeReady") && trainingScene.includes('data-gpu-fennec-volume-ready=') && css.includes('.training-scene[data-gpu-fennec-volume-ready="true"]') && css.includes(".training-radar-fennec-surface-mask") && css.includes(".training-radar-fennec-contour"), "Fennec volume readiness must atomically swap both preserved DOM fallbacks only after a valid GPU render.");
+assert(trainingScene.includes("trainingFennecVolumeScanTarget.surfaceAsset") && trainingScene.includes("trainingFennecVolumeScanTarget.contourAsset") && trainingScene.includes("trainingFennecVolumeScanTarget.impactAsset") && trainingScene.includes("assets.fennecBase") && trainingScene.includes("assets.fennecHeadlightGlow") && trainingScene.includes("assets.fennecRearAccent") && trainingScene.includes('name="fennec-lights-glow"'), "Fennec base, tactical impact, local lights, contact shadow and global violet halo must remain in the DOM after the volume-only migration.");
+assert(trainingGpuObjectAssetsHook.includes("Promise.allSettled") && trainingGpuObjectAssetsHook.includes("Object.fromEntries(loadedEntries)") && trainingScene.includes('gpuObjectAssetState.status === "error"'), "A local Fennec asset failure must preserve partial decoded sets so the four established GPU objects stay independent.");
+assert(trainingGpuFennecVolumeUtils.includes('recordContextLost("fennec-volume")') && trainingGpuFennecVolumeUtils.includes('recordContextRestored("fennec-volume")') && trainingGpuFennecVolumeUtils.includes("this.setReady(false)") && trainingGpuFennecVolumeUtils.includes("this.options.onContextRestored()"), "Fennec context loss must restore both DOM fallbacks and context restoration must resume the current absolute frame.");
+assert(trainingGpuDebugTypes.includes('| "fennec-volume"') && trainingGpuDebugCollector.includes('"fennec-volume": createSubsystemState()') && trainingGpuDebugPanel.includes('"fennec-volume"') && trainingGpuFennecVolumeUtils.includes("textures: this.resources ? 2 : 0") && trainingGpuFennecVolumeUtils.includes("estimatedTextureBytes"), "debugRenderer=1 must expose the isolated Fennec context, readiness, CPU, two textures, memory and errors.");
 
 assert(
   trainingRendererDebugHook.includes('TRAINING_RENDERER_DEBUG_PARAM = "debugRenderer"') &&

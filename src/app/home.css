@@ -3352,6 +3352,24 @@
   mix-blend-mode: normal;
 }
 
+.training-gpu-fennec-canvas {
+  z-index: 2;
+  opacity: 1;
+  mix-blend-mode: normal;
+}
+
+.training-scene[data-gpu-fennec-volume-ready="false"]
+  .training-gpu-fennec-canvas {
+  opacity: 0;
+}
+
+.training-scene[data-gpu-fennec-volume-ready="true"]
+  .training-radar-fennec-surface-mask,
+.training-scene[data-gpu-fennec-volume-ready="true"]
+  .training-radar-fennec-contour {
+  display: none;
+}
+
 .training-scene[data-gpu-bases-ready="false"] .training-gpu-volume-canvas {
   mix-blend-mode: screen;
 }

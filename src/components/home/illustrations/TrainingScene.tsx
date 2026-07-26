@@ -102,10 +102,12 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
   const backRightCarVolumeCanvasRef = useRef<HTMLCanvasElement>(null);
   const frontRightCarVolumeCanvasRef = useRef<HTMLCanvasElement>(null);
   const ballVolumeCanvasRef = useRef<HTMLCanvasElement>(null);
+  const fennecVolumeCanvasRef = useRef<HTMLCanvasElement>(null);
   const [gpuBasesReady, setGpuBasesReady] = useState(false);
   const [gpuRadarReady, setGpuRadarReady] = useState(false);
   const [gpuParticlesReady, setGpuParticlesReady] = useState(false);
   const [gpuVolumeScansReady, setGpuVolumeScansReady] = useState(false);
+  const [gpuFennecVolumeReady, setGpuFennecVolumeReady] = useState(false);
   const [gpuTacticalReady, setGpuTacticalReady] = useState(false);
   const handleGpuBasesReadyChange = useCallback((ready: boolean) => {
     setGpuBasesReady(ready);
@@ -118,6 +120,9 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
   }, []);
   const handleGpuVolumeScansReadyChange = useCallback((ready: boolean) => {
     setGpuVolumeScansReady(ready);
+  }, []);
+  const handleGpuFennecVolumeReadyChange = useCallback((ready: boolean) => {
+    setGpuFennecVolumeReady(ready);
   }, []);
   const handleGpuTacticalReadyChange = useCallback((ready: boolean) => {
     setGpuTacticalReady(ready);
@@ -133,7 +138,8 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
   const showDomVolumeScan = !useGpuRenderer || !gpuVolumeScansReady;
   const showDomTactical = !useGpuRenderer || !gpuTacticalReady;
   const gpuVolumeAssets =
-    gpuObjectAssetState.status === "ready"
+    gpuObjectAssetState.status === "ready" ||
+    gpuObjectAssetState.status === "error"
       ? gpuObjectAssetState.objects
       : null;
   const getTacticalPhase = (targetId: TrainingRadarTargetId) =>
@@ -161,6 +167,9 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         useGpuRenderer && gpuParticlesReady ? "true" : "false"
       }
       data-gpu-object-assets-status={gpuObjectAssetState.status}
+      data-gpu-fennec-volume-ready={
+        useGpuRenderer && gpuFennecVolumeReady ? "true" : "false"
+      }
       data-gpu-tactical-ready={
         useGpuRenderer && gpuTacticalReady ? "true" : "false"
       }
@@ -231,6 +240,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
           active={active}
           debugCollector={debugCollector}
           onBasesReadyChange={handleGpuBasesReadyChange}
+          onFennecVolumeReadyChange={handleGpuFennecVolumeReadyChange}
           onParticlesReadyChange={handleGpuParticlesReadyChange}
           onRadarReadyChange={handleGpuRadarReadyChange}
           onVolumeScansReadyChange={handleGpuVolumeScansReadyChange}
@@ -242,6 +252,7 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
           backRightCarVolumeCanvasRef={backRightCarVolumeCanvasRef}
           frontRightCarVolumeCanvasRef={frontRightCarVolumeCanvasRef}
           ballVolumeCanvasRef={ballVolumeCanvasRef}
+          fennecVolumeCanvasRef={fennecVolumeCanvasRef}
         />
       ) : null}
 
@@ -340,6 +351,13 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         >
           <SceneLayer asset={assets.fennecBase} className="training-fennec-base" />
         </div>
+        {useGpuRenderer ? (
+          <canvas
+            aria-hidden="true"
+            className="training-gpu-canvas training-gpu-fennec-canvas"
+            ref={fennecVolumeCanvasRef}
+          />
+        ) : null}
         <div
           className="training-radar-fennec-target"
           data-surface-scan-mode={fennecSurfaceMode}
