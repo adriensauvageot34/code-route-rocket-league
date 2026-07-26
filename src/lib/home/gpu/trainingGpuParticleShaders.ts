@@ -523,7 +523,7 @@ void main() {
       );
     shapeAlpha = flashEnvelope * verticalCore;
 
-    float flashGlowRadius = max(1.0, v_glow * 0.5);
+    float flashGlowRadius = max(1.0, v_glow * 0.12);
     float verticalGlow =
       exp(
         -2.0 *
