@@ -32,12 +32,15 @@ import {
 } from "@/lib/home/gpu/trainingGpuVolumeUtils";
 import {
   TRAINING_GPU_VOLUME_BALL_MASK,
+  TRAINING_GPU_VOLUME_BALL_TRANSFORMS,
   TRAINING_GPU_VOLUME_CAR_MASK,
   type TrainingGpuVolumeLayer,
 } from "@/lib/home/gpu/trainingGpuVolumeConstants";
 import {
   convertTrainingGpuLogicalSceneRectToLocalCanvasRect,
+  getTrainingGpuObjectLocalQuad,
   getTrainingGpuObjectSceneRenderRect,
+  transformTrainingGpuObjectLocalQuad,
 } from "@/lib/home/gpu/trainingGpuObjectPlacement";
 import { getTrainingGpuObjectRegistration } from "@/lib/home/gpu/trainingGpuObjectRegistry";
 import type {
@@ -228,6 +231,64 @@ function applyDepthTransform(
     width: rect.width * scaleX,
     height: rect.height * scaleY,
   };
+}
+
+function ballVolumeSceneQuad(
+  registration: TrainingGpuObjectRegistration,
+  asset: TrainingGpuDecodedObjectAsset,
+  layer: TrainingGpuVolumeLayer,
+  viewport: TrainingGpuViewport,
+  parallax: TrainingGpuParallaxSnapshot,
+) {
+  const target = registration.target;
+  if (target.type !== "ball") {
+    throw new Error(registration.id + " is not the Training ball.");
+  }
+
+  const { sourceAnchor, target: destination } = target.grounding;
+  const originX = sourceAnchor.x * TRAINING_GPU_LOGICAL_WIDTH;
+  const originY = sourceAnchor.groundY * TRAINING_GPU_LOGICAL_HEIGHT;
+  const canvasSceneRect = {
+    x:
+      originX -
+      originX * destination.scale +
+      (destination.x - sourceAnchor.x) * TRAINING_GPU_LOGICAL_WIDTH,
+    y:
+      originY -
+      originY * destination.scale +
+      (destination.groundY - sourceAnchor.groundY) *
+        TRAINING_GPU_LOGICAL_HEIGHT,
+    width: TRAINING_GPU_LOGICAL_WIDTH * destination.scale,
+    height: TRAINING_GPU_LOGICAL_HEIGHT * destination.scale,
+  };
+  const localFrame = {
+    width: canvasSceneRect.width,
+    height: canvasSceneRect.height,
+  };
+  const localQuad = transformTrainingGpuObjectLocalQuad(
+    getTrainingGpuObjectLocalQuad(asset.entry, localFrame, "contain"),
+    localFrame,
+    TRAINING_GPU_VOLUME_BALL_TRANSFORMS[layer],
+  );
+  const cssRect = convertTrainingGpuLogicalSceneRectToLocalCanvasRect(
+    {
+      x: canvasSceneRect.x + localQuad.x,
+      y: canvasSceneRect.y + localQuad.y,
+      width: localQuad.width,
+      height: localQuad.height,
+    },
+    {
+      width: viewport.cssWidth,
+      height: viewport.cssHeight,
+    },
+  );
+
+  return applyDepthTransform(
+    cssRect,
+    registration.depth,
+    viewport,
+    parallax,
+  );
 }
 
 function tacticalStyle(
@@ -722,7 +783,16 @@ export class TrainingGpuSceneRenderer {
     if (!gl || !viewport || !asset) return;
     const layerState = state[layer];
     if (layerState.opacity <= 0) return;
-    const quad = sceneQuad(registration, asset, viewport, parallax);
+    const quad =
+      kind === "ball"
+        ? ballVolumeSceneQuad(
+            registration,
+            asset,
+            layer,
+            viewport,
+            parallax,
+          )
+        : sceneQuad(registration, asset, viewport, parallax);
     const mask =
       kind === "ball"
         ? TRAINING_GPU_VOLUME_BALL_MASK
@@ -732,8 +802,8 @@ export class TrainingGpuSceneRenderer {
         ? state.surfaceProgress
         : state.contourProgress;
     const maskCenter = interpolate(
-      mask.startCenterX,
-      mask.endCenterX,
+      kind === "ball" ? mask.endCenterX : mask.startCenterX,
+      kind === "ball" ? mask.startCenterX : mask.endCenterX,
       progress,
     );
     const angleDegrees =
