@@ -28,6 +28,7 @@ type TrainingGpuTacticalUniforms = {
 };
 
 export type TrainingGpuTacticalResources = {
+  ownsProgram: boolean;
   program: WebGLProgram;
   textures: Partial<Record<TrainingGpuTacticalTextureRole, WebGLTexture>>;
   uniforms: TrainingGpuTacticalUniforms;
@@ -39,15 +40,30 @@ type TrainingGpuTacticalLayerStyle = {
   saturation: number;
 };
 
+type TrainingGpuTacticalObjectId = Exclude<
+  TrainingGpuPreparedObjectId,
+  "fennec"
+>;
+
 const TACTICAL_ROLES_BY_OBJECT_ID = {
   "left-car": ["tacticalWireframe", "tacticalGlow"],
   "back-right-car": ["tacticalWireframe", "tacticalGlow"],
   "front-right-car": ["tacticalWireframe", "tacticalGlow"],
   ball: ["tacticalEnergy"],
 } as const satisfies Record<
-  TrainingGpuPreparedObjectId,
+  TrainingGpuTacticalObjectId,
   readonly TrainingGpuTacticalTextureRole[]
 >;
+
+function getTacticalRoles(objectId: TrainingGpuPreparedObjectId) {
+  if (objectId === "fennec") {
+    throw new Error(
+      "Fennec tactical effects use the dedicated Fennec pipeline.",
+    );
+  }
+
+  return TACTICAL_ROLES_BY_OBJECT_ID[objectId];
+}
 
 function compileShader(
   gl: WebGL2RenderingContext,
@@ -160,6 +176,10 @@ export function createTrainingGpuTacticalResources(
   gl: WebGL2RenderingContext,
   assets: TrainingGpuDecodedObjectAssetSet,
   debugCollector: TrainingGpuDebugCollector | null,
+  sharedPipeline: Pick<
+    TrainingGpuTacticalResources,
+    "program" | "uniforms"
+  > | null = null,
 ): TrainingGpuTacticalResources {
   let program: WebGLProgram | null = null;
   const textures: Partial<
@@ -167,8 +187,8 @@ export function createTrainingGpuTacticalResources(
   > = {};
 
   try {
-    program = createProgram(gl);
-    for (const role of TACTICAL_ROLES_BY_OBJECT_ID[assets.objectId]) {
+    program = sharedPipeline?.program ?? createProgram(gl);
+    for (const role of getTacticalRoles(assets.objectId)) {
       const asset = assets.assets[role];
       if (!asset) {
         throw new Error(`Missing decoded ${role} asset for ${assets.objectId}.`);
@@ -177,23 +197,29 @@ export function createTrainingGpuTacticalResources(
     }
 
     gl.useProgram(program);
-    const uniforms: TrainingGpuTacticalUniforms = {
-      texture: getUniform(gl, program, "u_texture"),
-      viewportCss: getUniform(gl, program, "u_viewport_css"),
-      quadCss: getUniform(gl, program, "u_quad_css"),
-      opacity: getUniform(gl, program, "u_opacity"),
-      brightness: getUniform(gl, program, "u_brightness"),
-      saturation: getUniform(gl, program, "u_saturation"),
-    };
+    const uniforms: TrainingGpuTacticalUniforms =
+      sharedPipeline?.uniforms ?? {
+        texture: getUniform(gl, program, "u_texture"),
+        viewportCss: getUniform(gl, program, "u_viewport_css"),
+        quadCss: getUniform(gl, program, "u_quad_css"),
+        opacity: getUniform(gl, program, "u_opacity"),
+        brightness: getUniform(gl, program, "u_brightness"),
+        saturation: getUniform(gl, program, "u_saturation"),
+      };
     gl.uniform1i(uniforms.texture, 0);
     gl.useProgram(null);
 
-    return { program, textures, uniforms };
+    return {
+      ownsProgram: sharedPipeline === null,
+      program,
+      textures,
+      uniforms,
+    };
   } catch (error) {
     for (const texture of Object.values(textures)) {
       gl.deleteTexture(texture);
     }
-    gl.deleteProgram(program);
+    if (!sharedPipeline) gl.deleteProgram(program);
     throw error;
   }
 }
@@ -206,7 +232,7 @@ export function destroyTrainingGpuTacticalResources(
   for (const texture of Object.values(resources.textures)) {
     gl.deleteTexture(texture);
   }
-  gl.deleteProgram(resources.program);
+  if (resources.ownsProgram) gl.deleteProgram(resources.program);
 }
 
 function getLayerStyle(
@@ -262,7 +288,7 @@ export function renderTrainingGpuTacticalTarget(
     viewport.cssHeight,
   );
 
-  for (const role of TACTICAL_ROLES_BY_OBJECT_ID[assets.objectId]) {
+  for (const role of getTacticalRoles(assets.objectId)) {
     const asset = assets.assets[role];
     const texture = resources.textures[role];
     if (!asset || !texture) {
@@ -309,7 +335,7 @@ export function getTrainingGpuTacticalTextureBytes(
   assets: TrainingGpuDecodedObjectAssetSet | undefined,
 ) {
   if (!assets) return 0;
-  return TACTICAL_ROLES_BY_OBJECT_ID[assets.objectId].reduce(
+  return getTacticalRoles(assets.objectId).reduce(
     (total, role) => {
       const entry = assets.assets[role]?.entry;
       return entry

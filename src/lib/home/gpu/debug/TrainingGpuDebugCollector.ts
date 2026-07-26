@@ -100,6 +100,14 @@ const INITIAL_GLOBAL: TrainingGpuDebugGlobalSnapshot = {
   viewportCssHeight: 0,
   viewportPixelWidth: 0,
   viewportPixelHeight: 0,
+  canvasCount: 0,
+  contextCount: 0,
+  drawCallsPerFrame: 0,
+  clearCallsPerFrame: 0,
+  programChangesPerFrame: 0,
+  textureBindsPerFrame: 0,
+  blendChangesPerFrame: 0,
+  framebufferChangesPerFrame: 0,
 };
 
 const INITIAL_ASSETS: TrainingGpuDebugAssetSnapshot = {

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import type { CSSProperties, Ref } from "react";
+import type { CSSProperties } from "react";
 import {
   TRAINING_RADAR_TIMING,
   TRAINING_VOLUME_SCAN_TIMING,
@@ -30,8 +30,6 @@ type TrainingCarScanStyle = CSSProperties & {
 
 type TrainingGroundedCarProps = {
   target: TrainingCarRadarTarget;
-  gpuVolumeCanvasRef?: Ref<HTMLCanvasElement>;
-  showGpuVolumeCanvas?: boolean;
   showDomBase?: boolean;
   showDomVolumeScan?: boolean;
   showDomTactical?: boolean;
@@ -39,8 +37,6 @@ type TrainingGroundedCarProps = {
 
 type TrainingGroundedBallProps = {
   target: TrainingBallRadarTarget;
-  gpuVolumeCanvasRef?: Ref<HTMLCanvasElement>;
-  showGpuVolumeCanvas?: boolean;
   showDomBase?: boolean;
   showDomVolumeScan?: boolean;
   showDomTactical?: boolean;
@@ -73,8 +69,6 @@ function getGroundedActorStyle(
 
 export function TrainingGroundedCar({
   target,
-  gpuVolumeCanvasRef,
-  showGpuVolumeCanvas = false,
   showDomBase = true,
   showDomVolumeScan = true,
   showDomTactical = true,
@@ -140,13 +134,6 @@ export function TrainingGroundedCar({
           src={target.contourAsset.path}
           unoptimized
         />
-        {showGpuVolumeCanvas ? (
-          <canvas
-            aria-hidden="true"
-            className="training-gpu-volume-canvas"
-            ref={gpuVolumeCanvasRef}
-          />
-        ) : null}
         <Image
           alt=""
           aria-hidden="true"
@@ -174,8 +161,6 @@ export function TrainingGroundedCar({
 
 export function TrainingGroundedBall({
   target,
-  gpuVolumeCanvasRef,
-  showGpuVolumeCanvas = false,
   showDomBase = true,
   showDomVolumeScan = true,
   showDomTactical = true,
@@ -229,13 +214,6 @@ export function TrainingGroundedBall({
           src={target.contourAsset.path}
           unoptimized
         />
-        {showGpuVolumeCanvas ? (
-          <canvas
-            aria-hidden="true"
-            className="training-gpu-volume-canvas"
-            ref={gpuVolumeCanvasRef}
-          />
-        ) : null}
         <Image
           alt=""
           aria-hidden="true"

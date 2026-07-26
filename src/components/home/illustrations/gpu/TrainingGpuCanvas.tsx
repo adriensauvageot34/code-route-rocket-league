@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, type RefObject } from "react";
+import { useEffect, useRef } from "react";
 import { SceneGroup } from "@/components/home/illustrations/SceneGroup";
-import { TrainingGpuRenderer } from "@/lib/home/gpu/TrainingGpuRenderer";
+import { TrainingGpuConsolidatedRenderer } from "@/lib/home/gpu/TrainingGpuConsolidatedRenderer";
 import {
   createTrainingGpuRadarFieldMask,
   loadTrainingGpuRadarTerrain,
@@ -41,17 +41,16 @@ type TrainingGpuCanvasProps = {
   volumeAssets: Partial<
     Record<TrainingGpuPreparedObjectId, TrainingGpuDecodedObjectAssetSet>
   > | null;
-  leftCarVolumeCanvasRef: RefObject<HTMLCanvasElement | null>;
-  backRightCarVolumeCanvasRef: RefObject<HTMLCanvasElement | null>;
-  frontRightCarVolumeCanvasRef: RefObject<HTMLCanvasElement | null>;
-  ballVolumeCanvasRef: RefObject<HTMLCanvasElement | null>;
-  fennecVolumeCanvasRef: RefObject<HTMLCanvasElement | null>;
 };
 
 type TrainingGpuLifecycleState = Pick<
   TrainingGpuFrameState,
   "active" | "running"
 >;
+
+type TrainingGpuConsolidatedCanvases = ConstructorParameters<
+  typeof TrainingGpuConsolidatedRenderer
+>[0];
 
 const tacticalTerrainPath =
   homeIllustrationAssets.training.tacticalTerrain.path;
@@ -84,23 +83,17 @@ export function TrainingGpuCanvas({
   radarClock,
   running,
   volumeAssets,
-  leftCarVolumeCanvasRef,
-  backRightCarVolumeCanvasRef,
-  frontRightCarVolumeCanvasRef,
-  ballVolumeCanvasRef,
-  fennecVolumeCanvasRef,
 }: TrainingGpuCanvasProps) {
   const stackRef = useRef<HTMLDivElement>(null);
   const surfaceCanvasRef = useRef<HTMLCanvasElement>(null);
   const sweepCanvasRef = useRef<HTMLCanvasElement>(null);
-  const farParticlesCanvasRef = useRef<HTMLCanvasElement>(null);
-  const midParticlesCanvasRef = useRef<HTMLCanvasElement>(null);
-  const nearParticlesCanvasRef = useRef<HTMLCanvasElement>(null);
+  const sceneCanvasRef = useRef<HTMLCanvasElement>(null);
   const lifecycleRef = useRef<TrainingGpuLifecycleState>({
     active,
     running,
   });
-  const rendererRef = useRef<TrainingGpuRenderer | null>(null);
+  const rendererRef =
+    useRef<TrainingGpuConsolidatedRenderer | null>(null);
   const volumeAssetsRef = useRef(volumeAssets);
 
   lifecycleRef.current = { active, running };
@@ -110,74 +103,39 @@ export function TrainingGpuCanvas({
     const stack = stackRef.current;
     const surfaceCanvas = surfaceCanvasRef.current;
     const sweepCanvas = sweepCanvasRef.current;
-    const farParticlesCanvas = farParticlesCanvasRef.current;
-    const midParticlesCanvas = midParticlesCanvasRef.current;
-    const nearParticlesCanvas = nearParticlesCanvasRef.current;
-    const leftCarVolumeCanvas = leftCarVolumeCanvasRef.current;
-    const backRightCarVolumeCanvas = backRightCarVolumeCanvasRef.current;
-    const frontRightCarVolumeCanvas = frontRightCarVolumeCanvasRef.current;
-    const ballVolumeCanvas = ballVolumeCanvasRef.current;
-    const fennecVolumeCanvas = fennecVolumeCanvasRef.current;
-    if (
-      !stack ||
-      !surfaceCanvas ||
-      !sweepCanvas ||
-      !farParticlesCanvas ||
-      !midParticlesCanvas ||
-      !nearParticlesCanvas ||
-      !leftCarVolumeCanvas ||
-      !backRightCarVolumeCanvas ||
-      !frontRightCarVolumeCanvas ||
-      !ballVolumeCanvas ||
-      !fennecVolumeCanvas
-    ) {
+    const sceneCanvas = sceneCanvasRef.current;
+    if (!stack || !surfaceCanvas || !sweepCanvas || !sceneCanvas) {
       return;
     }
 
-    const mountedCanvases = {
-      stack,
-      surfaceCanvas,
-      sweepCanvas,
-      farParticlesCanvas,
-      midParticlesCanvas,
-      nearParticlesCanvas,
-      leftCarVolumeCanvas,
-      backRightCarVolumeCanvas,
-      frontRightCarVolumeCanvas,
-      ballVolumeCanvas,
-      fennecVolumeCanvas,
+    const stackElement: HTMLDivElement = stack;
+    const canvases: TrainingGpuConsolidatedCanvases = {
+      radar: {
+        surface: surfaceCanvas,
+        sweep: sweepCanvas,
+      },
+      scene: sceneCanvas,
     };
+
     let cancelled = false;
     let resizeObserver: ResizeObserver | null = null;
     let resizeCanvases: (() => void) | null = null;
-    onBasesReadyChange(false);
-    onFennecBaseReadyChange(false);
-    onFennecEffectsReadyChange(false);
-    onFennecVolumeReadyChange(false);
-    onRadarReadyChange(false);
-    onParticlesReadyChange(false);
-    onVolumeScansReadyChange(false);
-    onTacticalReadyChange(false);
+    const resetReadiness = () => {
+      onBasesReadyChange(false);
+      onFennecBaseReadyChange(false);
+      onFennecEffectsReadyChange(false);
+      onFennecVolumeReadyChange(false);
+      onRadarReadyChange(false);
+      onParticlesReadyChange(false);
+      onVolumeScansReadyChange(false);
+      onTacticalReadyChange(false);
+    };
+    resetReadiness();
 
     async function initializeRenderer() {
-      const {
-        stack,
-        surfaceCanvas,
-        sweepCanvas,
-        farParticlesCanvas,
-        midParticlesCanvas,
-        nearParticlesCanvas,
-        leftCarVolumeCanvas,
-        backRightCarVolumeCanvas,
-        frontRightCarVolumeCanvas,
-        ballVolumeCanvas,
-        fennecVolumeCanvas,
-      } = mountedCanvases;
-
       try {
         let fieldMaskPixels: Uint8Array | null = null;
         let terrainImage: HTMLImageElement | null = null;
-
         try {
           fieldMaskPixels = createTrainingGpuRadarFieldMask();
           terrainImage =
@@ -186,28 +144,10 @@ export function TrainingGpuCanvas({
           fieldMaskPixels = null;
           terrainImage = null;
         }
-
         if (cancelled) return;
 
-        const renderer = new TrainingGpuRenderer(
-          {
-            fennec: fennecVolumeCanvas,
-            particles: {
-              far: farParticlesCanvas,
-              mid: midParticlesCanvas,
-              near: nearParticlesCanvas,
-            },
-            radar: {
-              surface: surfaceCanvas,
-              sweep: sweepCanvas,
-            },
-            volume: {
-              "left-car": leftCarVolumeCanvas,
-              "back-right-car": backRightCarVolumeCanvas,
-              "front-right-car": frontRightCarVolumeCanvas,
-              ball: ballVolumeCanvas,
-            },
-          },
+        const renderer = new TrainingGpuConsolidatedRenderer(
+          canvases,
           {
             applyDomSnapshot,
             createFrameState: (nowMs) =>
@@ -230,12 +170,10 @@ export function TrainingGpuCanvas({
           },
         );
         rendererRef.current = renderer;
-        renderer.setVolumeAssets(volumeAssetsRef.current);
 
         const handleResize = () => {
           const { width: cssWidth, height: cssHeight } =
-            stack.getBoundingClientRect();
-
+            stackElement.getBoundingClientRect();
           if (
             !Number.isFinite(cssWidth) ||
             !Number.isFinite(cssHeight) ||
@@ -244,42 +182,30 @@ export function TrainingGpuCanvas({
           ) {
             return;
           }
-
           const effectiveDpr = Math.min(
             window.devicePixelRatio || 1,
             TRAINING_GPU_MAX_DPR,
           );
-          const pixelWidth = Math.round(cssWidth * effectiveDpr);
-          const pixelHeight = Math.round(cssHeight * effectiveDpr);
-
           renderer.resize({
             cssWidth,
             cssHeight,
-            pixelWidth,
-            pixelHeight,
+            pixelWidth: Math.round(cssWidth * effectiveDpr),
+            pixelHeight: Math.round(cssHeight * effectiveDpr),
             effectiveDpr,
             logicalWidth: TRAINING_GPU_LOGICAL_WIDTH,
             logicalHeight: TRAINING_GPU_LOGICAL_HEIGHT,
             renderScale: TRAINING_GPU_RENDER_SCALE,
           });
-          renderer.resizeVolumeTargets();
         };
         resizeCanvases = handleResize;
-
         resizeObserver = new ResizeObserver(handleResize);
-        resizeObserver.observe(stack);
-        resizeObserver.observe(leftCarVolumeCanvas);
-        resizeObserver.observe(backRightCarVolumeCanvas);
-        resizeObserver.observe(frontRightCarVolumeCanvas);
-        resizeObserver.observe(ballVolumeCanvas);
-        resizeObserver.observe(fennecVolumeCanvas);
+        resizeObserver.observe(stackElement);
         window.addEventListener("resize", handleResize);
         handleResize();
 
         renderer.setFrameState(
           createGpuFrameState(lifecycleRef.current, radarClock, 0),
         );
-
         if (!renderer.initialize()) {
           resizeObserver.disconnect();
           resizeObserver = null;
@@ -287,17 +213,10 @@ export function TrainingGpuCanvas({
           resizeCanvases = null;
           renderer.destroy();
           rendererRef.current = null;
-          onBasesReadyChange(false);
-          onFennecBaseReadyChange(false);
-          onFennecEffectsReadyChange(false);
-          onFennecVolumeReadyChange(false);
-          onRadarReadyChange(false);
-          onParticlesReadyChange(false);
-          onVolumeScansReadyChange(false);
-          onTacticalReadyChange(false);
+          resetReadiness();
           return;
         }
-
+        renderer.setVolumeAssets(volumeAssetsRef.current);
         if (lifecycleRef.current.active && lifecycleRef.current.running) {
           renderer.start();
         }
@@ -310,16 +229,7 @@ export function TrainingGpuCanvas({
         }
         rendererRef.current?.destroy();
         rendererRef.current = null;
-        if (!cancelled) {
-          onBasesReadyChange(false);
-          onFennecBaseReadyChange(false);
-          onFennecEffectsReadyChange(false);
-          onFennecVolumeReadyChange(false);
-          onRadarReadyChange(false);
-          onParticlesReadyChange(false);
-          onVolumeScansReadyChange(false);
-          onTacticalReadyChange(false);
-        }
+        if (!cancelled) resetReadiness();
       }
     }
 
@@ -330,35 +240,22 @@ export function TrainingGpuCanvas({
       resizeObserver?.disconnect();
       if (resizeCanvases) {
         window.removeEventListener("resize", resizeCanvases);
-        resizeCanvases = null;
       }
       rendererRef.current?.destroy();
       rendererRef.current = null;
-      onBasesReadyChange(false);
-      onFennecBaseReadyChange(false);
-      onFennecEffectsReadyChange(false);
-      onFennecVolumeReadyChange(false);
-      onRadarReadyChange(false);
-      onParticlesReadyChange(false);
-      onVolumeScansReadyChange(false);
-      onTacticalReadyChange(false);
+      resetReadiness();
     };
   }, [
     applyDomSnapshot,
-    backRightCarVolumeCanvasRef,
-    ballVolumeCanvasRef,
     debugCollector,
-    fennecVolumeCanvasRef,
-    frontRightCarVolumeCanvasRef,
-    leftCarVolumeCanvasRef,
     onBasesReadyChange,
     onFennecBaseReadyChange,
     onFennecEffectsReadyChange,
     onFennecVolumeReadyChange,
     onParticlesReadyChange,
     onRadarReadyChange,
-    onVolumeScansReadyChange,
     onTacticalReadyChange,
+    onVolumeScansReadyChange,
     radarClock,
   ]);
 
@@ -369,21 +266,20 @@ export function TrainingGpuCanvas({
   useEffect(() => {
     const renderer = rendererRef.current;
     if (!renderer) return;
-
     renderer.setFrameState(
       createGpuFrameState(lifecycleRef.current, radarClock, 0),
     );
-
-    if (active && running) {
-      renderer.start();
-    } else {
-      renderer.stop();
-    }
+    if (active && running) renderer.start();
+    else renderer.stop();
   }, [active, radarClock, running]);
 
   return (
     <>
-      <SceneGroup depth="trainingGround" layer={6} name="training-radar-gpu">
+      <SceneGroup
+        depth="trainingGround"
+        layer={6}
+        name="training-radar-gpu"
+      >
         <div
           aria-hidden="true"
           className="training-gpu-radar-stack"
@@ -401,45 +297,17 @@ export function TrainingGpuCanvas({
           />
         </div>
       </SceneGroup>
-
-      <SceneGroup
-        blendMode="screen"
-        depth="trainingParticlesFar"
-        layer={9}
-        name="training-particles-gpu-far"
+      <div
+        aria-hidden="true"
+        className="training-gpu-scene-layer"
+        data-scene-group="training-gpu-consolidated-scene"
       >
         <canvas
           aria-hidden="true"
-          className="training-gpu-canvas training-gpu-particle-canvas training-gpu-particles-far"
-          ref={farParticlesCanvasRef}
+          className="training-gpu-canvas training-gpu-scene-canvas"
+          ref={sceneCanvasRef}
         />
-      </SceneGroup>
-
-      <SceneGroup
-        blendMode="screen"
-        depth="trainingParticlesMid"
-        layer={11}
-        name="training-particles-gpu-mid"
-      >
-        <canvas
-          aria-hidden="true"
-          className="training-gpu-canvas training-gpu-particle-canvas training-gpu-particles-mid"
-          ref={midParticlesCanvasRef}
-        />
-      </SceneGroup>
-
-      <SceneGroup
-        blendMode="screen"
-        depth="trainingParticlesNear"
-        layer={15}
-        name="training-particles-gpu-near"
-      >
-        <canvas
-          aria-hidden="true"
-          className="training-gpu-canvas training-gpu-particle-canvas training-gpu-particles-near"
-          ref={nearParticlesCanvasRef}
-        />
-      </SceneGroup>
+      </div>
     </>
   );
 }

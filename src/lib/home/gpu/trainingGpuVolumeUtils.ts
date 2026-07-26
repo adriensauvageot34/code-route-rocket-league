@@ -1,4 +1,4 @@
-import { TRAINING_GPU_CONTEXT_ATTRIBUTES, TRAINING_GPU_MAX_DPR } from "@/lib/home/gpu/trainingGpuConstants";
+import { TRAINING_GPU_MAX_DPR } from "@/lib/home/gpu/trainingGpuConstants";
 import {
   TRAINING_GPU_VOLUME_BALL_MASK,
   TRAINING_GPU_VOLUME_BALL_TRANSFORMS,
@@ -68,6 +68,7 @@ export type TrainingGpuVolumeUniforms = {
 };
 
 export type TrainingGpuVolumeResources = {
+  ownsPipeline: boolean;
   program: WebGLProgram;
   vertexArray: WebGLVertexArrayObject;
   vertexBuffer: WebGLBuffer;
@@ -125,6 +126,14 @@ const VOLUME_OBJECT_IDS = [
 
 const reportedVolumeFailures = new Set<string>();
 
+function clamp01(value: number) {
+  return Math.min(1, Math.max(0, value));
+}
+
+function interpolate(left: number, right: number, progress: number) {
+  return left + (right - left) * clamp01(progress);
+}
+
 function reportVolumeFailureOnce(scope: string, error: unknown) {
   if (
     process.env.NODE_ENV === "production" ||
@@ -135,13 +144,6 @@ function reportVolumeFailureOnce(scope: string, error: unknown) {
 
   reportedVolumeFailures.add(scope);
   console.warn(`[Training GPU volume] ${scope}`, error);
-}
-
-function getWebGl2Context(canvas: HTMLCanvasElement) {
-  return canvas.getContext(
-    "webgl2",
-    TRAINING_GPU_CONTEXT_ATTRIBUTES,
-  ) as WebGL2RenderingContext | null;
 }
 
 function compileShader(
@@ -255,6 +257,10 @@ export function createTrainingGpuVolumeResources(
   gl: WebGL2RenderingContext,
   assets: TrainingGpuDecodedObjectAssetSet,
   debugCollector: TrainingGpuDebugCollector | null,
+  sharedPipeline: Pick<
+    TrainingGpuVolumeResources,
+    "program" | "uniforms" | "vertexArray" | "vertexBuffer"
+  > | null = null,
 ): TrainingGpuVolumeResources {
   const surfaceAsset = assets.assets.volumeSurface;
   const contourAsset = assets.assets.volumeContour;
@@ -269,31 +275,35 @@ export function createTrainingGpuVolumeResources(
   let contourTexture: WebGLTexture | null = null;
 
   try {
-    program = createProgram(gl);
-    vertexArray = gl.createVertexArray();
-    vertexBuffer = gl.createBuffer();
+    program = sharedPipeline?.program ?? createProgram(gl);
+    vertexArray =
+      sharedPipeline?.vertexArray ?? gl.createVertexArray();
+    vertexBuffer =
+      sharedPipeline?.vertexBuffer ?? gl.createBuffer();
     if (!vertexArray || !vertexBuffer) {
       throw new Error("Unable to create Training volume quad.");
     }
 
-    const vertices = new Float32Array([
-      0, 0, 0, 0,
-      1, 0, 1, 0,
-      0, 1, 0, 1,
-      0, 1, 0, 1,
-      1, 0, 1, 0,
-      1, 1, 1, 1,
-    ]);
+    if (!sharedPipeline) {
+      const vertices = new Float32Array([
+        0, 0, 0, 0,
+        1, 0, 1, 0,
+        0, 1, 0, 1,
+        0, 1, 0, 1,
+        1, 0, 1, 0,
+        1, 1, 1, 1,
+      ]);
 
-    gl.bindVertexArray(vertexArray);
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(0);
-    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 16, 0);
-    gl.enableVertexAttribArray(1);
-    gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 16, 8);
-    gl.bindVertexArray(null);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+      gl.bindVertexArray(vertexArray);
+      gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(0);
+      gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 16, 0);
+      gl.enableVertexAttribArray(1);
+      gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 16, 8);
+      gl.bindVertexArray(null);
+      gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    }
 
     surfaceTexture = createTrainingGpuVolumeTexture(
       gl,
@@ -307,20 +317,21 @@ export function createTrainingGpuVolumeResources(
     );
 
     gl.useProgram(program);
-    const uniforms: TrainingGpuVolumeUniforms = {
-      texture: getUniform(gl, program, "u_texture"),
-      viewportCss: getUniform(gl, program, "u_viewport_css"),
-      quadCss: getUniform(gl, program, "u_quad_css"),
-      maskKind: getUniform(gl, program, "u_mask_kind"),
-      maskCenter: getUniform(gl, program, "u_mask_center"),
-      maskScale: getUniform(gl, program, "u_mask_scale"),
-      maskAngle: getUniform(gl, program, "u_mask_angle"),
-      opacity: getUniform(gl, program, "u_opacity"),
-      brightness: getUniform(gl, program, "u_brightness"),
-      saturation: getUniform(gl, program, "u_saturation"),
-      glowOffset: getUniform(gl, program, "u_glow_offset"),
-      glowStrength: getUniform(gl, program, "u_glow_strength"),
-    };
+    const uniforms: TrainingGpuVolumeUniforms =
+      sharedPipeline?.uniforms ?? {
+        texture: getUniform(gl, program, "u_texture"),
+        viewportCss: getUniform(gl, program, "u_viewport_css"),
+        quadCss: getUniform(gl, program, "u_quad_css"),
+        maskKind: getUniform(gl, program, "u_mask_kind"),
+        maskCenter: getUniform(gl, program, "u_mask_center"),
+        maskScale: getUniform(gl, program, "u_mask_scale"),
+        maskAngle: getUniform(gl, program, "u_mask_angle"),
+        opacity: getUniform(gl, program, "u_opacity"),
+        brightness: getUniform(gl, program, "u_brightness"),
+        saturation: getUniform(gl, program, "u_saturation"),
+        glowOffset: getUniform(gl, program, "u_glow_offset"),
+        glowStrength: getUniform(gl, program, "u_glow_strength"),
+      };
     gl.uniform1i(uniforms.texture, 0);
     gl.clearColor(0, 0, 0, 0);
     gl.enable(gl.BLEND);
@@ -328,6 +339,7 @@ export function createTrainingGpuVolumeResources(
     gl.useProgram(null);
 
     return {
+      ownsPipeline: sharedPipeline === null,
       program,
       vertexArray,
       vertexBuffer,
@@ -338,9 +350,11 @@ export function createTrainingGpuVolumeResources(
   } catch (error) {
     gl.deleteTexture(contourTexture);
     gl.deleteTexture(surfaceTexture);
-    gl.deleteBuffer(vertexBuffer);
-    gl.deleteVertexArray(vertexArray);
-    gl.deleteProgram(program);
+    if (!sharedPipeline) {
+      gl.deleteBuffer(vertexBuffer);
+      gl.deleteVertexArray(vertexArray);
+      gl.deleteProgram(program);
+    }
     throw error;
   }
 }
@@ -352,9 +366,11 @@ export function destroyTrainingGpuVolumeResources(
   if (!resources) return;
   gl.deleteTexture(resources.contourTexture);
   gl.deleteTexture(resources.surfaceTexture);
-  gl.deleteBuffer(resources.vertexBuffer);
-  gl.deleteVertexArray(resources.vertexArray);
-  gl.deleteProgram(resources.program);
+  if (resources.ownsPipeline) {
+    gl.deleteBuffer(resources.vertexBuffer);
+    gl.deleteVertexArray(resources.vertexArray);
+    gl.deleteProgram(resources.program);
+  }
 }
 
 function getLayerStyle(
@@ -403,13 +419,6 @@ export class TrainingGpuVolumeSubsystem {
       ]),
     ) as Record<TrainingGpuVolumeObjectId, TrainingGpuVolumeTarget>;
 
-    for (const target of Object.values(this.targets)) {
-      target.canvas.addEventListener("webglcontextlost", target.onContextLost);
-      target.canvas.addEventListener(
-        "webglcontextrestored",
-        target.onContextRestored,
-      );
-    }
     this.updateDebugState();
   }
 
@@ -645,14 +654,6 @@ export class TrainingGpuVolumeSubsystem {
     this.releaseTacticalResources();
     this.releaseVolumeResources();
     for (const target of Object.values(this.targets)) {
-      target.canvas.removeEventListener(
-        "webglcontextlost",
-        target.onContextLost,
-      );
-      target.canvas.removeEventListener(
-        "webglcontextrestored",
-        target.onContextRestored,
-      );
       target.gl = null;
       target.viewport = null;
     }
@@ -670,8 +671,8 @@ export class TrainingGpuVolumeSubsystem {
     const target: TrainingGpuVolumeTarget = {
       objectId,
       canvas,
-      gl: getWebGl2Context(canvas),
-      contextLost: false,
+      gl: null,
+      contextLost: true,
       viewport: null,
       resources: null,
       baseResources: null,
@@ -680,9 +681,6 @@ export class TrainingGpuVolumeSubsystem {
       onContextLost: (_event: Event) => undefined,
       onContextRestored: () => undefined,
     };
-    target.contextLost = target.gl === null;
-    target.onContextLost = (event) => this.loseTarget(target, event);
-    target.onContextRestored = () => this.restoreTarget(target);
     return target;
   }
 
@@ -860,7 +858,7 @@ export class TrainingGpuVolumeSubsystem {
 
   private renderTacticalTarget(
     target: TrainingGpuVolumeTarget,
-    state: TrainingGpuTacticalSnapshot[TrainingGpuPreparedObjectId],
+    state: TrainingGpuTacticalSnapshot[TrainingGpuVolumeObjectId],
     running: boolean,
   ) {
     const { gl, resources, tacticalResources, viewport } = target;
@@ -1099,8 +1097,8 @@ export class TrainingGpuVolumeSubsystem {
   }
 
   private restoreTarget(target: TrainingGpuVolumeTarget) {
-    target.gl = getWebGl2Context(target.canvas);
-    target.contextLost = target.gl === null;
+    target.gl = null;
+    target.contextLost = true;
     if (!target.gl) {
       this.setBaseReady(false);
       this.setVolumeReady(false);

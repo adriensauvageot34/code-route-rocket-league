@@ -90,6 +90,14 @@ export type TrainingGpuDebugGlobalSnapshot = {
   viewportCssHeight: number;
   viewportPixelWidth: number;
   viewportPixelHeight: number;
+  canvasCount: number;
+  contextCount: number;
+  drawCallsPerFrame: number;
+  clearCallsPerFrame: number;
+  programChangesPerFrame: number;
+  textureBindsPerFrame: number;
+  blendChangesPerFrame: number;
+  framebufferChangesPerFrame: number;
 };
 
 export type TrainingGpuDebugAssetSnapshot = {

@@ -42,6 +42,8 @@ uniform float u_glow_strength;
 
 out vec4 outColor;
 
+const int LOCAL_CAR_SURFACE_MASK_KIND = 4;
+
 float ramp(float startValue, float endValue, float value) {
   return clamp((value - startValue) / max(0.0001, endValue - startValue), 0.0, 1.0);
 }
@@ -85,10 +87,17 @@ float ballContourMask(float value) {
 
 float getMaskAlpha() {
   vec2 direction = vec2(cos(u_mask_angle), sin(u_mask_angle));
-  vec2 local = (v_canvas_uv - vec2(u_mask_center, 0.5)) / u_mask_scale;
+  vec2 maskUv =
+    u_mask_kind == LOCAL_CAR_SURFACE_MASK_KIND ? v_uv : v_canvas_uv;
+  vec2 local = (maskUv - vec2(u_mask_center, 0.5)) / u_mask_scale;
   float value = dot(local, direction) + 0.5;
 
-  if (u_mask_kind == 0) return carSurfaceMask(value);
+  if (
+    u_mask_kind == 0 ||
+    u_mask_kind == LOCAL_CAR_SURFACE_MASK_KIND
+  ) {
+    return carSurfaceMask(value);
+  }
   if (u_mask_kind == 1) return carContourMask(value);
   if (u_mask_kind == 2) return ballSurfaceMask(value);
   return ballContourMask(value);

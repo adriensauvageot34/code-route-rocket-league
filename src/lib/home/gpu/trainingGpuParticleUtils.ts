@@ -21,6 +21,8 @@ export type TrainingGpuParticleUniforms = {
   viewportCss: WebGLUniformLocation;
   passElapsedMs: WebGLUniformLocation;
   passValid: WebGLUniformLocation;
+  parallaxOffset: WebGLUniformLocation | null;
+  parallaxScale: WebGLUniformLocation | null;
 };
 
 export type TrainingGpuParticleResources = {
@@ -28,9 +30,28 @@ export type TrainingGpuParticleResources = {
   instanceCount: number;
   program: WebGLProgram;
   quadBuffer: WebGLBuffer;
+  ownsQuadBuffer: boolean;
   uniforms: TrainingGpuParticleUniforms;
   vertexArray: WebGLVertexArrayObject;
 };
+
+const CONSOLIDATED_PARTICLE_VERTEX_SHADER =
+  TRAINING_GPU_PARTICLE_VERTEX_SHADER
+    .replace(
+      "uniform vec2 u_pass_valid;",
+      `uniform vec2 u_pass_valid;
+uniform vec2 u_parallax_offset;
+uniform float u_parallax_scale;`,
+    )
+    .replace(
+      "vec2 vertexCss = baseCss + offset + rotatedLocalPx;",
+      `vec2 rawVertexCss = baseCss + offset + rotatedLocalPx;
+  vec2 sceneCenter = u_viewport_css * 0.5;
+  vec2 vertexCss =
+    sceneCenter +
+    (rawVertexCss - sceneCenter) * u_parallax_scale +
+    u_parallax_offset;`,
+    );
 
 function compileShader(
   gl: WebGL2RenderingContext,
@@ -46,7 +67,8 @@ function compileShader(
   gl.compileShader(shader);
 
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    const message = gl.getShaderInfoLog(shader) ?? "Unknown particle shader error.";
+    const message =
+      gl.getShaderInfoLog(shader) ?? "Unknown particle shader error.";
     gl.deleteShader(shader);
     throw new Error(message);
   }
@@ -61,7 +83,7 @@ function createProgram(
   const vertexShader = compileShader(
     gl,
     gl.VERTEX_SHADER,
-    TRAINING_GPU_PARTICLE_VERTEX_SHADER,
+    CONSOLIDATED_PARTICLE_VERTEX_SHADER,
   );
   const fragmentShader = compileShader(
     gl,
@@ -182,6 +204,7 @@ function configureInstanceAttribute(
 export function createTrainingGpuParticleResources(
   gl: WebGL2RenderingContext,
   depth: TrainingGpuParticleDepth,
+  sharedQuadBuffer: WebGLBuffer | null = null,
 ): TrainingGpuParticleResources {
   let program: WebGLProgram | null = null;
   let vertexArray: WebGLVertexArrayObject | null = null;
@@ -191,7 +214,7 @@ export function createTrainingGpuParticleResources(
   try {
     program = createProgram(gl, depth);
     vertexArray = gl.createVertexArray();
-    quadBuffer = gl.createBuffer();
+    quadBuffer = sharedQuadBuffer ?? gl.createBuffer();
     instanceBuffer = gl.createBuffer();
 
     if (!vertexArray || !quadBuffer || !instanceBuffer) {
@@ -202,18 +225,20 @@ export function createTrainingGpuParticleResources(
 
     gl.bindVertexArray(vertexArray);
     gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([
-        -0.5, -0.5,
-        0.5, -0.5,
-        -0.5, 0.5,
-        -0.5, 0.5,
-        0.5, -0.5,
-        0.5, 0.5,
-      ]),
-      gl.STATIC_DRAW,
-    );
+    if (!sharedQuadBuffer) {
+      gl.bufferData(
+        gl.ARRAY_BUFFER,
+        new Float32Array([
+          -0.5, -0.5,
+          0.5, -0.5,
+          -0.5, 0.5,
+          -0.5, 0.5,
+          0.5, -0.5,
+          0.5, 0.5,
+        ]),
+        gl.STATIC_DRAW,
+      );
+    }
     gl.enableVertexAttribArray(0);
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
@@ -232,6 +257,8 @@ export function createTrainingGpuParticleResources(
       viewportCss: getRequiredUniform(gl, program, "u_viewport_css"),
       passElapsedMs: getRequiredUniform(gl, program, "u_pass_elapsed_ms"),
       passValid: getRequiredUniform(gl, program, "u_pass_valid"),
+      parallaxOffset: gl.getUniformLocation(program, "u_parallax_offset"),
+      parallaxScale: gl.getUniformLocation(program, "u_parallax_scale"),
     };
     gl.clearColor(0, 0, 0, 0);
     gl.enable(gl.BLEND);
@@ -241,6 +268,7 @@ export function createTrainingGpuParticleResources(
     return {
       instanceBuffer,
       instanceCount,
+      ownsQuadBuffer: sharedQuadBuffer === null,
       program,
       quadBuffer,
       uniforms,
@@ -248,7 +276,7 @@ export function createTrainingGpuParticleResources(
     };
   } catch (error) {
     gl.deleteBuffer(instanceBuffer);
-    gl.deleteBuffer(quadBuffer);
+    if (!sharedQuadBuffer) gl.deleteBuffer(quadBuffer);
     gl.deleteVertexArray(vertexArray);
     gl.deleteProgram(program);
     throw error;
@@ -262,7 +290,7 @@ export function destroyTrainingGpuParticleResources(
   if (!resources) return;
 
   gl.deleteBuffer(resources.instanceBuffer);
-  gl.deleteBuffer(resources.quadBuffer);
+  if (resources.ownsQuadBuffer) gl.deleteBuffer(resources.quadBuffer);
   gl.deleteVertexArray(resources.vertexArray);
   gl.deleteProgram(resources.program);
 }

@@ -3,7 +3,6 @@
 import {
   useCallback,
   useEffect,
-  useRef,
   useState,
   type CSSProperties,
 } from "react";
@@ -106,11 +105,6 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
     passStartedAtMs,
     running,
   });
-  const leftCarVolumeCanvasRef = useRef<HTMLCanvasElement>(null);
-  const backRightCarVolumeCanvasRef = useRef<HTMLCanvasElement>(null);
-  const frontRightCarVolumeCanvasRef = useRef<HTMLCanvasElement>(null);
-  const ballVolumeCanvasRef = useRef<HTMLCanvasElement>(null);
-  const fennecVolumeCanvasRef = useRef<HTMLCanvasElement>(null);
   const [gpuBasesReady, setGpuBasesReady] = useState(false);
   const [gpuRadarReady, setGpuRadarReady] = useState(false);
   const [gpuParticlesReady, setGpuParticlesReady] = useState(false);
@@ -148,11 +142,14 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
     useGpuRenderer,
     debugCollector,
   );
-  const showDomBase = !useGpuRenderer || !gpuBasesReady;
-  const showDomRadar = !useGpuRenderer || !gpuRadarReady;
-  const showDomParticles = !useGpuRenderer || !gpuParticlesReady;
-  const showDomVolumeScan = !useGpuRenderer || !gpuVolumeScansReady;
-  const showDomTactical = !useGpuRenderer || !gpuTacticalReady;
+  const showDomBase = !useGpuRenderer || !gpuBasesReady || launching;
+  const showDomRadar = !useGpuRenderer || !gpuRadarReady || launching;
+  const showDomParticles =
+    !useGpuRenderer || !gpuParticlesReady || launching;
+  const showDomVolumeScan =
+    !useGpuRenderer || !gpuVolumeScansReady || launching;
+  const showDomTactical =
+    !useGpuRenderer || !gpuTacticalReady || launching;
   const applyDomSnapshot = useTrainingDomRadarDriver({
     active,
     debugCollector,
@@ -293,11 +290,6 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
           radarClock={radarClock}
           running={running}
           volumeAssets={gpuVolumeAssets}
-          leftCarVolumeCanvasRef={leftCarVolumeCanvasRef}
-          backRightCarVolumeCanvasRef={backRightCarVolumeCanvasRef}
-          frontRightCarVolumeCanvasRef={frontRightCarVolumeCanvasRef}
-          ballVolumeCanvasRef={ballVolumeCanvasRef}
-          fennecVolumeCanvasRef={fennecVolumeCanvasRef}
         />
       ) : null}
 
@@ -314,11 +306,9 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
 
       <SceneGroup depth={trainingFarCarTarget.depth} layer={10} name={`training-${trainingFarCarTarget.id}`}>
         <TrainingGroundedCar
-          gpuVolumeCanvasRef={leftCarVolumeCanvasRef}
           showDomBase={showDomBase}
           showDomVolumeScan={showDomVolumeScan}
           showDomTactical={showDomTactical}
-          showGpuVolumeCanvas={useGpuRenderer}
           target={trainingFarCarTarget}
         />
       </SceneGroup>
@@ -332,33 +322,27 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
 
       <SceneGroup depth={trainingMidCarTarget.depth} layer={12} name={`training-${trainingMidCarTarget.id}`}>
         <TrainingGroundedCar
-          gpuVolumeCanvasRef={backRightCarVolumeCanvasRef}
           showDomBase={showDomBase}
           showDomVolumeScan={showDomVolumeScan}
           showDomTactical={showDomTactical}
-          showGpuVolumeCanvas={useGpuRenderer}
           target={trainingMidCarTarget}
         />
       </SceneGroup>
 
       <SceneGroup depth={trainingNearCarTarget.depth} layer={13} name={`training-${trainingNearCarTarget.id}`}>
         <TrainingGroundedCar
-          gpuVolumeCanvasRef={frontRightCarVolumeCanvasRef}
           showDomBase={showDomBase}
           showDomVolumeScan={showDomVolumeScan}
           showDomTactical={showDomTactical}
-          showGpuVolumeCanvas={useGpuRenderer}
           target={trainingNearCarTarget}
         />
       </SceneGroup>
 
       <SceneGroup depth={trainingBallRadarTarget.depth} layer={14} name="ball">
         <TrainingGroundedBall
-          gpuVolumeCanvasRef={ballVolumeCanvasRef}
           showDomBase={showDomBase}
           showDomVolumeScan={showDomVolumeScan}
           showDomTactical={showDomTactical}
-          showGpuVolumeCanvas={useGpuRenderer}
           target={trainingBallRadarTarget}
         />
       </SceneGroup>
@@ -379,13 +363,6 @@ export function TrainingScene({ active, launching }: TrainingSceneProps) {
         >
           <SceneLayer asset={assets.fennecBase} className="training-fennec-base" />
         </div>
-        {useGpuRenderer ? (
-          <canvas
-            aria-hidden="true"
-            className="training-gpu-canvas training-gpu-fennec-canvas"
-            ref={fennecVolumeCanvasRef}
-          />
-        ) : null}
         <div
           className="training-radar-fennec-target"
           data-surface-scan-mode="hidden"

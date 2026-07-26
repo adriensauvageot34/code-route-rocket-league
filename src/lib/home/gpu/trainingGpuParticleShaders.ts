@@ -31,6 +31,7 @@ uniform vec2 u_pass_valid;
 
 out vec2 v_local_px;
 out vec2 v_shape_size;
+out vec2 v_quad_half_size;
 out vec2 v_scene_uv;
 out float v_opacity;
 out float v_brightness;
@@ -276,7 +277,15 @@ void main() {
 
   if (!visible) opacity = 0.0;
 
-  float padding = max(2.0, glow * 1.25 + blur * 2.0);
+  const float glowEdgeAlphaThreshold = 0.001;
+  float glowPadding = glow > 0.001
+    ? glow * sqrt(log(0.48 / glowEdgeAlphaThreshold) / 2.0)
+    : 0.0;
+  float blurAndAntialiasPadding = max(blur, 0.0) + 1.0;
+  float padding = max(
+    2.0,
+    max(glowPadding, blurAndAntialiasPadding)
+  );
   vec2 quadSize = max(shapeSize, vec2(0.01)) + vec2(padding * 2.0);
   vec2 localPx = a_quad * quadSize;
   vec2 rotatedLocalPx = rotateVector(localPx, rotation);
@@ -287,6 +296,7 @@ void main() {
   gl_Position = vec4(clip.x, -clip.y, 0.0, 1.0);
   v_local_px = localPx;
   v_shape_size = max(shapeSize, vec2(0.01));
+  v_quad_half_size = quadSize * 0.5;
   v_scene_uv = vertexCss / u_viewport_css;
   v_opacity = opacity;
   v_brightness = brightness;
@@ -309,6 +319,7 @@ precision highp float;
 
 in vec2 v_local_px;
 in vec2 v_shape_size;
+in vec2 v_quad_half_size;
 in vec2 v_scene_uv;
 in float v_opacity;
 in float v_brightness;
@@ -318,7 +329,12 @@ in float v_glow;
 flat in float v_kind;
 flat in float v_component;
 
+uniform vec2 u_viewport_css;
+
 out vec4 outputColor;
+
+const float DEPTH_BAND_FEATHER_PX = 3.0;
+const float TERRAIN_FEATHER_PX = 2.0;
 
 float segmentDistance(vec2 point, vec2 start, vec2 end) {
   vec2 edge = end - start;
@@ -373,42 +389,46 @@ float polygon5Distance(
   return inside ? -distanceToEdge : distanceToEdge;
 }
 
-float particleShapeDistance(vec2 uv) {
+vec2 shapeUvToLocalPx(vec2 pointUv, vec2 shapeSize) {
+  return (pointUv - vec2(0.5)) * shapeSize;
+}
+
+float particleShapeDistancePx(vec2 pointPx, vec2 shapeSize) {
   if (v_component > 1.5) {
     return polygon4Distance(
-      uv,
-      vec2(0.5, 0.0),
-      vec2(1.0, 0.48),
-      vec2(0.52, 1.0),
-      vec2(0.0, 0.55)
+      pointPx,
+      shapeUvToLocalPx(vec2(0.5, 0.0), shapeSize),
+      shapeUvToLocalPx(vec2(1.0, 0.48), shapeSize),
+      shapeUvToLocalPx(vec2(0.52, 1.0), shapeSize),
+      shapeUvToLocalPx(vec2(0.0, 0.55), shapeSize)
     );
   }
   if (v_kind < 0.5) {
     return polygon5Distance(
-      uv,
-      vec2(0.0, 0.42),
-      vec2(0.67, 0.0),
-      vec2(1.0, 0.48),
-      vec2(0.64, 1.0),
-      vec2(0.08, 0.72)
+      pointPx,
+      shapeUvToLocalPx(vec2(0.0, 0.42), shapeSize),
+      shapeUvToLocalPx(vec2(0.67, 0.0), shapeSize),
+      shapeUvToLocalPx(vec2(1.0, 0.48), shapeSize),
+      shapeUvToLocalPx(vec2(0.64, 1.0), shapeSize),
+      shapeUvToLocalPx(vec2(0.08, 0.72), shapeSize)
     );
   }
   if (v_kind < 1.5) {
     return polygon4Distance(
-      uv,
-      vec2(0.5, 0.0),
-      vec2(1.0, 0.5),
-      vec2(0.5, 1.0),
-      vec2(0.0, 0.5)
+      pointPx,
+      shapeUvToLocalPx(vec2(0.5, 0.0), shapeSize),
+      shapeUvToLocalPx(vec2(1.0, 0.5), shapeSize),
+      shapeUvToLocalPx(vec2(0.5, 1.0), shapeSize),
+      shapeUvToLocalPx(vec2(0.0, 0.5), shapeSize)
     );
   }
   return polygon5Distance(
-    uv,
-    vec2(0.0, 0.38),
-    vec2(0.84, 0.0),
-    vec2(1.0, 0.5),
-    vec2(0.82, 1.0),
-    vec2(0.0, 0.62)
+    pointPx,
+    shapeUvToLocalPx(vec2(0.0, 0.38), shapeSize),
+    shapeUvToLocalPx(vec2(0.84, 0.0), shapeSize),
+    shapeUvToLocalPx(vec2(1.0, 0.5), shapeSize),
+    shapeUvToLocalPx(vec2(0.82, 1.0), shapeSize),
+    shapeUvToLocalPx(vec2(0.0, 0.62), shapeSize)
   );
 }
 
@@ -432,44 +452,33 @@ float terrainAlpha(float y) {
   return mix(0.94, 1.0, clamp((y - 0.86) / 0.14, 0.0, 1.0));
 }
 
-float cross2d(vec2 a, vec2 b) {
-  return a.x * b.y - a.y * b.x;
-}
+float depthBandDistancePx(vec2 pointUv) {
+  vec2 viewport = max(u_viewport_css, vec2(1.0));
+  vec2 point = pointUv * viewport;
 
-bool insideConvexQuad(vec2 point, vec2 a, vec2 b, vec2 c, vec2 d) {
-  float ab = cross2d(b - a, point - a);
-  float bc = cross2d(c - b, point - b);
-  float cd = cross2d(d - c, point - c);
-  float da = cross2d(a - d, point - d);
-  bool nonNegative = ab >= 0.0 && bc >= 0.0 && cd >= 0.0 && da >= 0.0;
-  bool nonPositive = ab <= 0.0 && bc <= 0.0 && cd <= 0.0 && da <= 0.0;
-  return nonNegative || nonPositive;
-}
-
-bool insideDepthBand(vec2 point) {
   #if PARTICLE_DEPTH == 0
-    return insideConvexQuad(
+    return polygon4Distance(
       point,
-      vec2(0.03, 0.445),
-      vec2(0.97, 0.445),
-      vec2(0.98, 0.57),
-      vec2(0.02, 0.57)
+      vec2(0.03, 0.445) * viewport,
+      vec2(0.97, 0.445) * viewport,
+      vec2(0.98, 0.57) * viewport,
+      vec2(0.02, 0.57) * viewport
     );
   #elif PARTICLE_DEPTH == 1
-    return insideConvexQuad(
+    return polygon4Distance(
       point,
-      vec2(0.024, 0.52),
-      vec2(0.976, 0.52),
-      vec2(0.992, 0.775),
-      vec2(0.008, 0.775)
+      vec2(0.024, 0.52) * viewport,
+      vec2(0.976, 0.52) * viewport,
+      vec2(0.992, 0.775) * viewport,
+      vec2(0.008, 0.775) * viewport
     );
   #else
-    return insideConvexQuad(
+    return polygon4Distance(
       point,
-      vec2(0.01, 0.675),
-      vec2(0.99, 0.675),
-      vec2(1.0, 1.0),
-      vec2(0.0, 1.0)
+      vec2(0.01, 0.675) * viewport,
+      vec2(0.99, 0.675) * viewport,
+      vec2(1.0, 1.0) * viewport,
+      vec2(0.0, 1.0) * viewport
     );
   #endif
 }
@@ -486,41 +495,72 @@ vec3 applyColorFilter(vec3 color, float brightness, float saturation) {
 }
 
 void main() {
-  if (
-    v_opacity <= 0.0001 ||
-    v_scene_uv.y < terrainTop(v_scene_uv.x) ||
-    !insideDepthBand(v_scene_uv)
-  ) {
+  if (v_opacity <= 0.0001) {
     discard;
   }
 
   vec2 uv = v_local_px / v_shape_size + 0.5;
   vec3 primaryColor = mainParticleColor();
-  float minimumSize = max(min(v_shape_size.x, v_shape_size.y), 0.25);
-  float signedDistance;
+  float signedDistance = 0.0;
   float shapeAlpha;
+  float glowAlpha = 0.0;
   vec3 shapeColor = primaryColor;
   float colorCoverage = 1.0;
+  float glowCoverage = 1.0;
 
   if (v_component > 0.5 && v_component < 1.5) {
-    vec2 normalized = abs(v_local_px) / max(v_shape_size * 0.5, vec2(0.001));
-    signedDistance =
-      (max(normalized.x, normalized.y) - 1.0) *
-      max(min(v_shape_size.x, v_shape_size.y) * 0.5, 0.25);
-    float horizontalAlpha = smoothstep(0.0, 0.48, uv.x) *
-      (1.0 - smoothstep(0.52, 1.0, uv.x));
-    shapeAlpha = horizontalAlpha * (1.0 - smoothstep(-0.04, 0.08, signedDistance));
-    shapeColor = uv.x < 0.5
-      ? mix(vec3(0.0), vec3(${colors.warmWhite}), smoothstep(0.0, 0.48, uv.x))
-      : mix(primaryColor, vec3(0.0), smoothstep(0.52, 1.0, uv.x));
+    float flashUvX = clamp(
+      v_local_px.x / max(v_shape_size.x, 0.001) + 0.5,
+      0.0,
+      1.0
+    );
+    float flashEnvelope =
+      smoothstep(0.0, 0.48, flashUvX) *
+      (1.0 - smoothstep(0.52, 1.0, flashUvX));
+    float verticalDistance = abs(v_local_px.y);
+    float coreHalfThickness = max(v_shape_size.y * 0.5, 0.5);
+    float verticalCore =
+      1.0 - smoothstep(
+        coreHalfThickness,
+        coreHalfThickness + max(v_blur, 0.5),
+        verticalDistance
+      );
+    shapeAlpha = flashEnvelope * verticalCore;
+
+    float flashGlowRadius = max(1.0, v_glow * 0.12);
+    float verticalGlow =
+      exp(
+        -2.0 *
+        pow(verticalDistance / flashGlowRadius, 2.0)
+      ) * 0.48;
+    glowAlpha = flashEnvelope * verticalGlow;
+
+    shapeColor = flashUvX < 0.5
+      ? mix(
+          vec3(0.0),
+          vec3(${colors.warmWhite}),
+          smoothstep(0.0, 0.48, flashUvX)
+        )
+      : mix(
+          primaryColor,
+          vec3(0.0),
+          smoothstep(0.52, 1.0, flashUvX)
+        );
   } else {
-    signedDistance = particleShapeDistance(uv) * minimumSize;
+    signedDistance = particleShapeDistancePx(
+      v_local_px,
+      v_shape_size
+    );
     float antialias = max(fwidth(signedDistance), 0.35);
     shapeAlpha = 1.0 - smoothstep(
       -antialias,
       antialias + max(v_blur, 0.0),
       signedDistance
     );
+    float positiveDistance = max(signedDistance, 0.0);
+    glowAlpha = v_glow > 0.001
+      ? exp(-2.0 * pow(positiveDistance / v_glow, 2.0)) * 0.48
+      : 0.0;
 
     if (v_kind > 1.5 && v_component < 0.5) {
       vec3 purple = vec3(${colors.tacticalPurple}) * 0.72;
@@ -543,15 +583,48 @@ void main() {
         colorCoverage = mix(0.88, 0.0, progress);
       }
       shapeAlpha *= colorCoverage;
+      glowCoverage = colorCoverage;
     }
+    glowAlpha *= glowCoverage;
   }
 
-  float positiveDistance = max(signedDistance, 0.0);
-  float glowAlpha = v_glow > 0.001
-    ? exp(-2.0 * pow(positiveDistance / v_glow, 2.0)) * 0.48
-    : 0.0;
-  float maskAlpha = terrainAlpha(v_scene_uv.y);
-  float alpha = clamp((shapeAlpha + glowAlpha) * v_opacity * maskAlpha, 0.0, 1.0);
+  float particleAlpha = clamp(
+    (shapeAlpha + glowAlpha) *
+      v_opacity *
+      terrainAlpha(v_scene_uv.y),
+    0.0,
+    1.0
+  );
+  float terrainDistancePx =
+    (v_scene_uv.y - terrainTop(v_scene_uv.x)) *
+    max(u_viewport_css.y, 1.0);
+  float terrainCoverage = smoothstep(
+    -TERRAIN_FEATHER_PX,
+    TERRAIN_FEATHER_PX,
+    terrainDistancePx
+  );
+  float depthBandCoverage = 1.0 - smoothstep(
+    -DEPTH_BAND_FEATHER_PX,
+    DEPTH_BAND_FEATHER_PX,
+    depthBandDistancePx(v_scene_uv)
+  );
+  vec2 edgeDistance = v_quad_half_size - abs(v_local_px);
+  float edgeDistancePx = min(edgeDistance.x, edgeDistance.y);
+  float edgeFadeWidthPx = clamp(v_blur + 0.75, 1.0, 2.0);
+  float quadEdgeCoverage = smoothstep(
+    0.0,
+    edgeFadeWidthPx,
+    edgeDistancePx
+  );
+  float alpha =
+    particleAlpha *
+    terrainCoverage *
+    depthBandCoverage *
+    quadEdgeCoverage;
+  if (alpha <= 0.0001) {
+    discard;
+  }
+
   vec3 filteredColor = applyColorFilter(
     mix(primaryColor, shapeColor, shapeAlpha),
     v_brightness,

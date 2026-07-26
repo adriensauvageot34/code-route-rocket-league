@@ -20,6 +20,7 @@ type TrainingGpuBaseUniforms = {
 };
 
 export type TrainingGpuBaseResources = {
+  ownsProgram: boolean;
   program: WebGLProgram;
   texture: WebGLTexture;
   uniforms: TrainingGpuBaseUniforms;
@@ -133,6 +134,10 @@ export function createTrainingGpuBaseResources(
   gl: WebGL2RenderingContext,
   assets: TrainingGpuDecodedObjectAssetSet,
   debugCollector: TrainingGpuDebugCollector | null,
+  sharedPipeline: Pick<
+    TrainingGpuBaseResources,
+    "program" | "uniforms"
+  > | null = null,
 ): TrainingGpuBaseResources {
   const baseAsset = assets.assets.base;
   if (!baseAsset) {
@@ -143,23 +148,29 @@ export function createTrainingGpuBaseResources(
   let texture: WebGLTexture | null = null;
 
   try {
-    program = createProgram(gl);
+    program = sharedPipeline?.program ?? createProgram(gl);
     texture = createTexture(gl, baseAsset, debugCollector);
     gl.useProgram(program);
-    const uniforms: TrainingGpuBaseUniforms = {
-      texture: getUniform(gl, program, "u_texture"),
-      viewportCss: getUniform(gl, program, "u_viewport_css"),
-      quadCss: getUniform(gl, program, "u_quad_css"),
-      opacity: getUniform(gl, program, "u_opacity"),
-      brightness: getUniform(gl, program, "u_brightness"),
-      saturation: getUniform(gl, program, "u_saturation"),
-    };
+    const uniforms: TrainingGpuBaseUniforms =
+      sharedPipeline?.uniforms ?? {
+        texture: getUniform(gl, program, "u_texture"),
+        viewportCss: getUniform(gl, program, "u_viewport_css"),
+        quadCss: getUniform(gl, program, "u_quad_css"),
+        opacity: getUniform(gl, program, "u_opacity"),
+        brightness: getUniform(gl, program, "u_brightness"),
+        saturation: getUniform(gl, program, "u_saturation"),
+      };
     gl.uniform1i(uniforms.texture, 0);
     gl.useProgram(null);
-    return { program, texture, uniforms };
+    return {
+      ownsProgram: sharedPipeline === null,
+      program,
+      texture,
+      uniforms,
+    };
   } catch (error) {
     gl.deleteTexture(texture);
-    gl.deleteProgram(program);
+    if (!sharedPipeline) gl.deleteProgram(program);
     throw error;
   }
 }
@@ -170,7 +181,7 @@ export function destroyTrainingGpuBaseResources(
 ) {
   if (!resources) return;
   gl.deleteTexture(resources.texture);
-  gl.deleteProgram(resources.program);
+  if (resources.ownsProgram) gl.deleteProgram(resources.program);
 }
 
 export function renderTrainingGpuBaseTarget(
