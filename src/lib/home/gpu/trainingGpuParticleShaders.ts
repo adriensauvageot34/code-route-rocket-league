@@ -498,24 +498,13 @@ void main() {
   vec2 uv = v_local_px / v_shape_size + 0.5;
   vec3 primaryColor = mainParticleColor();
   float minimumSize = max(min(v_shape_size.x, v_shape_size.y), 0.25);
-  float signedDistance;
+  float signedDistance = 0.0;
   float shapeAlpha;
+  float glowAlpha = 0.0;
   vec3 shapeColor = primaryColor;
   float colorCoverage = 1.0;
-  float glowCoverage = 1.0;
 
   if (v_component > 0.5 && v_component < 1.5) {
-    vec2 halfSize = max(v_shape_size * 0.5, vec2(0.001));
-    float halfLength = halfSize.x;
-    float halfThickness = max(halfSize.y, 0.5);
-    float closestX = clamp(
-      v_local_px.x,
-      -halfLength,
-      halfLength
-    );
-    signedDistance =
-      length(v_local_px - vec2(closestX, 0.0)) -
-      halfThickness;
     float flashUvX = clamp(
       v_local_px.x / max(v_shape_size.x, 0.001) + 0.5,
       0.0,
@@ -524,15 +513,24 @@ void main() {
     float flashEnvelope =
       smoothstep(0.0, 0.48, flashUvX) *
       (1.0 - smoothstep(0.52, 1.0, flashUvX));
-    float antialias = max(fwidth(signedDistance), 0.35);
-    shapeAlpha =
-      flashEnvelope *
-      (1.0 - smoothstep(
-        -antialias,
-        antialias + max(v_blur, 0.0),
-        signedDistance
-      ));
-    glowCoverage = flashEnvelope;
+    float verticalDistance = abs(v_local_px.y);
+    float coreHalfThickness = max(v_shape_size.y * 0.5, 0.5);
+    float verticalCore =
+      1.0 - smoothstep(
+        coreHalfThickness,
+        coreHalfThickness + max(v_blur, 0.5),
+        verticalDistance
+      );
+    shapeAlpha = flashEnvelope * verticalCore;
+
+    float flashGlowRadius = max(1.0, v_glow * 0.5);
+    float verticalGlow =
+      exp(
+        -2.0 *
+        pow(verticalDistance / flashGlowRadius, 2.0)
+      ) * 0.48;
+    glowAlpha = flashEnvelope * verticalGlow;
+
     shapeColor = flashUvX < 0.5
       ? mix(
           vec3(0.0),
@@ -552,6 +550,10 @@ void main() {
       antialias + max(v_blur, 0.0),
       signedDistance
     );
+    float positiveDistance = max(signedDistance, 0.0);
+    glowAlpha = v_glow > 0.001
+      ? exp(-2.0 * pow(positiveDistance / v_glow, 2.0)) * 0.48
+      : 0.0;
 
     if (v_kind > 1.5 && v_component < 0.5) {
       vec3 purple = vec3(${colors.tacticalPurple}) * 0.72;
@@ -577,11 +579,6 @@ void main() {
     }
   }
 
-  float positiveDistance = max(signedDistance, 0.0);
-  float glowAlpha = v_glow > 0.001
-    ? exp(-2.0 * pow(positiveDistance / v_glow, 2.0)) * 0.48
-    : 0.0;
-  glowAlpha *= glowCoverage;
   float particleAlpha = clamp(
     (shapeAlpha + glowAlpha) *
       v_opacity *
