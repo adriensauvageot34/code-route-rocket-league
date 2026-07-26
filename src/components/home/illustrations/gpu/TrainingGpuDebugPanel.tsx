@@ -22,6 +22,7 @@ const SUBSYSTEM_NAMES = [
   "particles",
   "volume",
   "fennec-volume",
+  "fennec-effects",
   "tactical",
 ] as const satisfies readonly TrainingGpuDebugSubsystemName[];
 

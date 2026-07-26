@@ -215,7 +215,7 @@ function getUniform(
   return location;
 }
 
-function createTexture(
+export function createTrainingGpuVolumeTexture(
   gl: WebGL2RenderingContext,
   asset: TrainingGpuDecodedObjectAsset,
   debugCollector: TrainingGpuDebugCollector | null,
@@ -297,8 +297,16 @@ export function createTrainingGpuVolumeResources(
     gl.bindVertexArray(null);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-    surfaceTexture = createTexture(gl, surfaceAsset, debugCollector);
-    contourTexture = createTexture(gl, contourAsset, debugCollector);
+    surfaceTexture = createTrainingGpuVolumeTexture(
+      gl,
+      surfaceAsset,
+      debugCollector,
+    );
+    contourTexture = createTrainingGpuVolumeTexture(
+      gl,
+      contourAsset,
+      debugCollector,
+    );
 
     gl.useProgram(program);
     const uniforms: TrainingGpuVolumeUniforms = {
