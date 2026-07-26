@@ -850,7 +850,7 @@ export class TrainingGpuVolumeSubsystem {
 
   private renderTacticalTarget(
     target: TrainingGpuVolumeTarget,
-    state: TrainingGpuTacticalSnapshot[TrainingGpuPreparedObjectId],
+    state: TrainingGpuTacticalSnapshot[TrainingGpuVolumeObjectId],
     running: boolean,
   ) {
     const { gl, resources, tacticalResources, viewport } = target;
