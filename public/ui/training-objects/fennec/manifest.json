@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "objectId": "fennec",
+  "assets": {
+    "base": {
+      "file": "base.webp",
+      "sourceSize": {
+        "width": 1672,
+        "height": 941
+      },
+      "crop": {
+        "x": 1008,
+        "y": 428,
+        "width": 552,
+        "height": 416
+      },
+      "outputSize": {
+        "width": 552,
+        "height": 416
+      },
+      "paddingPx": 16,
+      "alignmentGroup": "fennec:base-scene",
+      "placementSpace": "scene"
+    },
+    "volumeSurface": {
+      "file": "volume-surface.webp",
+      "sourceSize": {
+        "width": 1672,
+        "height": 941
+      },
+      "crop": {
+        "x": 924,
+        "y": 398,
+        "width": 688,
+        "height": 456
+      },
+      "outputSize": {
+        "width": 688,
+        "height": 456
+      },
+      "paddingPx": 20,
+      "alignmentGroup": "fennec:surface-frame",
+      "placementSpace": "fennec-surface-frame"
+    },
+    "volumeContour": {
+      "file": "volume-contour.webp",
+      "sourceSize": {
+        "width": 1672,
+        "height": 941
+      },
+      "crop": {
+        "x": 967,
+        "y": 404,
+        "width": 624,
+        "height": 424
+      },
+      "outputSize": {
+        "width": 624,
+        "height": 424
+      },
+      "paddingPx": 24,
+      "alignmentGroup": "fennec:contour-scene",
+      "placementSpace": "scene"
+    },
+    "tacticalImpact": {
+      "file": "tactical-impact.webp",
+      "sourceSize": {
+        "width": 1672,
+        "height": 941
+      },
+      "crop": {
+        "x": 608,
+        "y": 163,
+        "width": 976,
+        "height": 640
+      },
+      "outputSize": {
+        "width": 976,
+        "height": 640
+      },
+      "paddingPx": 24,
+      "alignmentGroup": "fennec:impact-frame",
+      "placementSpace": "fennec-impact-frame"
+    }
+  }
+}
