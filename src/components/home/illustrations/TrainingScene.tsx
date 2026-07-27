@@ -410,54 +410,60 @@ export function TrainingScene({
         />
       </SceneGroup>
 
-      <SceneGroup depth="trainingGround" layer={5} name="training-ground">
-        <TrainingEnvironmentLayer
-          asset={assets.parallaxGround}
-          assetId="ground"
-          onError={handleEnvironmentAssetSettled}
-          onLoad={handleEnvironmentAssetSettled}
-          preload
-        />
-      </SceneGroup>
+      {/* Ground, radar, GPU objects, shadows, and barrier share this transformable parent to prevent relative camera drift. */}
+      <div
+        className="training-world-plane"
+        data-training-world-plane="true"
+      >
+        <SceneGroup depth="trainingGround" layer={5} name="training-ground">
+          <TrainingEnvironmentLayer
+            asset={assets.parallaxGround}
+            assetId="ground"
+            onError={handleEnvironmentAssetSettled}
+            onLoad={handleEnvironmentAssetSettled}
+            preload
+          />
+        </SceneGroup>
 
-      {useGpuRenderer ? (
-        <TrainingGpuCanvas
-          active={active}
-          applyCameraSnapshot={applyCameraSnapshot}
-          applyDomSnapshot={null}
-          debugCollector={debugCollector}
-          onBasesReadyChange={setGpuBasesReady}
-          onCriticalErrorChange={setGpuCriticalError}
-          onFennecBaseReadyChange={setGpuFennecBaseReady}
-          onFennecEffectsReadyChange={setGpuFennecEffectsReady}
-          onFennecVolumeReadyChange={setGpuFennecVolumeReady}
-          onLifecycleStateChange={handleGpuLifecycleStateChange}
-          onParticlesReadyChange={setGpuParticlesReady}
-          onRadarReadyChange={setGpuRadarReady}
-          onVolumeScansReadyChange={setGpuVolumeScansReady}
-          onTacticalReadyChange={setGpuTacticalReady}
-          onResizePendingChange={setGpuResizePending}
-          radarClock={radarClock}
-          running={
-            running &&
-            activeRendererMode === "gpu" &&
-            !gpuCriticalFailed
-          }
-          volumeAssets={gpuVolumeAssets}
-        />
-      ) : null}
+        {useGpuRenderer ? (
+          <TrainingGpuCanvas
+            active={active}
+            applyCameraSnapshot={applyCameraSnapshot}
+            applyDomSnapshot={null}
+            debugCollector={debugCollector}
+            onBasesReadyChange={setGpuBasesReady}
+            onCriticalErrorChange={setGpuCriticalError}
+            onFennecBaseReadyChange={setGpuFennecBaseReady}
+            onFennecEffectsReadyChange={setGpuFennecEffectsReady}
+            onFennecVolumeReadyChange={setGpuFennecVolumeReady}
+            onLifecycleStateChange={handleGpuLifecycleStateChange}
+            onParticlesReadyChange={setGpuParticlesReady}
+            onRadarReadyChange={setGpuRadarReady}
+            onVolumeScansReadyChange={setGpuVolumeScansReady}
+            onTacticalReadyChange={setGpuTacticalReady}
+            onResizePendingChange={setGpuResizePending}
+            radarClock={radarClock}
+            running={
+              running &&
+              activeRendererMode === "gpu" &&
+              !gpuCriticalFailed
+            }
+            volumeAssets={gpuVolumeAssets}
+          />
+        ) : null}
 
-      <SceneGroup depth="trainingGround" layer={8} name="training-barrier">
-        <TrainingEnvironmentLayer
-          asset={assets.parallaxBarrier}
-          assetId="barrier"
-          onError={handleEnvironmentAssetSettled}
-          onLoad={handleEnvironmentAssetSettled}
-          preload
-        />
-      </SceneGroup>
+        <SceneGroup depth="trainingGround" layer={8} name="training-barrier">
+          <TrainingEnvironmentLayer
+            asset={assets.parallaxBarrier}
+            assetId="barrier"
+            onError={handleEnvironmentAssetSettled}
+            onLoad={handleEnvironmentAssetSettled}
+            preload
+          />
+        </SceneGroup>
 
-      {showStaticFallback ? <TrainingStaticFallback /> : null}
+        {showStaticFallback ? <TrainingStaticFallback /> : null}
+      </div>
 
       {debugEnabled && debugCollector ? (
         <TrainingGpuDebugPanel

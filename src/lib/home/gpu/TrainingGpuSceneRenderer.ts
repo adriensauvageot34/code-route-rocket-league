@@ -211,21 +211,16 @@ function applyDepthTransform(
   rect: TrainingGpuObjectRenderRect,
   depth: HomeSceneDepth,
   viewport: TrainingGpuViewport,
-  parallax: TrainingGpuParallaxSnapshot,
+  _parallax: TrainingGpuParallaxSnapshot,
 ): TrainingGpuObjectRenderRect {
   const configuration = homeSceneDepths[depth];
-  const scaleX =
-    parallax.effectiveScaleX[depth] ?? configuration.scale;
+  const scaleX = configuration.scale;
   const scaleY =
     "scaleY" in configuration
       ? configuration.scaleY
       : configuration.scale;
-  const translationX =
-    parallax.effectiveTranslationX[depth] ??
-    configuration.translationX;
-  const point = parallax.pointsByDepth[depth] ?? parallax.point;
-  const offsetX = point.x * translationX;
-  const offsetY = point.y * configuration.translationY;
+  const offsetX = 0;
+  const offsetY = 0;
   const centerX = viewport.cssWidth / 2;
   const centerY = viewport.cssHeight / 2;
 
