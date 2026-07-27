@@ -5,6 +5,20 @@ import type { TrainingRadarPassMode } from "@/lib/home/trainingRadarClock";
 
 export type TrainingRendererMode = "dom" | "gpu";
 
+export type TrainingRendererFallbackReason =
+  | "none"
+  | "explicit-dom"
+  | "webgl2-unavailable"
+  | "initialization-failed"
+  | "critical-asset-failed"
+  | "context-lost"
+  | "restore-failed";
+
+export type TrainingRendererRequest = {
+  requested: TrainingRendererMode;
+  resolved: boolean;
+};
+
 export type { TrainingRadarPassMode };
 
 export type TrainingGpuContextState =

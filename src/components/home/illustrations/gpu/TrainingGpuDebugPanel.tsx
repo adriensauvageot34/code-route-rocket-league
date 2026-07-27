@@ -198,6 +198,13 @@ export function TrainingGpuDebugPanel({
           {global.rafActive ? "actif" : "arrêté"}
         </span>
         <span>
+          demandé {global.rendererRequested} · effectif{" "}
+          {global.rendererEffective} · résolution{" "}
+          {global.rendererResolved ? "oui" : "en cours"} · fallback{" "}
+          {global.rendererFallback ? "oui" : "non"} · raison{" "}
+          {global.rendererFallbackReason}
+        </span>
+        <span>
           illustration {global.illustrationActive ? "active" : "inactive"} ·
           radar {global.radarRunning ? "actif" : "arrêté"} · onglet{" "}
           {global.tabVisibility}

@@ -29,7 +29,10 @@ import { useTrainingRendererDebug } from "@/hooks/useTrainingRendererDebug";
 import { useTrainingSceneStartup } from "@/hooks/useTrainingSceneStartup";
 import { homeIllustrationAssets } from "@/lib/home/homeIllustrationAssets";
 import type { TrainingCameraFrameApplier } from "@/lib/home/trainingCamera";
-import type { TrainingGpuLifecycleSnapshot } from "@/lib/home/gpu/trainingGpuTypes";
+import type {
+  TrainingGpuLifecycleSnapshot,
+  TrainingRendererFallbackReason,
+} from "@/lib/home/gpu/trainingGpuTypes";
 import {
   getTrainingRadarRangeTiming,
   TRAINING_VOLUME_SCAN_TIMING,
@@ -111,7 +114,9 @@ export function TrainingScene({
   applyCameraSnapshot,
   launching,
 }: TrainingSceneProps) {
-  const trainingRendererMode = useTrainingRendererMode();
+  const rendererRequest = useTrainingRendererMode();
+  const requestedRendererMode = rendererRequest.requested;
+  const rendererResolved = rendererRequest.resolved;
   const { debugEnabled, debugCollector } = useTrainingRendererDebug();
   const [environmentAssetState, setEnvironmentAssetState] = useState(
     INITIAL_ENVIRONMENT_ASSET_STATE,
@@ -120,6 +125,9 @@ export function TrainingScene({
   const [gpuCriticalError, setGpuCriticalError] = useState(false);
   const [gpuLifecycle, setGpuLifecycle] =
     useState<TrainingGpuLifecycleSnapshot>(INITIAL_GPU_LIFECYCLE);
+  const [gpuLifecycleObserved, setGpuLifecycleObserved] = useState(false);
+  const [gpuContextWasAvailable, setGpuContextWasAvailable] =
+    useState(false);
   const [gpuResizePending, setGpuResizePending] = useState(false);
   const [gpuRadarReady, setGpuRadarReady] = useState(false);
   const [gpuParticlesReady, setGpuParticlesReady] = useState(false);
@@ -137,6 +145,13 @@ export function TrainingScene({
   const handleGpuLifecycleStateChange = useCallback(
     (snapshot: TrainingGpuLifecycleSnapshot) => {
       setGpuLifecycle(snapshot);
+      setGpuLifecycleObserved(true);
+      if (
+        snapshot.contextState === "available" ||
+        snapshot.contextState === "restored"
+      ) {
+        setGpuContextWasAvailable(true);
+      }
       setGpuCriticalError(
         snapshot.contextState !== "available" &&
           snapshot.contextState !== "restored",
@@ -165,13 +180,15 @@ export function TrainingScene({
   const handleGpuTacticalReadyChange = useCallback((ready: boolean) => {
     setGpuTacticalReady(ready);
   }, []);
-  const useGpuRenderer = trainingRendererMode === "gpu";
+  const useGpuRenderer =
+    rendererResolved && requestedRendererMode === "gpu";
   const gpuObjectAssetState = useTrainingGpuObjectAssets(
     useGpuRenderer,
     debugCollector,
   );
   const gpuRuntimeUnavailable =
     useGpuRenderer &&
+    gpuLifecycleObserved &&
     gpuLifecycle.contextState !== "available" &&
     gpuLifecycle.contextState !== "restored";
   const gpuCriticalFailed =
@@ -180,7 +197,7 @@ export function TrainingScene({
       gpuRuntimeUnavailable ||
       gpuObjectAssetState.status === "error");
   const domCriticalAssetState = useTrainingDomCriticalAssets(
-    !useGpuRenderer || gpuCriticalFailed,
+    rendererResolved && (!useGpuRenderer || gpuCriticalFailed),
   );
   const environmentReady = Object.values(environmentAssetState).every(
     (state) => state.settled,
@@ -198,6 +215,7 @@ export function TrainingScene({
     gpuFennecVolumeReady;
   const domCriticalReady = domCriticalAssetState.status === "ready";
   const criticalAssetsReady =
+    rendererResolved &&
     environmentReady &&
     (useGpuRenderer
       ? gpuCriticalReady || (gpuCriticalFailed && domCriticalReady)
@@ -241,9 +259,32 @@ export function TrainingScene({
     passStartedAtMs,
     running,
   });
-  const activeRendererMode = gpuCriticalFailed
-    ? "dom"
-    : trainingRendererMode;
+  const activeRendererMode =
+    !rendererResolved ||
+    requestedRendererMode === "dom" ||
+    gpuCriticalFailed
+      ? "dom"
+      : "gpu";
+  const rendererFallbackReason: TrainingRendererFallbackReason =
+    !rendererResolved
+      ? "none"
+      : requestedRendererMode === "dom"
+        ? "explicit-dom"
+        : gpuObjectAssetState.status === "error"
+          ? "critical-asset-failed"
+          : gpuLifecycle.contextState === "restore-failed"
+            ? "restore-failed"
+            : gpuRuntimeUnavailable
+              ? gpuContextWasAvailable
+                ? "context-lost"
+                : "webgl2-unavailable"
+              : gpuCriticalError
+                ? "initialization-failed"
+                : "none";
+  const rendererFallback =
+    rendererResolved &&
+    requestedRendererMode === "gpu" &&
+    activeRendererMode === "dom";
   const runtimeState = launching
     ? "launching"
     : !documentVisible
@@ -308,7 +349,12 @@ export function TrainingScene({
 
   useEffect(() => {
     debugCollector?.setGlobal({
-      mode: trainingRendererMode,
+      mode: activeRendererMode,
+      rendererRequested: requestedRendererMode,
+      rendererEffective: activeRendererMode,
+      rendererResolved,
+      rendererFallback,
+      rendererFallbackReason,
       illustrationActive: active,
       radarRunning: running,
       globalTimersActive,
@@ -348,7 +394,11 @@ export function TrainingScene({
     reducedMotion,
     runtimeState,
     skippedPasses,
-    trainingRendererMode,
+    activeRendererMode,
+    rendererFallback,
+    rendererFallbackReason,
+    rendererResolved,
+    requestedRendererMode,
   ]);
 
   return (
@@ -370,6 +420,11 @@ export function TrainingScene({
       data-training-gpu-critical-ready={gpuCriticalReady ? "true" : "false"}
       data-training-startup-fallback={startupFallback ? "true" : "false"}
       data-training-startup-stage={startupStage}
+      data-training-renderer-requested={requestedRendererMode}
+      data-training-renderer-effective={activeRendererMode}
+      data-training-renderer-resolved={rendererResolved ? "true" : "false"}
+      data-training-renderer-fallback={rendererFallback ? "true" : "false"}
+      data-training-renderer-fallback-reason={rendererFallbackReason}
       data-radar-active={running ? "true" : "false"}
       data-gpu-bases-ready={useGpuRenderer && gpuBasesReady ? "true" : "false"}
       data-gpu-radar-ready={useGpuRenderer && gpuRadarReady ? "true" : "false"}
@@ -395,7 +450,7 @@ export function TrainingScene({
       data-radar-pass-mode={passMode}
       data-scene="training"
       data-training-time-source="master-clock"
-      data-training-renderer={trainingRendererMode}
+      data-training-renderer={activeRendererMode}
       onTransitionEnd={handleStartupTransitionEnd}
       ref={sceneRef}
     >
@@ -609,7 +664,7 @@ export function TrainingScene({
         <TrainingGpuDebugPanel
           collector={debugCollector}
           illustrationActive={active}
-          mode={trainingRendererMode}
+          mode={activeRendererMode}
           radarClock={radarClock}
           radarRunning={running}
         />
