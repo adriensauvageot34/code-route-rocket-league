@@ -68,7 +68,7 @@ export type TrainingGpuDebugSubsystemSnapshot = {
 
 export type TrainingGpuDebugGlobalSnapshot = {
   absolutePassIndex: number;
-  activeDriver: "gpu" | "dom" | "none";
+  activeDriver: "gpu" | "none";
   additionalParallaxRafCount: number;
   callbackLatenessMs: number;
   cameraAbsoluteResumeCorrect: boolean;
