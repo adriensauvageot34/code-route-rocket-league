@@ -419,10 +419,7 @@ function createProjectedScene(
     groundScaleX:
       parallax.effectiveScaleX.trainingGround ??
       groundConfiguration.scale,
-    groundScaleY:
-      "scaleY" in groundConfiguration
-        ? groundConfiguration.scaleY
-        : groundConfiguration.scale,
+    groundScaleY: groundConfiguration.scaleY,
     projection: createTrainingGroundProjection(state, {
       width: viewport.cssWidth,
       height: viewport.cssHeight,
