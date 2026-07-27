@@ -25,9 +25,9 @@ export function HomeLaunchOverlay({ geometry, mode }: HomeLaunchOverlayProps) {
   if (!geometry || !mode) return null;
 
   const asset =
-    mode === "training"
-      ? homeIllustrationAssets.training.transitionWaveGold
-      : homeIllustrationAssets.competitive.cageProjectorsHaze;
+    mode === "competitive"
+      ? homeIllustrationAssets.competitive.cageProjectorsHaze
+      : null;
   const style: HomeLaunchOverlayStyle = {
     "--home-launch-anchor-x": `${geometry.anchorX}px`,
     "--home-launch-anchor-y": `${geometry.anchorY}px`,
@@ -47,17 +47,19 @@ export function HomeLaunchOverlay({ geometry, mode }: HomeLaunchOverlayProps) {
       data-launch-overlay={mode}
       style={style}
     >
-      <div className="home-launch-asset-frame">
-        <Image
-          alt=""
-          className="home-launch-asset"
-          draggable={false}
-          fill
-          sizes="100vw"
-          src={asset.path}
-          unoptimized
-        />
-      </div>
+      {asset ? (
+        <div className="home-launch-asset-frame">
+          <Image
+            alt=""
+            className="home-launch-asset"
+            draggable={false}
+            fill
+            sizes="100vw"
+            src={asset.path}
+            unoptimized
+          />
+        </div>
+      ) : null}
       <div className="home-launch-cover" />
     </div>
   );

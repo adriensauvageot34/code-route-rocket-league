@@ -73,7 +73,7 @@ type TrainingGpuConsolidatedRendererOptions = {
   onRadarReadyChange: (ready: boolean) => void;
   onVolumeScansReadyChange: (ready: boolean) => void;
   onTacticalReadyChange: (ready: boolean) => void;
-  terrainImage: HTMLImageElement | null;
+  terrainImage: TexImageSource | null;
 };
 
 const INITIAL_FRAME_STATE: TrainingGpuFrameState = {

@@ -109,12 +109,12 @@ export const homeIllustrationAssets = {
       }
     },
     tacticalTerrain: {
-      path: "/ui/matrice_analyse.png",
+      path: "/ui/training-environment/matrice-analyse.webp",
       role: "barrier-free tactical pitch matrix revealed by radar",
-      dimensions: { width: 1672, height: 941 },
-      alpha: "none",
+      dimensions: { width: 1536, height: 632 },
+      alpha: "transparent",
       blendMode: "screen",
-      notes: "Barrier-free source is always clipped to the pitch, masked, and screen blended."
+      notes: "Cropped WebP restored at source-scene offset (0, 392), then clipped to the pitch, masked, and screen blended."
     },
     background: {
       path: "/ui/training-background.png",

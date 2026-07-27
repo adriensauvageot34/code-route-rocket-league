@@ -29,7 +29,9 @@ import { homeIllustrationAssets } from "@/lib/home/homeIllustrationAssets";
 type TrainingGpuCanvasProps = {
   active: boolean;
   applyCameraSnapshot: TrainingCameraFrameApplier;
-  applyDomSnapshot: (snapshot: TrainingRadarTemporalSnapshot) => void;
+  applyDomSnapshot:
+    | ((snapshot: TrainingRadarTemporalSnapshot) => void)
+    | null;
   debugCollector: TrainingGpuDebugCollector | null;
   onBasesReadyChange: (ready: boolean) => void;
   onCriticalErrorChange: (error: boolean) => void;
