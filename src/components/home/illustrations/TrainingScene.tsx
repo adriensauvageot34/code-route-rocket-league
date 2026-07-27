@@ -13,6 +13,7 @@ import {
 } from "@/components/home/illustrations/TrainingGroundedActor";
 import { TrainingGpuCanvas } from "@/components/home/illustrations/gpu/TrainingGpuCanvas";
 import { TrainingGpuDebugPanel } from "@/components/home/illustrations/gpu/TrainingGpuDebugPanel";
+import { TrainingEnvironmentLayer } from "@/components/home/illustrations/TrainingEnvironmentLayer";
 import { TrainingRadarOverlay } from "@/components/home/illustrations/TrainingRadarOverlay";
 import { useTrainingRadarSequence } from "@/components/home/illustrations/TrainingRadarSequence";
 import { TrainingParticleField } from "@/components/home/illustrations/TrainingParticleField";
@@ -234,12 +235,17 @@ export function TrainingScene({
       ref={sceneRef}
     >
       <SceneGroup depth="trainingSky" layer={0} name="training-sky">
-        <SceneLayer asset={assets.parallaxSky} preload />
+        <TrainingEnvironmentLayer
+          asset={assets.parallaxSky}
+          assetId="sky"
+          preload
+        />
       </SceneGroup>
 
       <SceneGroup depth="trainingSkyline" layer={1} name="training-far-skyline">
-        <SceneLayer
+        <TrainingEnvironmentLayer
           asset={assets.parallaxFarSkyline}
+          assetId="skyline"
           className="training-city-layer training-city-far"
           preload
         />
@@ -250,21 +256,27 @@ export function TrainingScene({
       </SceneGroup>
 
       <SceneGroup depth="trainingMid" layer={3} name="training-mid-buildings">
-        <SceneLayer
+        <TrainingEnvironmentLayer
           asset={assets.parallaxMidBuildings}
+          assetId="mid-buildings"
           className="training-city-layer training-city-middle"
         />
       </SceneGroup>
 
       <SceneGroup depth="trainingNear" layer={4} name="training-near-buildings">
-        <SceneLayer
+        <TrainingEnvironmentLayer
           asset={assets.parallaxNearBuildings}
+          assetId="near-buildings"
           className="training-city-layer training-city-near"
         />
       </SceneGroup>
 
       <SceneGroup depth="trainingGround" layer={5} name="training-ground">
-        <SceneLayer asset={assets.parallaxGround} preload />
+        <TrainingEnvironmentLayer
+          asset={assets.parallaxGround}
+          assetId="ground"
+          preload
+        />
       </SceneGroup>
 
       <SceneGroup blendMode="screen" depth="trainingGround" layer={6} name="training-radar-surface">
@@ -302,7 +314,11 @@ export function TrainingScene({
       ) : null}
 
       <SceneGroup depth="trainingGround" layer={8} name="training-barrier">
-        <SceneLayer asset={assets.parallaxBarrier} preload />
+        <TrainingEnvironmentLayer
+          asset={assets.parallaxBarrier}
+          assetId="barrier"
+          preload
+        />
       </SceneGroup>
 
       <SceneGroup blendMode="screen" depth="trainingParticlesFar" layer={9} name="training-particles-far">

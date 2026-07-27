@@ -489,6 +489,28 @@
   user-select: none;
 }
 
+.training-environment-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+.training-environment-crop {
+  position: absolute;
+  left: var(--training-environment-crop-left);
+  top: var(--training-environment-crop-top);
+  width: var(--training-environment-crop-width);
+  height: var(--training-environment-crop-height);
+  max-width: none;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+
 .training-city-layer {
   transform-origin: center bottom;
 }

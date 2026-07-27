@@ -1,5 +1,20 @@
 export type HomeIllustrationBlendMode = "normal" | "screen";
 
+export type HomeIllustrationScenePlacement = {
+  sourceDimensions: {
+    width: number;
+    height: number;
+  };
+  crop: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  placementSpace: "source-scene";
+  legacyPath: `/ui/${string}`;
+};
+
 export type HomeIllustrationAsset = {
   path: `/ui/${string}`;
   role: string;
@@ -10,51 +25,88 @@ export type HomeIllustrationAsset = {
   alpha: "transparent" | "opaque" | "none";
   blendMode: HomeIllustrationBlendMode;
   notes?: string;
+  scenePlacement?: HomeIllustrationScenePlacement;
 };
 
 export const homeIllustrationAssets = {
   training: {
     parallaxSky: {
-      path: "/ui/parallax-plan-05-ciel.png",
+      path: "/ui/training-environment/parallax-plan-05-ciel.webp",
       role: "training parallax starry sky",
       dimensions: { width: 1672, height: 941 },
       alpha: "opaque",
-      blendMode: "normal"
+      blendMode: "normal",
+      scenePlacement: {
+        sourceDimensions: { width: 1672, height: 941 },
+        crop: { x: 0, y: 0, width: 1672, height: 941 },
+        placementSpace: "source-scene",
+        legacyPath: "/ui/parallax-plan-05-ciel.png"
+      }
     },
     parallaxFarSkyline: {
-      path: "/ui/parallax-plan-04-skyline-lointaine.png",
+      path: "/ui/training-environment/parallax-plan-04-skyline-lointaine.webp",
       role: "training parallax far skyline",
-      dimensions: { width: 1672, height: 941 },
+      dimensions: { width: 1672, height: 360 },
       alpha: "transparent",
-      blendMode: "normal"
+      blendMode: "normal",
+      scenePlacement: {
+        sourceDimensions: { width: 1672, height: 941 },
+        crop: { x: 0, y: 0, width: 1672, height: 360 },
+        placementSpace: "source-scene",
+        legacyPath: "/ui/parallax-plan-04-skyline-lointaine.png"
+      }
     },
     parallaxMidBuildings: {
-      path: "/ui/parallax-plan-03-batiments-intermediaires.png",
+      path: "/ui/training-environment/parallax-plan-03-batiments-intermediaires.webp",
       role: "training parallax middle buildings",
-      dimensions: { width: 1672, height: 941 },
+      dimensions: { width: 1672, height: 336 },
       alpha: "transparent",
-      blendMode: "normal"
+      blendMode: "normal",
+      scenePlacement: {
+        sourceDimensions: { width: 1672, height: 941 },
+        crop: { x: 0, y: 253, width: 1672, height: 336 },
+        placementSpace: "source-scene",
+        legacyPath: "/ui/parallax-plan-03-batiments-intermediaires.png"
+      }
     },
     parallaxNearBuildings: {
-      path: "/ui/parallax-plan-02-batiments-proches.png",
+      path: "/ui/training-environment/parallax-plan-02-batiments-proches.webp",
       role: "training parallax near buildings",
-      dimensions: { width: 1672, height: 941 },
+      dimensions: { width: 1672, height: 400 },
       alpha: "transparent",
-      blendMode: "normal"
+      blendMode: "normal",
+      scenePlacement: {
+        sourceDimensions: { width: 1672, height: 941 },
+        crop: { x: 0, y: 244, width: 1672, height: 400 },
+        placementSpace: "source-scene",
+        legacyPath: "/ui/parallax-plan-02-batiments-proches.png"
+      }
     },
     parallaxGround: {
-      path: "/ui/parallax-plan-01-sol.png",
+      path: "/ui/training-environment/parallax-plan-01-sol.webp",
       role: "training parallax pitch surface",
-      dimensions: { width: 1672, height: 941 },
+      dimensions: { width: 1672, height: 576 },
       alpha: "transparent",
-      blendMode: "normal"
+      blendMode: "normal",
+      scenePlacement: {
+        sourceDimensions: { width: 1672, height: 941 },
+        crop: { x: 0, y: 365, width: 1672, height: 576 },
+        placementSpace: "source-scene",
+        legacyPath: "/ui/parallax-plan-01-sol.png"
+      }
     },
     parallaxBarrier: {
-      path: "/ui/parallax-plan-01-barriere.png",
+      path: "/ui/training-environment/parallax-plan-01-barriere.webp",
       role: "stable training pitch barrier",
-      dimensions: { width: 1672, height: 941 },
+      dimensions: { width: 1672, height: 128 },
       alpha: "transparent",
-      blendMode: "normal"
+      blendMode: "normal",
+      scenePlacement: {
+        sourceDimensions: { width: 1672, height: 941 },
+        crop: { x: 0, y: 344, width: 1672, height: 128 },
+        placementSpace: "source-scene",
+        legacyPath: "/ui/parallax-plan-01-barriere.png"
+      }
     },
     tacticalTerrain: {
       path: "/ui/matrice_analyse.png",
