@@ -25,6 +25,16 @@ import {
   type TrainingRadarTemporalSnapshot,
 } from "@/lib/home/trainingRadarSnapshots";
 import { homeIllustrationAssets } from "@/lib/home/homeIllustrationAssets";
+import {
+  createTrainingGroundProjection,
+  getTrainingProjectedCameraProjection,
+  getTrainingProjectedCameraState,
+  resetTrainingProjectedCameraState,
+  setTrainingProjectedCameraState,
+  subscribeTrainingProjectedCamera,
+  TRAINING_PROJECTED_CAMERA_NEUTRAL,
+  type TrainingProjectedCameraApi,
+} from "@/lib/home/gpu/trainingProjectedCamera";
 
 type TrainingGpuCanvasProps = {
   active: boolean;
@@ -44,6 +54,7 @@ type TrainingGpuCanvasProps = {
   onVolumeScansReadyChange: (ready: boolean) => void;
   onTacticalReadyChange: (ready: boolean) => void;
   onResizePendingChange: (pending: boolean) => void;
+  projectedCameraEnabled: boolean;
   radarClock: TrainingRadarClock;
   running: boolean;
   volumeAssets: Partial<
@@ -92,6 +103,7 @@ export function TrainingGpuCanvas({
   onVolumeScansReadyChange,
   onTacticalReadyChange,
   onResizePendingChange,
+  projectedCameraEnabled,
   radarClock,
   running,
   volumeAssets,
@@ -107,8 +119,10 @@ export function TrainingGpuCanvas({
   const rendererRef =
     useRef<TrainingGpuConsolidatedRenderer | null>(null);
   const volumeAssetsRef = useRef(volumeAssets);
+  const projectedCameraEnabledRef = useRef(projectedCameraEnabled);
 
   lifecycleRef.current = { active, running };
+  projectedCameraEnabledRef.current = projectedCameraEnabled;
   volumeAssetsRef.current = volumeAssets;
 
   useEffect(() => {
@@ -197,6 +211,10 @@ export function TrainingGpuCanvas({
           },
         );
         rendererRef.current = renderer;
+        renderer.setProjectedCamera(
+          projectedCameraEnabledRef.current,
+          getTrainingProjectedCameraState(),
+        );
 
         const applyResize = () => {
           resizeFrameId = null;
@@ -372,6 +390,78 @@ export function TrainingGpuCanvas({
     onVolumeScansReadyChange,
     radarClock,
   ]);
+
+  useEffect(() => {
+    if (!projectedCameraEnabled) return;
+
+    const stackElement = stackRef.current;
+    const worldPlane =
+      stackElement?.closest<HTMLDivElement>(".training-world-plane");
+    const sceneElement =
+      worldPlane?.closest<HTMLDivElement>(".training-scene");
+    if (!stackElement || !worldPlane || !sceneElement) return;
+
+    let destroyed = false;
+    const projectionFrame = () => ({
+      width: stackElement.clientWidth || TRAINING_GPU_LOGICAL_WIDTH,
+      height: stackElement.clientHeight || TRAINING_GPU_LOGICAL_HEIGHT,
+    });
+    const applyProjection = () => {
+      if (destroyed) return;
+      const state = getTrainingProjectedCameraState();
+      const projection = createTrainingGroundProjection(
+        state,
+        projectionFrame(),
+      );
+      worldPlane.style.setProperty(
+        "--training-ground-projection-matrix",
+        projection.cssMatrix,
+      );
+      rendererRef.current?.setProjectedCamera(true, state);
+      rendererRef.current?.requestRender();
+    };
+    const unsubscribe = subscribeTrainingProjectedCamera(
+      applyProjection,
+    );
+    const resizeObserver = new ResizeObserver(applyProjection);
+    resizeObserver.observe(stackElement);
+
+    const destroyLab = () => {
+      if (destroyed) return;
+      destroyed = true;
+      unsubscribe();
+      resizeObserver.disconnect();
+      resetTrainingProjectedCameraState();
+      projectedCameraEnabledRef.current = false;
+      worldPlane.style.removeProperty(
+        "--training-ground-projection-matrix",
+      );
+      sceneElement.dataset.trainingProjectedCamera = "false";
+      sceneElement.dataset.trainingProjectedCameraStatus = "destroyed";
+      rendererRef.current?.setProjectedCamera(
+        false,
+        TRAINING_PROJECTED_CAMERA_NEUTRAL,
+      );
+      rendererRef.current?.requestRender();
+      if (window.RLGSProjectedCamera === api) {
+        delete window.RLGSProjectedCamera;
+      }
+    };
+    const api: TrainingProjectedCameraApi = {
+      destroy: destroyLab,
+      get: getTrainingProjectedCameraState,
+      projection: () =>
+        getTrainingProjectedCameraProjection(projectionFrame()),
+      reset: resetTrainingProjectedCameraState,
+      set: setTrainingProjectedCameraState,
+    };
+
+    sceneElement.dataset.trainingProjectedCamera = "true";
+    sceneElement.dataset.trainingProjectedCameraStatus = "active";
+    window.RLGSProjectedCamera = api;
+    applyProjection();
+    return destroyLab;
+  }, [projectedCameraEnabled]);
 
   useEffect(() => {
     const renderer = rendererRef.current;

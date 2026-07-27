@@ -62,6 +62,16 @@ import { homeSceneDepths, type HomeSceneDepth } from "@/lib/home/homeSceneParall
 import {
   trainingFennecVolumeScanTarget,
 } from "@/lib/home/trainingRadarTargets";
+import {
+  TRAINING_GPU_FENNEC_GROUND_ANCHOR,
+} from "@/lib/home/gpu/trainingGpuFennecFrames";
+import {
+  createTrainingGroundProjection,
+  projectTrainingGpuBillboardRect,
+  TRAINING_PROJECTED_CAMERA_NEUTRAL,
+  type TrainingGroundProjection,
+  type TrainingProjectedCameraState,
+} from "@/lib/home/gpu/trainingProjectedCamera";
 import type {
   TrainingRadarFennecEffectsState,
   TrainingRadarTacticalState,
@@ -70,6 +80,12 @@ import type {
 } from "@/lib/home/trainingRadarSnapshots";
 
 type SceneObjectId = Exclude<TrainingGpuPreparedObjectId, "fennec">;
+
+type TrainingProjectedScene = {
+  groundScaleX: number;
+  groundScaleY: number;
+  projection: TrainingGroundProjection;
+};
 
 type SceneObjectResources = {
   assetSet: TrainingGpuDecodedObjectAssetSet;
@@ -182,11 +198,66 @@ function roleTextureBytes(
   }, 0);
 }
 
+function billboardPivot(
+  registration: TrainingGpuObjectRegistration,
+) {
+  const target = registration.target;
+  if (target.type === "car") {
+    const [xValue, yValue] = target.placement.transformOrigin.split(" ");
+    return {
+      x: Number.parseFloat(xValue ?? "50") / 100,
+      y: Number.parseFloat(yValue ?? "82") / 100,
+    };
+  }
+  if (target.type === "ball") return { x: 0.5, y: 1 };
+  return TRAINING_GPU_FENNEC_GROUND_ANCHOR.pivot;
+}
+
+function groundAnchor(
+  registration: TrainingGpuObjectRegistration,
+  viewport: TrainingGpuViewport,
+  projectedScene: TrainingProjectedScene,
+) {
+  const target = registration.target;
+  const anchor =
+    target.type === "fennec"
+      ? TRAINING_GPU_FENNEC_GROUND_ANCHOR
+      : target.grounding.target;
+  const centerX = viewport.cssWidth / 2;
+  const centerY = viewport.cssHeight / 2;
+  const x = anchor.x * viewport.cssWidth;
+  const y = anchor.groundY * viewport.cssHeight;
+
+  return {
+    x: centerX + (x - centerX) * projectedScene.groundScaleX,
+    y: centerY + (y - centerY) * projectedScene.groundScaleY,
+  };
+}
+
+function projectSceneQuad(
+  registration: TrainingGpuObjectRegistration,
+  rect: TrainingGpuObjectRenderRect,
+  viewport: TrainingGpuViewport,
+  projectedScene: TrainingProjectedScene | null,
+) {
+  if (!projectedScene) return rect;
+  return projectTrainingGpuBillboardRect({
+    rect,
+    groundAnchor: groundAnchor(
+      registration,
+      viewport,
+      projectedScene,
+    ),
+    pivot: billboardPivot(registration),
+    projection: projectedScene.projection,
+  });
+}
+
 function sceneQuad(
   registration: TrainingGpuObjectRegistration,
   asset: TrainingGpuDecodedObjectAsset,
   viewport: TrainingGpuViewport,
-  parallax: TrainingGpuParallaxSnapshot,
+  projectedScene: TrainingProjectedScene | null,
 ) {
   const logicalRect = getTrainingGpuObjectSceneRenderRect(
     registration,
@@ -199,11 +270,16 @@ function sceneQuad(
       height: viewport.cssHeight,
     },
   );
-  return applyDepthTransform(
+  const rect = applyDepthTransform(
     cssRect,
     registration.depth,
     viewport,
-    parallax,
+  );
+  return projectSceneQuad(
+    registration,
+    rect,
+    viewport,
+    projectedScene,
   );
 }
 
@@ -211,7 +287,6 @@ function applyDepthTransform(
   rect: TrainingGpuObjectRenderRect,
   depth: HomeSceneDepth,
   viewport: TrainingGpuViewport,
-  _parallax: TrainingGpuParallaxSnapshot,
 ): TrainingGpuObjectRenderRect {
   const configuration = homeSceneDepths[depth];
   const scaleX = configuration.scale;
@@ -219,14 +294,12 @@ function applyDepthTransform(
     "scaleY" in configuration
       ? configuration.scaleY
       : configuration.scale;
-  const offsetX = 0;
-  const offsetY = 0;
   const centerX = viewport.cssWidth / 2;
   const centerY = viewport.cssHeight / 2;
 
   return {
-    x: centerX + (rect.x - centerX) * scaleX + offsetX,
-    y: centerY + (rect.y - centerY) * scaleY + offsetY,
+    x: centerX + (rect.x - centerX) * scaleX,
+    y: centerY + (rect.y - centerY) * scaleY,
     width: rect.width * scaleX,
     height: rect.height * scaleY,
   };
@@ -237,13 +310,13 @@ function leftCarSurfaceSceneQuad(
   baseAsset: TrainingGpuDecodedObjectAsset,
   surfaceAsset: TrainingGpuDecodedObjectAsset,
   viewport: TrainingGpuViewport,
-  parallax: TrainingGpuParallaxSnapshot,
+  projectedScene: TrainingProjectedScene | null,
 ) {
   const baseQuad = sceneQuad(
     registration,
     baseAsset,
     viewport,
-    parallax,
+    projectedScene,
   );
   const baseOutputSize = baseAsset.entry.outputSize;
   const surfaceOutputSize = surfaceAsset.entry.outputSize;
@@ -279,7 +352,7 @@ function ballVolumeSceneQuad(
   asset: TrainingGpuDecodedObjectAsset,
   layer: TrainingGpuVolumeLayer,
   viewport: TrainingGpuViewport,
-  parallax: TrainingGpuParallaxSnapshot,
+  projectedScene: TrainingProjectedScene | null,
 ) {
   const target = registration.target;
   if (target.type !== "ball") {
@@ -323,13 +396,38 @@ function ballVolumeSceneQuad(
       height: viewport.cssHeight,
     },
   );
-
-  return applyDepthTransform(
+  const rect = applyDepthTransform(
     cssRect,
     registration.depth,
     viewport,
-    parallax,
   );
+  return projectSceneQuad(
+    registration,
+    rect,
+    viewport,
+    projectedScene,
+  );
+}
+
+function createProjectedScene(
+  viewport: TrainingGpuViewport,
+  parallax: TrainingGpuParallaxSnapshot,
+  state: TrainingProjectedCameraState,
+): TrainingProjectedScene {
+  const groundConfiguration = homeSceneDepths.trainingGround;
+  return {
+    groundScaleX:
+      parallax.effectiveScaleX.trainingGround ??
+      groundConfiguration.scale,
+    groundScaleY:
+      "scaleY" in groundConfiguration
+        ? groundConfiguration.scaleY
+        : groundConfiguration.scale,
+    projection: createTrainingGroundProjection(state, {
+      width: viewport.cssWidth,
+      height: viewport.cssHeight,
+    }),
+  };
 }
 
 function tacticalStyle(
@@ -372,6 +470,10 @@ export class TrainingGpuSceneRenderer {
   private particleResources: Partial<
     Record<TrainingGpuParticleDepth, TrainingGpuParticleResources>
   > = {};
+  private projectedCameraEnabled = false;
+  private projectedCameraState: TrainingProjectedCameraState = {
+    ...TRAINING_PROJECTED_CAMERA_NEUTRAL,
+  };
   private viewport: TrainingGpuViewport | null = null;
   private readonly handleContextLost: (event: Event) => void;
   private readonly handleContextRestored: () => void;
@@ -416,6 +518,14 @@ export class TrainingGpuSceneRenderer {
     this.updateDebugState();
   }
 
+  setProjectedCamera(
+    enabled: boolean,
+    state: TrainingProjectedCameraState,
+  ) {
+    this.projectedCameraEnabled = enabled;
+    this.projectedCameraState = { ...state };
+  }
+
   resize(viewport: TrainingGpuViewport | null) {
     this.viewport = viewport;
     if (!viewport || !this.gl || this.contextLost) {
@@ -447,23 +557,45 @@ export class TrainingGpuSceneRenderer {
     gl.clear(gl.COLOR_BUFFER_BIT);
     this.lastMetrics.clearCalls = 1;
     const parallax = getTrainingGpuParallaxSnapshot();
+    const projectedScene = this.projectedCameraEnabled
+      ? createProjectedScene(
+          viewport,
+          parallax,
+          this.projectedCameraState,
+        )
+      : null;
     const objectSetReady =
       Object.keys(this.objectResources).length ===
         OBJECT_DRAW_ORDER.length && this.fennec !== null;
 
     if (running) this.renderParticles("far", snapshot, parallax);
     if (objectSetReady) {
-      this.renderObject("left-car", snapshot, running, parallax);
+      this.renderObject(
+        "left-car",
+        snapshot,
+        running,
+        projectedScene,
+      );
     }
     if (running) this.renderParticles("mid", snapshot, parallax);
     if (objectSetReady) {
-      this.renderObject("back-right-car", snapshot, running, parallax);
-      this.renderObject("front-right-car", snapshot, running, parallax);
-      this.renderObject("ball", snapshot, running, parallax);
+      this.renderObject(
+        "back-right-car",
+        snapshot,
+        running,
+        projectedScene,
+      );
+      this.renderObject(
+        "front-right-car",
+        snapshot,
+        running,
+        projectedScene,
+      );
+      this.renderObject("ball", snapshot, running, projectedScene);
     }
     if (running) this.renderParticles("near", snapshot, parallax);
     if (objectSetReady) {
-      this.renderFennec(snapshot, running, parallax);
+      this.renderFennec(snapshot, running, projectedScene);
     }
 
     if (staticRender) {
@@ -740,7 +872,7 @@ export class TrainingGpuSceneRenderer {
     objectId: SceneObjectId,
     snapshot: TrainingRadarTemporalSnapshot,
     running: boolean,
-    parallax: TrainingGpuParallaxSnapshot,
+    projectedScene: TrainingProjectedScene | null,
   ) {
     const resources = this.objectResources[objectId];
     const gl = this.gl;
@@ -754,7 +886,7 @@ export class TrainingGpuSceneRenderer {
         viewport,
         resources.volume.vertexArray,
         resources.base,
-        sceneQuad(registration, baseAsset, viewport, parallax),
+        sceneQuad(registration, baseAsset, viewport, projectedScene),
       );
       this.lastMetrics.blendChanges += 1;
       this.lastMetrics.programChanges += 1;
@@ -766,13 +898,13 @@ export class TrainingGpuSceneRenderer {
       resources,
       registration,
       snapshot.volume[objectId],
-      parallax,
+      projectedScene,
     );
     this.renderTactical(
       resources,
       registration,
       snapshot.tactical[objectId],
-      parallax,
+      projectedScene,
     );
   }
 
@@ -780,7 +912,7 @@ export class TrainingGpuSceneRenderer {
     resources: SceneObjectResources,
     registration: TrainingGpuObjectRegistration,
     state: TrainingRadarVolumeScanState,
-    parallax: TrainingGpuParallaxSnapshot,
+    projectedScene: TrainingProjectedScene | null,
   ) {
     const gl = this.gl;
     const viewport = this.viewport;
@@ -804,7 +936,7 @@ export class TrainingGpuSceneRenderer {
       state,
       "surface",
       kind,
-      parallax,
+      projectedScene,
     );
     this.renderVolumeLayer(
       resources,
@@ -812,7 +944,7 @@ export class TrainingGpuSceneRenderer {
       state,
       "contour",
       kind,
-      parallax,
+      projectedScene,
     );
     gl.bindTexture(gl.TEXTURE_2D, null);
     gl.bindVertexArray(null);
@@ -825,7 +957,7 @@ export class TrainingGpuSceneRenderer {
     state: TrainingRadarVolumeScanState,
     layer: TrainingGpuVolumeLayer,
     kind: "car" | "ball",
-    parallax: TrainingGpuParallaxSnapshot,
+    projectedScene: TrainingProjectedScene | null,
   ) {
     const gl = this.gl;
     const viewport = this.viewport;
@@ -846,7 +978,7 @@ export class TrainingGpuSceneRenderer {
             asset,
             layer,
             viewport,
-            parallax,
+            projectedScene,
           )
         : isLocalLeftCarSurface && baseAsset
           ? leftCarSurfaceSceneQuad(
@@ -854,9 +986,9 @@ export class TrainingGpuSceneRenderer {
               baseAsset,
               asset,
               viewport,
-              parallax,
+              projectedScene,
             )
-          : sceneQuad(registration, asset, viewport, parallax);
+          : sceneQuad(registration, asset, viewport, projectedScene);
     const mask =
       kind === "ball"
         ? TRAINING_GPU_VOLUME_BALL_MASK
@@ -918,7 +1050,7 @@ export class TrainingGpuSceneRenderer {
     resources: SceneObjectResources,
     registration: TrainingGpuObjectRegistration,
     state: TrainingRadarTacticalState,
-    parallax: TrainingGpuParallaxSnapshot,
+    projectedScene: TrainingProjectedScene | null,
   ) {
     const gl = this.gl;
     const viewport = this.viewport;
@@ -950,7 +1082,12 @@ export class TrainingGpuSceneRenderer {
         state,
       );
       if (style.opacity <= 0) continue;
-      const quad = sceneQuad(registration, asset, viewport, parallax);
+      const quad = sceneQuad(
+        registration,
+        asset,
+        viewport,
+        projectedScene,
+      );
       gl.uniform4f(
         resources.tactical.uniforms.quadCss,
         quad.x,
@@ -984,7 +1121,7 @@ export class TrainingGpuSceneRenderer {
   private renderFennec(
     snapshot: TrainingRadarTemporalSnapshot,
     running: boolean,
-    parallax: TrainingGpuParallaxSnapshot,
+    projectedScene: TrainingProjectedScene | null,
   ) {
     const fennec = this.fennec;
     const gl = this.gl;
@@ -997,7 +1134,7 @@ export class TrainingGpuSceneRenderer {
       this.renderUnmaskedFennecLayer(
         fennec.volume,
         fennec.baseTexture,
-        sceneQuad(registration, base, viewport, parallax),
+        sceneQuad(registration, base, viewport, projectedScene),
         snapshot.fennecEffects.baseOpacity,
         1,
         1,
@@ -1009,14 +1146,14 @@ export class TrainingGpuSceneRenderer {
         fennec,
         registration,
         snapshot.volume.fennec,
-        parallax,
+        projectedScene,
       );
     }
     this.renderFennecEffects(
       fennec,
       registration,
       snapshot.fennecEffects,
-      parallax,
+      projectedScene,
     );
   }
 
@@ -1024,7 +1161,7 @@ export class TrainingGpuSceneRenderer {
     fennec: FennecResources,
     registration: TrainingGpuObjectRegistration,
     state: TrainingRadarVolumeScanState,
-    parallax: TrainingGpuParallaxSnapshot,
+    projectedScene: TrainingProjectedScene | null,
   ) {
     const viewport = this.viewport;
     if (!viewport) return;
@@ -1047,7 +1184,7 @@ export class TrainingGpuSceneRenderer {
       );
       this.setVolumeUniforms(
         fennec.volume,
-        sceneQuad(registration, asset, viewport, parallax),
+        sceneQuad(registration, asset, viewport, projectedScene),
         layer === "surface"
           ? fennec.volume.surfaceTexture
           : fennec.volume.contourTexture,
@@ -1072,7 +1209,7 @@ export class TrainingGpuSceneRenderer {
     fennec: FennecResources,
     registration: TrainingGpuObjectRegistration,
     state: TrainingRadarFennecEffectsState,
-    parallax: TrainingGpuParallaxSnapshot,
+    projectedScene: TrainingProjectedScene | null,
   ) {
     const viewport = this.viewport;
     if (!viewport) return;
@@ -1105,7 +1242,12 @@ export class TrainingGpuSceneRenderer {
       this.renderUnmaskedFennecLayer(
         fennec.volume,
         layer.texture,
-        sceneQuad(registration, layer.asset, viewport, parallax),
+        sceneQuad(
+          registration,
+          layer.asset,
+          viewport,
+          projectedScene,
+        ),
         layer.opacity,
         layer.brightness,
         layer.saturation,

@@ -75,6 +75,17 @@ export function TrainingScene({
   const [gpuFennecEffectsReady, setGpuFennecEffectsReady] = useState(false);
   const [gpuFennecVolumeReady, setGpuFennecVolumeReady] = useState(false);
   const [gpuTacticalReady, setGpuTacticalReady] = useState(false);
+  const [projectedCameraRequested, setProjectedCameraRequested] =
+    useState(false);
+
+  useEffect(() => {
+    setProjectedCameraRequested(
+      new URLSearchParams(window.location.search).get(
+        "trainingProjectedCamera",
+      ) === "1",
+    );
+  }, []);
+
 
   const handleGpuLifecycleStateChange = useCallback(
     (snapshot: TrainingGpuLifecycleSnapshot) => {
@@ -116,6 +127,13 @@ export function TrainingScene({
     gpuCriticalFailed
       ? "dom"
       : "gpu";
+  const projectedCameraEnabled =
+    projectedCameraRequested && activeRendererMode === "gpu";
+  const projectedCameraStatus = !projectedCameraRequested
+    ? "disabled"
+    : projectedCameraEnabled
+      ? "active"
+      : "requires-gpu";
   const staticAssetState = useTrainingStaticFallbackAssets(
     rendererResolved && activeRendererMode === "dom",
   );
@@ -327,6 +345,10 @@ export function TrainingScene({
       }
       data-training-resize-pending={gpuResizePending ? "true" : "false"}
       data-training-reduced-motion={reducedMotion ? "true" : "false"}
+      data-training-projected-camera={
+        projectedCameraEnabled ? "true" : "false"
+      }
+      data-training-projected-camera-status={projectedCameraStatus}
       data-training-active-driver={activeDriver}
       data-training-gpu-critical-ready={gpuCriticalReady ? "true" : "false"}
       data-training-startup-fallback={startupFallback ? "true" : "false"}
@@ -442,6 +464,7 @@ export function TrainingScene({
             onVolumeScansReadyChange={setGpuVolumeScansReady}
             onTacticalReadyChange={setGpuTacticalReady}
             onResizePendingChange={setGpuResizePending}
+            projectedCameraEnabled={projectedCameraEnabled}
             radarClock={radarClock}
             running={
               running &&
