@@ -1,6 +1,7 @@
 import type {
   TrainingGpuContextState,
   TrainingGpuRuntimeState,
+  TrainingRendererFallbackReason,
   TrainingRendererMode,
 } from "@/lib/home/gpu/trainingGpuTypes";
 import type { TrainingCameraPhase } from "@/lib/home/trainingCamera";
@@ -96,6 +97,11 @@ export type TrainingGpuDebugGlobalSnapshot = {
   domUpdatesPerFrame: number;
   globalTimersActive: number;
   mode: TrainingRendererMode;
+  rendererRequested: TrainingRendererMode;
+  rendererEffective: TrainingRendererMode;
+  rendererResolved: boolean;
+  rendererFallback: boolean;
+  rendererFallbackReason: TrainingRendererFallbackReason;
   contextState: TrainingGpuContextState;
   nextPassBoundaryMs: number;
   objectTimersActive: number;
