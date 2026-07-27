@@ -21,6 +21,7 @@ import type {
 import type { TrainingGpuPreparedObjectId } from "@/lib/home/gpu/trainingGpuObjectAssetCatalog";
 import type { TrainingGpuDecodedObjectAssetSet } from "@/lib/home/gpu/TrainingGpuObjectAssetLoader";
 import type { TrainingGpuDebugCollector } from "@/lib/home/gpu/debug/TrainingGpuDebugCollector";
+import type { TrainingProjectedCameraState } from "@/lib/home/gpu/trainingProjectedCamera";
 import type {
   TrainingCameraApplyMetrics,
   TrainingCameraFrameApplier,
@@ -212,6 +213,22 @@ export class TrainingGpuConsolidatedRenderer {
     this.updateGlobalDebugState();
     this.publishLifecycleState();
     this.syncAnimationLoop();
+  }
+
+  setProjectedCamera(
+    enabled: boolean,
+    state: TrainingProjectedCameraState,
+  ) {
+    this.sceneRenderer.setProjectedCamera(enabled, state);
+  }
+
+  requestRender() {
+    if (this.destroyed || this.restoring || this.restoreFailed) return;
+    if (this.canAnimate()) {
+      this.render(performance.now());
+      return;
+    }
+    this.renderStaticFrame();
   }
 
   hasCriticalSceneResourcesForStartup() {

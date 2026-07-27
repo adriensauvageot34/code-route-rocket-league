@@ -429,6 +429,12 @@
   --training-world-y: 0px;
   --training-world-scale: 1;
   --training-world-rotation: 0deg;
+  --training-ground-projection-matrix: matrix3d(
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1
+  );
   position: absolute;
   inset: 0;
   z-index: 5;
@@ -444,6 +450,24 @@
     rotate(var(--training-world-rotation, 0deg))
     scale(var(--training-world-scale, 1));
   transform-origin: center;
+}
+
+.training-scene[data-training-projected-camera="true"]
+  .training-world-plane
+  > .scene-group[data-scene-group="training-ground"],
+.training-scene[data-training-projected-camera="true"]
+  .training-world-plane
+  > .scene-group[data-scene-group="training-radar-gpu"] {
+  transform: var(
+    --training-ground-projection-matrix,
+    matrix3d(
+      1, 0, 0, 0,
+      0, 1, 0, 0,
+      0, 0, 1, 0,
+      0, 0, 0, 1
+    )
+  );
+  transform-origin: 0 0;
 }
 
 .mode-illustration.is-training .scene-camera {
