@@ -158,7 +158,7 @@ export function TrainingGpuCanvas({
     async function initializeRenderer() {
       try {
         let fieldMaskPixels: Uint8Array | null = null;
-        let terrainImage: HTMLImageElement | null = null;
+        let terrainImage: TexImageSource | null = null;
         let radarPreparationFailed = false;
         try {
           fieldMaskPixels = createTrainingGpuRadarFieldMask();
