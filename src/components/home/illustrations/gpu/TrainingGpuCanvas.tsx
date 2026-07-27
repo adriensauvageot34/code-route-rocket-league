@@ -60,8 +60,8 @@ type TrainingGpuConsolidatedCanvases = ConstructorParameters<
   typeof TrainingGpuConsolidatedRenderer
 >[0];
 
-const tacticalTerrainPath =
-  homeIllustrationAssets.training.tacticalTerrain.path;
+const tacticalTerrainAsset =
+  homeIllustrationAssets.training.tacticalTerrain;
 
 function createGpuFrameState(
   lifecycle: TrainingGpuLifecycleState,
@@ -163,7 +163,7 @@ export function TrainingGpuCanvas({
         try {
           fieldMaskPixels = createTrainingGpuRadarFieldMask();
           terrainImage =
-            await loadTrainingGpuRadarTerrain(tacticalTerrainPath);
+            await loadTrainingGpuRadarTerrain(tacticalTerrainAsset);
         } catch {
           fieldMaskPixels = null;
           terrainImage = null;

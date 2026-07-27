@@ -1,5 +1,3 @@
-import { homeIllustrationAssets, type HomeIllustrationAsset } from "@/lib/home/homeIllustrationAssets";
-
 const TRAINING_BALL_SCAN_PROGRESS = 0.56;
 const TRAINING_FENNEC_SCAN_PROGRESS = 0.79;
 const TRAINING_RADAR_ENTRY_DURATION_MS = 250;
@@ -77,69 +75,52 @@ type TrainingActorGrounding = {
 };
 
 export type TrainingCarRadarTarget = {
-  baseAsset: HomeIllustrationAsset;
-  contourAsset: HomeIllustrationAsset;
   depth: "trainingCarFar" | "trainingCarMid" | "trainingCarNear";
   grounding: TrainingActorGrounding;
-  glowAsset: HomeIllustrationAsset;
   id: "left-car" | "back-right-car" | "front-right-car";
   objectScan: TrainingObjectScan;
   placement: TrainingTargetPlacement;
   scanDelayMs: number;
   scanHitProgress: number;
-  surfaceAsset: HomeIllustrationAsset;
   tacticalDelayMs: number;
   type: "car";
-  wireframeAsset: HomeIllustrationAsset;
 };
 
 export type TrainingBallRadarTarget = {
-  baseAsset: HomeIllustrationAsset;
-  contourAsset: HomeIllustrationAsset;
   depth: "trainingBall";
-  energyAsset: HomeIllustrationAsset;
   grounding: TrainingActorGrounding;
   id: "ball";
   scanDelayMs: number;
   scanHitProgress: number;
-  surfaceAsset: HomeIllustrationAsset;
   tacticalDelayMs: number;
   type: "ball";
 };
 
 export type TrainingFennecVolumeScanTarget = {
-  contourAsset: HomeIllustrationAsset;
   depth: "trainingFennec";
   id: "fennec";
-  impactAsset: HomeIllustrationAsset;
   scanDelayMs: number;
   scanHitProgress: number;
   scanRange: {
     endProgress: number;
     startProgress: number;
   };
-  surfaceAsset: HomeIllustrationAsset;
   tacticalDelayMs: number;
   type: "fennec";
 };
 
-export type TrainingRadarTarget = TrainingCarRadarTarget | TrainingBallRadarTarget;
+export type TrainingRadarTarget =
+  | TrainingCarRadarTarget
+  | TrainingBallRadarTarget;
 export type TrainingVolumeScanTarget =
   | TrainingRadarTarget
   | TrainingFennecVolumeScanTarget;
-
-const assets = homeIllustrationAssets.training;
 
 export const trainingCarRadarTargets = [
   {
     id: "left-car",
     type: "car",
-    baseAsset: assets.distantCarLeft,
-    surfaceAsset: assets.surfaceScanCar01,
-    contourAsset: assets.contourScanCar01,
     depth: "trainingCarFar",
-    wireframeAsset: assets.wireframeCar01,
-    glowAsset: assets.wireframeCar01Glow,
     placement: {
       left: "34.76%",
       top: "25.3%",
@@ -164,12 +145,7 @@ export const trainingCarRadarTargets = [
   {
     id: "back-right-car",
     type: "car",
-    baseAsset: assets.distantCarBackRight,
-    surfaceAsset: assets.surfaceScanCar02,
-    contourAsset: assets.contourScanCar02,
     depth: "trainingCarMid",
-    wireframeAsset: assets.wireframeCar02,
-    glowAsset: assets.wireframeCar02Glow,
     placement: {
       left: "69.28%",
       top: "24.26%",
@@ -194,12 +170,7 @@ export const trainingCarRadarTargets = [
   {
     id: "front-right-car",
     type: "car",
-    baseAsset: assets.distantCarFrontRight,
-    surfaceAsset: assets.surfaceScanCar03,
-    contourAsset: assets.contourScanCar03,
     depth: "trainingCarNear",
-    wireframeAsset: assets.wireframeCar03,
-    glowAsset: assets.wireframeCar03Glow,
     placement: {
       left: "73.84%",
       top: "31.83%",
@@ -226,11 +197,7 @@ export const trainingCarRadarTargets = [
 export const trainingBallRadarTarget = {
   id: "ball",
   type: "ball",
-  baseAsset: assets.ball,
-  surfaceAsset: assets.ballSurfaceScan,
-  contourAsset: assets.ballContourScan,
   depth: "trainingBall",
-  energyAsset: assets.ballEnergyGold,
   grounding: {
     sourceAnchor: { x: 0.5062, groundY: 0.5569 },
     target: { x: 0.5062, groundY: 0.5615, scale: 0.97 },
@@ -249,9 +216,6 @@ export const trainingRadarTargets = [
 export const trainingFennecVolumeScanTarget = {
   id: "fennec",
   type: "fennec",
-  surfaceAsset: assets.fennecSurfaceScan,
-  contourAsset: assets.fennecContourScan,
-  impactAsset: assets.fennecRimLight,
   depth: "trainingFennec",
   scanDelayMs: 1783,
   scanHitProgress: TRAINING_FENNEC_SCAN_PROGRESS,
@@ -267,7 +231,8 @@ export const trainingVolumeScanTargets = [
   trainingFennecVolumeScanTarget,
 ] as const satisfies readonly TrainingVolumeScanTarget[];
 
-export type TrainingRadarTargetId = (typeof trainingRadarTargets)[number]["id"];
+export type TrainingRadarTargetId =
+  (typeof trainingRadarTargets)[number]["id"];
 export type TrainingVolumeScanTargetId =
   (typeof trainingVolumeScanTargets)[number]["id"];
 
@@ -299,8 +264,8 @@ export function getTrainingRadarRangeTiming(
     startDelayMs:
       TRAINING_RADAR_TIMING.entryDurationMs +
       Math.round(
-        scanRange.startProgress * TRAINING_RADAR_TIMING.travelDurationMs,
+        scanRange.startProgress *
+          TRAINING_RADAR_TIMING.travelDurationMs,
       ),
   };
 }
-

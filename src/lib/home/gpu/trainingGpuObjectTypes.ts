@@ -1,4 +1,3 @@
-import type { HomeIllustrationAsset } from "@/lib/home/homeIllustrationAssets";
 import type {
   TrainingBallRadarTarget,
   TrainingCarRadarTarget,
@@ -53,28 +52,7 @@ export type TrainingGpuObjectTarget =
   | TrainingBallRadarTarget
   | TrainingFennecVolumeScanTarget;
 
-export type TrainingGpuObjectAssetBinding = {
-  alignmentGroup: string;
-  asset: HomeIllustrationAsset;
-  placementSpace: TrainingGpuObjectPlacementSpace;
-  role: TrainingGpuObjectAssetRole;
-};
-
-export type TrainingGpuObjectAlignmentGroup = {
-  assetRoles: readonly TrainingGpuObjectAssetRole[];
-  id: string;
-  placementSpace: TrainingGpuObjectPlacementSpace;
-  sourceSize: {
-    width: number;
-    height: number;
-  };
-};
-
 export type TrainingGpuObjectRegistration = {
-  alignmentGroups: readonly TrainingGpuObjectAlignmentGroup[];
-  assetBindings: Readonly<
-    Partial<Record<TrainingGpuObjectAssetRole, TrainingGpuObjectAssetBinding>>
-  >;
   assetRoles: readonly TrainingGpuObjectAssetRole[];
   depth: TrainingGpuObjectTarget["depth"];
   id: TrainingGpuObjectId;

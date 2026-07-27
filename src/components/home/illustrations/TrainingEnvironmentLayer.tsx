@@ -15,7 +15,7 @@ type TrainingEnvironmentAsset = HomeIllustrationAsset & {
 
 export type TrainingEnvironmentAssetLoadResult = {
   assetId: string;
-  fallback: boolean;
+  error: boolean;
 };
 
 type TrainingEnvironmentLayerProps = {
@@ -77,9 +77,9 @@ export function TrainingEnvironmentLayer({
         className="training-environment-crop"
         draggable={false}
         height={asset.dimensions.height}
-        onError={() => onError?.({ assetId, fallback: true })}
+        onError={() => onError?.({ assetId, error: true })}
         onLoad={() => {
-          onLoad?.({ assetId, fallback: false });
+          onLoad?.({ assetId, error: false });
         }}
         priority={preload}
         sizes="(max-width: 820px) 100vw, (max-width: 1180px) 66vw, 34vw"

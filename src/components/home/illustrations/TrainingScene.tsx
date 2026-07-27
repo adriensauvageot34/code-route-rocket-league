@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { SceneGroup } from "@/components/home/illustrations/SceneGroup";
 import { TrainingEnvironmentLayer } from "@/components/home/illustrations/TrainingEnvironmentLayer";
+import type { TrainingEnvironmentAssetLoadResult } from "@/components/home/illustrations/TrainingEnvironmentLayer";
 import { TrainingGpuCanvas } from "@/components/home/illustrations/gpu/TrainingGpuCanvas";
 import { TrainingGpuDebugPanel } from "@/components/home/illustrations/gpu/TrainingGpuDebugPanel";
 import { useTrainingRadarSequence } from "@/components/home/illustrations/TrainingRadarSequence";
@@ -33,12 +34,12 @@ type TrainingSceneProps = {
 };
 
 const INITIAL_ENVIRONMENT_ASSET_STATE = {
-  sky: { fallback: false, settled: false },
-  skyline: { fallback: false, settled: false },
-  "mid-buildings": { fallback: false, settled: false },
-  "near-buildings": { fallback: false, settled: false },
-  ground: { fallback: false, settled: false },
-  barrier: { fallback: false, settled: false },
+  sky: { error: false, settled: false },
+  skyline: { error: false, settled: false },
+  "mid-buildings": { error: false, settled: false },
+  "near-buildings": { error: false, settled: false },
+  ground: { error: false, settled: false },
+  barrier: { error: false, settled: false },
 };
 
 const INITIAL_GPU_LIFECYCLE: TrainingGpuLifecycleSnapshot = {
@@ -121,8 +122,8 @@ export function TrainingScene({
   const environmentReady = Object.values(environmentAssetState).every(
     (state) => state.settled,
   );
-  const environmentFallback = Object.values(environmentAssetState).some(
-    (state) => state.fallback,
+  const environmentError = Object.values(environmentAssetState).some(
+    (state) => state.error,
   );
   const gpuCriticalReady =
     useGpuRenderer &&
@@ -138,7 +139,7 @@ export function TrainingScene({
     environmentReady &&
     (activeRendererMode === "gpu" ? gpuCriticalReady : staticAssetsReady);
   const startupFallback =
-    environmentFallback ||
+    environmentError ||
     activeRendererMode === "dom" ||
     staticAssetState.hasError;
   const {
@@ -223,16 +224,16 @@ export function TrainingScene({
       : null;
 
   const handleEnvironmentAssetSettled = useCallback(
-    ({ assetId, fallback }: { assetId: string; fallback: boolean }) => {
+    ({ assetId, error }: TrainingEnvironmentAssetLoadResult) => {
       setEnvironmentAssetState((current) => {
         const previous = current[assetId as keyof typeof current];
-        if (previous?.settled && previous.fallback === fallback) {
+        if (previous?.settled && previous.error === error) {
           return current;
         }
 
         return {
           ...current,
-          [assetId]: { fallback, settled: true },
+          [assetId]: { error, settled: true },
         };
       });
     },

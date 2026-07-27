@@ -9,22 +9,8 @@ import { createHash } from "node:crypto";
 const uiRoot = join("public", "ui");
 const manifestPath = join("src", "lib", "home", "homeIllustrationAssets.ts");
 const kebabCasePattern = /^[a-z0-9]+(?:-[a-z0-9]+)*\.(?:png|webp)$/;
-const intentionallyNamedScanAssets = new Set([
-  "car-01 overlay contour-scan.png",
-  "car-01 overlay surface-scan.png",
-  "car-02 overlay contour-scan.png",
-  "car-02 overlay surface-scan.png",
-  "car-03 overlay contour-scan.png",
-  "car-03 overlay surface-scan.png",
-  "fennec-base contour-scan overlay.png",
-  "fennec-base headlight glow overlay.png",
-  "fennec-base im light overlay.png",
-  "fennec-base rear accent glow.png",
-  "fennec-base reflection overlay.png",
-  "fennec-base surface-scan overlay.png",
-  "training-ball Overlay surface-scan.png",
-  "training-ball overlay contour-scan.png",
-]);
+const retainedLegacyAssetNamePattern =
+  /^(?:matrice_analyse|.+(?:overlay|glow|accent).*)\.png$/i;
 
 function assert(condition, message) {
   if (!condition) {
@@ -96,8 +82,7 @@ for (const filePath of binaryAssetFiles) {
   const name = basename(filePath);
   assert(
     kebabCasePattern.test(name) ||
-      name === "matrice_analyse.png" ||
-      intentionallyNamedScanAssets.has(name),
+      retainedLegacyAssetNamePattern.test(name),
     `UI asset is not lower kebab-case: ${displayPath(filePath)}`,
   );
 }
@@ -255,9 +240,9 @@ assert(
   "The home illustration asset manifest is unexpectedly small.",
 );
 assert(
-  manifestPaths.includes("/ui/matrice_analyse.png") &&
-    !manifestPaths.includes("/ui/terrain_matrice_analyse.png"),
-  "Training radar must use the barrier-free tactical matrix.",
+  manifestPaths.includes("/ui/training-environment/matrice-analyse.webp") &&
+    !manifestPaths.includes("/ui/matrice_analyse.png"),
+  "Training radar must use the cropped runtime WebP tactical matrix.",
 );
 
 for (const publicPath of manifestPaths) {
