@@ -1,4 +1,8 @@
-import type { TrainingRendererMode } from "@/lib/home/gpu/trainingGpuTypes";
+import type {
+  TrainingGpuContextState,
+  TrainingGpuRuntimeState,
+  TrainingRendererMode,
+} from "@/lib/home/gpu/trainingGpuTypes";
 import type { TrainingCameraPhase } from "@/lib/home/trainingCamera";
 import type { TrainingRadarPassMode } from "@/lib/home/trainingRadarClock";
 
@@ -86,14 +90,18 @@ export type TrainingGpuDebugGlobalSnapshot = {
   cameraX: number;
   cameraY: number;
   cumulativeTheoreticalDriftMs: number;
+  cycleStartedAtMs: number;
+  documentVisible: boolean;
   domChangedValuesPerFrame: number;
   domUpdatesPerFrame: number;
   globalTimersActive: number;
   mode: TrainingRendererMode;
+  contextState: TrainingGpuContextState;
   nextPassBoundaryMs: number;
   objectTimersActive: number;
   rendererActive: boolean;
   rendererSuspended: boolean;
+  resizePending: boolean;
   rafActive: boolean;
   illustrationActive: boolean;
   radarRunning: boolean;
@@ -108,6 +116,9 @@ export type TrainingGpuDebugGlobalSnapshot = {
   masterClockNowMs: number;
   dpr: number;
   renderScale: number;
+  resizeGeneration: number;
+  reducedMotion: boolean;
+  runtimeState: TrainingGpuRuntimeState;
   viewportCssWidth: number;
   viewportCssHeight: number;
   viewportPixelWidth: number;

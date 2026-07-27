@@ -3471,6 +3471,24 @@
     opacity: 0;
   }
 
+  .training-scene[data-training-reduced-motion="true"]
+    .training-radar-overlay[data-dom-visible="true"] {
+    opacity: 0.34;
+  }
+
+  .training-scene[data-training-reduced-motion="true"]
+    .training-radar-overlay[data-dom-visible="true"]
+    .training-radar-motion {
+    animation: none;
+    opacity: 0.42;
+    transform: translate3d(56%, 0, 0);
+  }
+
+  .training-scene[data-training-reduced-motion="true"]
+    .training-radar-sweep[data-dom-visible="true"] {
+    opacity: 0.2;
+  }
+
   .home-launch-asset-frame {
     display: none;
   }

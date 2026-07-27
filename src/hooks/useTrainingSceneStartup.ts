@@ -101,7 +101,9 @@ export function useTrainingSceneStartup({
   );
 
   return {
+    documentVisible,
     handleTransitionEnd,
+    reducedMotion,
     stage,
   };
 }

@@ -8,12 +8,15 @@ type TrainingRadarSequenceState = {
   absolutePassIndex: number;
   callbackLatenessMs: number;
   cumulativeTheoreticalDriftMs: 0;
+  cycleStartedAtMs: number;
+  documentVisible: boolean;
   globalTimersActive: 0 | 1;
   nextPassBoundaryMs: number;
   objectTimersActive: 0;
   passKey: number;
   passMode: TrainingRadarPassMode;
   passStartedAtMs: number;
+  reducedMotion: boolean;
   running: boolean;
   skippedPasses: number;
 };
@@ -42,12 +45,15 @@ const INITIAL_SEQUENCE_STATE: TrainingRadarSequenceState = {
   absolutePassIndex: 0,
   callbackLatenessMs: 0,
   cumulativeTheoreticalDriftMs: 0,
+  cycleStartedAtMs: 0,
+  documentVisible: true,
   globalTimersActive: 0,
   nextPassBoundaryMs: 0,
   objectTimersActive: 0,
   passKey: 0,
   passMode: "volume",
   passStartedAtMs: 0,
+  reducedMotion: false,
   running: false,
   skippedPasses: 0,
 };
@@ -91,9 +97,15 @@ export function useTrainingRadarSequence({
 } {
   const sceneRef = useRef<HTMLDivElement>(null);
   const [motionAvailable, setMotionAvailable] = useState(false);
+  const [documentVisible, setDocumentVisible] = useState(true);
+  const [reducedMotion, setReducedMotion] = useState(false);
   const [sequence, setSequence] = useState<TrainingRadarSequenceState>(
     INITIAL_SEQUENCE_STATE,
   );
+  const cycleStartedAtMsRef = useRef<number | null>(null);
+  const globalTimerIdRef = useRef<number | null>(null);
+  const previousAbsolutePassIndexRef = useRef(-1);
+  const skippedPassesRef = useRef(0);
 
   useEffect(() => {
     const scene = sceneRef.current;
@@ -107,6 +119,8 @@ export function useTrainingRadarSequence({
     let observer: IntersectionObserver | null = null;
 
     function syncAvailability() {
+      setDocumentVisible(documentVisible);
+      setReducedMotion(reducedMotionQuery.matches);
       setMotionAvailable(
         documentVisible && illustrationVisible && !reducedMotionQuery.matches,
       );
@@ -144,29 +158,51 @@ export function useTrainingRadarSequence({
     active && !launching && motionAvailable && readyToStart;
 
   useEffect(() => {
+    return () => {
+      if (globalTimerIdRef.current !== null) {
+        window.clearTimeout(globalTimerIdRef.current);
+        globalTimerIdRef.current = null;
+      }
+      cycleStartedAtMsRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (globalTimerIdRef.current !== null) {
+      window.clearTimeout(globalTimerIdRef.current);
+      globalTimerIdRef.current = null;
+    }
+
     if (!shouldRun) {
-      setSequence(INITIAL_SEQUENCE_STATE);
+      setSequence((current) => ({
+        ...current,
+        documentVisible,
+        globalTimersActive: 0,
+        reducedMotion,
+        running: false,
+      }));
       return;
     }
 
-    const cycleStartedAtMs = performance.now();
+    const cycleStartedAtMs =
+      cycleStartedAtMsRef.current ?? performance.now();
+    cycleStartedAtMsRef.current = cycleStartedAtMs;
     let cancelled = false;
-    let globalTimerId: number | null = null;
-    let previousAbsolutePassIndex = -1;
-    let skippedPasses = 0;
 
     function syncFromAbsoluteTime(expectedBoundaryMs = 0) {
       if (cancelled) return;
 
       const nowMs = performance.now();
       const pass = getAbsoluteTrainingRadarPass(cycleStartedAtMs, nowMs);
-      if (previousAbsolutePassIndex >= 0) {
-        skippedPasses += Math.max(
+      if (previousAbsolutePassIndexRef.current >= 0) {
+        skippedPassesRef.current += Math.max(
           0,
-          pass.absolutePassIndex - previousAbsolutePassIndex - 1,
+          pass.absolutePassIndex -
+            previousAbsolutePassIndexRef.current -
+            1,
         );
       }
-      previousAbsolutePassIndex = pass.absolutePassIndex;
+      previousAbsolutePassIndexRef.current = pass.absolutePassIndex;
 
       setSequence({
         absolutePassIndex: pass.absolutePassIndex,
@@ -175,18 +211,21 @@ export function useTrainingRadarSequence({
             ? Math.max(0, nowMs - expectedBoundaryMs)
             : 0,
         cumulativeTheoreticalDriftMs: 0,
+        cycleStartedAtMs,
+        documentVisible,
         globalTimersActive: 1,
         nextPassBoundaryMs: pass.nextPassBoundaryMs,
         objectTimersActive: 0,
         passKey: pass.absolutePassIndex + 1,
         passMode: pass.passMode,
         passStartedAtMs: pass.passStartedAtMs,
+        reducedMotion,
         running: true,
-        skippedPasses,
+        skippedPasses: skippedPassesRef.current,
       });
 
       const nextBoundaryMs = pass.nextPassBoundaryMs;
-      globalTimerId = window.setTimeout(
+      globalTimerIdRef.current = window.setTimeout(
         () => syncFromAbsoluteTime(nextBoundaryMs),
         Math.max(0, nextBoundaryMs - performance.now()),
       );
@@ -196,9 +235,12 @@ export function useTrainingRadarSequence({
 
     return () => {
       cancelled = true;
-      if (globalTimerId !== null) window.clearTimeout(globalTimerId);
+      if (globalTimerIdRef.current !== null) {
+        window.clearTimeout(globalTimerIdRef.current);
+        globalTimerIdRef.current = null;
+      }
     };
-  }, [shouldRun]);
+  }, [documentVisible, reducedMotion, shouldRun]);
 
   return {
     ...sequence,
