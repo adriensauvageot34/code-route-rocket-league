@@ -26,6 +26,13 @@ const paths = {
   rendererMode: "src/hooks/useTrainingRendererMode.ts",
   illustrationAssets: "src/lib/home/homeIllustrationAssets.ts",
   radarAssets: "src/lib/home/gpu/trainingGpuRadarAssets.ts",
+  gpuTypes: "src/lib/home/gpu/trainingGpuTypes.ts",
+  consolidatedRenderer:
+    "src/lib/home/gpu/TrainingGpuConsolidatedRenderer.ts",
+  debugCollector:
+    "src/lib/home/gpu/debug/TrainingGpuDebugCollector.ts",
+  debugPanel:
+    "src/components/home/illustrations/gpu/TrainingGpuDebugPanel.tsx",
 };
 
 const files = Object.fromEntries(
@@ -123,9 +130,25 @@ assert(
 );
 
 assert(
+  files.gpuTypes.includes('activeDriver: "gpu" | "none"') &&
+    !files.gpuTypes.includes('"gpu" | "dom" | "none"') &&
+    files.consolidatedRenderer.includes(
+      'activeDriver: runtimeState === "gpu-active" ? "gpu" : "none"',
+    ),
+  "The static fallback must never advertise a retired animated DOM driver.",
+);
+
+assert(
   files.trainingSequence.includes("window.setTimeout") &&
     !files.trainingStaticFallback.includes("TrainingRadarSequence"),
   "The MasterClock sequence may keep its single GPU timer, but the static fallback must not mount it.",
+);
+
+assert(
+  files.debugCollector.includes("subscribe(listener: () => void)") &&
+    files.debugPanel.includes("collector.subscribe(refresh)") &&
+    !files.debugPanel.includes("setInterval"),
+  "Renderer diagnostics must subscribe to existing GPU updates instead of creating a polling interval.",
 );
 
 const environmentWebpPaths = [

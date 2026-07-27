@@ -855,12 +855,7 @@ export class TrainingGpuConsolidatedRenderer {
               ? "gpu-active"
               : "preparing";
     this.options.onLifecycleStateChange({
-      activeDriver:
-        runtimeState === "gpu-active"
-          ? "gpu"
-          : runtimeState === "dom-fallback"
-            ? "dom"
-            : "none",
+      activeDriver: runtimeState === "gpu-active" ? "gpu" : "none",
       contextState,
       runtimeState,
     });

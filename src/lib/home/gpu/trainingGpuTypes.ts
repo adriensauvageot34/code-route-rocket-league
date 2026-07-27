@@ -40,7 +40,7 @@ export type TrainingGpuRuntimeState =
   | "destroyed";
 
 export type TrainingGpuLifecycleSnapshot = {
-  activeDriver: "gpu" | "dom" | "none";
+  activeDriver: "gpu" | "none";
   contextState: TrainingGpuContextState;
   runtimeState: TrainingGpuRuntimeState;
 };

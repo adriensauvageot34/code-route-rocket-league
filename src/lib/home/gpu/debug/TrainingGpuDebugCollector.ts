@@ -13,6 +13,7 @@ import type {
 const FRAME_SAMPLE_CAPACITY = 240;
 const CPU_SAMPLE_CAPACITY = 120;
 const LONG_TASK_SAMPLE_CAPACITY = 120;
+const SNAPSHOT_NOTIFICATION_INTERVAL_MS = 250;
 
 class TrainingGpuDebugRingBuffer {
   private readonly values: Float64Array;
@@ -211,6 +212,7 @@ export class TrainingGpuDebugCollector {
     LONG_TASK_SAMPLE_CAPACITY,
   );
   private readonly loadedManifestUrls = new Set<string>();
+  private readonly snapshotSubscribers = new Set<() => void>();
   private readonly subsystems: Record<
     TrainingGpuDebugSubsystemName,
     MutableSubsystemState
@@ -232,6 +234,15 @@ export class TrainingGpuDebugCollector {
   private longTasksAvailable = false;
   private longTaskCount = 0;
   private lastLongTaskDurationMs = 0;
+  private lastSnapshotNotificationAtMs = 0;
+
+  subscribe(listener: () => void) {
+    if (this.destroyed) return () => {};
+    this.snapshotSubscribers.add(listener);
+    return () => {
+      this.snapshotSubscribers.delete(listener);
+    };
+  }
 
   recordFrame(nowMs: number) {
     if (this.destroyed || !Number.isFinite(nowMs)) return;
@@ -247,6 +258,7 @@ export class TrainingGpuDebugCollector {
       }
     }
     this.lastFrameAtMs = nowMs;
+    this.notifySnapshotSubscribers(nowMs);
   }
 
   recordSubsystemCpu(
@@ -314,6 +326,7 @@ export class TrainingGpuDebugCollector {
   setGlobal(state: Partial<TrainingGpuDebugGlobalSnapshot>) {
     if (this.destroyed) return;
     Object.assign(this.global, state);
+    this.notifySnapshotSubscribers(performance.now());
   }
 
   setAssetStatus(status: TrainingGpuDebugAssetSnapshot["status"]) {
@@ -470,9 +483,23 @@ export class TrainingGpuDebugCollector {
     this.frameSamples.clear();
     this.longTaskSamples.clear();
     this.loadedManifestUrls.clear();
+    this.snapshotSubscribers.clear();
     for (const subsystem of Object.values(this.subsystems)) {
       subsystem.cpuSamples.clear();
       subsystem.canvases = [];
     }
+  }
+
+  private notifySnapshotSubscribers(nowMs: number) {
+    if (
+      this.destroyed ||
+      this.snapshotSubscribers.size === 0 ||
+      nowMs - this.lastSnapshotNotificationAtMs <
+        SNAPSHOT_NOTIFICATION_INTERVAL_MS
+    ) {
+      return;
+    }
+    this.lastSnapshotNotificationAtMs = nowMs;
+    for (const listener of this.snapshotSubscribers) listener();
   }
 }

@@ -15,7 +15,6 @@ import type {
 import type { TrainingRendererMode } from "@/lib/home/gpu/trainingGpuTypes";
 import type { TrainingRadarClock } from "@/lib/home/trainingRadarClock";
 
-const PANEL_REFRESH_MS = 250;
 const SUBSYSTEM_NAMES = [
   "bases",
   "radar",
@@ -121,10 +120,7 @@ export function TrainingGpuDebugPanel({
     };
 
     refresh();
-    const panelTimerId = window.setInterval(refresh, PANEL_REFRESH_MS);
-    return () => {
-      window.clearInterval(panelTimerId);
-    };
+    return collector.subscribe(refresh);
   }, [collector, illustrationActive, mode, radarClock, radarRunning]);
 
   useEffect(() => {
