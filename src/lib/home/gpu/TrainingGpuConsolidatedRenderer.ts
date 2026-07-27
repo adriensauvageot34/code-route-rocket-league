@@ -15,6 +15,7 @@ import {
 } from "@/lib/home/gpu/TrainingGpuSceneRenderer";
 import type {
   TrainingGpuFrameState,
+  TrainingGpuLifecycleSnapshot,
   TrainingGpuViewport,
 } from "@/lib/home/gpu/trainingGpuTypes";
 import type { TrainingGpuPreparedObjectId } from "@/lib/home/gpu/trainingGpuObjectAssetCatalog";
@@ -65,6 +66,9 @@ type TrainingGpuConsolidatedRendererOptions = {
   onFennecBaseReadyChange: (ready: boolean) => void;
   onFennecEffectsReadyChange: (ready: boolean) => void;
   onFennecVolumeReadyChange: (ready: boolean) => void;
+  onLifecycleStateChange: (
+    state: TrainingGpuLifecycleSnapshot,
+  ) => void;
   onParticlesReadyChange: (ready: boolean) => void;
   onRadarReadyChange: (ready: boolean) => void;
   onVolumeScansReadyChange: (ready: boolean) => void;
@@ -93,10 +97,13 @@ function getWebGl2Context(canvas: HTMLCanvasElement) {
 
 export class TrainingGpuConsolidatedRenderer {
   private animationFrameId: number | null = null;
+  private destroyed = false;
   private firstStaticFrameReady = false;
   private frameState = INITIAL_FRAME_STATE;
   private radarInitialized = false;
   private radarReady = false;
+  private restoreFailed = false;
+  private restoring = false;
   private shouldRun = false;
   private viewport: TrainingGpuViewport | null = null;
   private readonly radarTargets: Record<
@@ -119,10 +126,10 @@ export class TrainingGpuConsolidatedRenderer {
     this.sceneRenderer = new TrainingGpuSceneRenderer(canvases.scene, {
       debugCollector: options.debugCollector,
       onBaseReadyChange: options.onBasesReadyChange,
-      onContextRestored: () => {
-        this.completeFirstRender();
-        this.syncAnimationLoop();
-      },
+      onContextLost: () => this.handleAnyContextLost(),
+      onContextRestored: (ready) =>
+        this.handleSceneContextRestored(ready),
+      onContextRestoring: () => this.beginRestoration(),
       onFennecBaseReadyChange: options.onFennecBaseReadyChange,
       onFennecEffectsReadyChange: options.onFennecEffectsReadyChange,
       onFennecVolumeReadyChange: options.onFennecVolumeReadyChange,
@@ -147,13 +154,16 @@ export class TrainingGpuConsolidatedRenderer {
     );
     this.updateRadarDebugState();
     this.updateGlobalDebugState();
+    this.publishLifecycleState();
   }
 
   initialize() {
+    if (this.destroyed) return false;
     this.initializeRadarSubsystem();
     const sceneInitialized = this.sceneRenderer.initialize();
     this.completeFirstRender();
     this.syncAnimationLoop();
+    this.publishLifecycleState();
     return (
       this.options.applyDomSnapshot !== null ||
       this.radarInitialized ||
@@ -162,6 +172,7 @@ export class TrainingGpuConsolidatedRenderer {
   }
 
   resize(viewport: TrainingGpuViewport) {
+    if (this.destroyed) return;
     this.viewport = viewport;
     this.options.debugCollector?.setGlobal({
       dpr: viewport.effectiveDpr,
@@ -199,6 +210,7 @@ export class TrainingGpuConsolidatedRenderer {
   setFrameState(state: TrainingGpuFrameState) {
     this.frameState = state;
     this.updateGlobalDebugState();
+    this.publishLifecycleState();
     this.syncAnimationLoop();
   }
 
@@ -214,17 +226,21 @@ export class TrainingGpuConsolidatedRenderer {
   }
 
   start() {
+    if (this.destroyed) return;
     this.shouldRun = true;
     this.updateGlobalDebugState();
+    this.publishLifecycleState();
     this.syncAnimationLoop();
   }
 
   stop() {
+    if (this.destroyed) return;
     this.shouldRun = false;
     this.cancelAnimationFrame();
     this.clearRadarCanvases();
     this.renderStaticFrame();
     this.updateGlobalDebugState();
+    this.publishLifecycleState();
   }
 
   render(nowMs: number) {
@@ -279,6 +295,8 @@ export class TrainingGpuConsolidatedRenderer {
   }
 
   destroy() {
+    if (this.destroyed) return;
+    this.destroyed = true;
     this.shouldRun = false;
     this.cancelAnimationFrame();
     this.setRadarReady(false);
@@ -305,6 +323,7 @@ export class TrainingGpuConsolidatedRenderer {
     this.radarInitialized = false;
     this.updateRadarDebugState();
     this.updateGlobalDebugState();
+    this.publishLifecycleState();
   }
 
   private createRadarTarget(
@@ -491,6 +510,11 @@ export class TrainingGpuConsolidatedRenderer {
 
   private canAnimate() {
     return (
+      !this.destroyed &&
+      !this.restoring &&
+      !this.restoreFailed &&
+      this.hasRadarResources() &&
+      this.sceneRenderer.isContextAvailable() &&
       this.shouldRun &&
       this.frameState.active &&
       this.frameState.running &&
@@ -563,20 +587,25 @@ export class TrainingGpuConsolidatedRenderer {
     target: TrainingGpuRadarTarget,
     event: Event,
   ) {
+    if (this.destroyed) return;
     event.preventDefault();
     target.contextLost = true;
     target.resources = null;
     this.radarInitialized = false;
     this.options.debugCollector?.recordContextLost("radar");
     this.setRadarReady(false);
+    this.handleAnyContextLost();
     this.updateRadarDebugState();
   }
 
   private restoreRadarTarget(target: TrainingGpuRadarTarget) {
+    if (this.destroyed || this.restoreFailed) return;
+    this.beginRestoration();
     target.gl = getWebGl2Context(target.canvas);
     target.contextLost = target.gl === null;
     if (!target.gl) {
       this.setRadarReady(false);
+      this.failRestoration();
       this.updateRadarDebugState();
       return;
     }
@@ -584,11 +613,11 @@ export class TrainingGpuConsolidatedRenderer {
       this.initializeRadarTarget(target);
       this.radarInitialized = this.hasRadarResources();
       this.options.debugCollector?.recordContextRestored("radar");
-      this.completeFirstRender();
-      this.syncAnimationLoop();
+      this.finishRestorationIfReady();
     } catch (error) {
       this.options.debugCollector?.recordSubsystemError("radar", error);
       this.setRadarReady(false);
+      this.failRestoration();
     }
     this.updateRadarDebugState();
   }
@@ -722,6 +751,7 @@ export class TrainingGpuConsolidatedRenderer {
 
   private readonly handleVisibilityChange = () => {
     this.syncAnimationLoop();
+    this.publishLifecycleState();
   };
 
   private readonly handleAnimationFrame = (nowMs: number) => {
@@ -734,6 +764,107 @@ export class TrainingGpuConsolidatedRenderer {
     }
     this.updateGlobalDebugState();
   };
+
+  private handleAnyContextLost() {
+    this.restoreFailed = false;
+    this.restoring = false;
+    this.cancelAnimationFrame();
+    this.publishLifecycleState();
+  }
+
+  private beginRestoration() {
+    if (this.destroyed || this.restoreFailed) return;
+    this.restoring = true;
+    this.cancelAnimationFrame();
+    this.publishLifecycleState();
+  }
+
+  private handleSceneContextRestored(ready: boolean) {
+    if (!ready) {
+      this.failRestoration();
+      return;
+    }
+    this.finishRestorationIfReady();
+  }
+
+  private finishRestorationIfReady() {
+    if (
+      this.destroyed ||
+      this.restoreFailed ||
+      !this.hasRadarResources() ||
+      !this.sceneRenderer.isContextAvailable()
+    ) {
+      this.publishLifecycleState();
+      return;
+    }
+    this.radarInitialized = true;
+    this.completeFirstRender();
+    if (
+      !this.firstStaticFrameReady ||
+      !this.sceneRenderer.hasCriticalStartupResources()
+    ) {
+      this.failRestoration();
+      return;
+    }
+    this.restoring = false;
+    this.publishLifecycleState("restored");
+    this.syncAnimationLoop();
+  }
+
+  private failRestoration() {
+    this.restoreFailed = true;
+    this.restoring = false;
+    this.cancelAnimationFrame();
+    this.publishLifecycleState();
+  }
+
+  private publishLifecycleState(
+    contextOverride?: TrainingGpuLifecycleSnapshot["contextState"],
+  ) {
+    const availableContexts =
+      Object.values(this.radarTargets).filter(
+        (target) => target.gl && !target.contextLost,
+      ).length + (this.sceneRenderer.isContextAvailable() ? 1 : 0);
+    const contextState =
+      contextOverride ??
+      (this.restoreFailed
+        ? "restore-failed"
+        : this.restoring
+          ? "restoring"
+          : availableContexts === 3
+            ? "available"
+            : availableContexts === 0
+              ? "lost"
+              : "partially-lost");
+    const unavailable =
+      contextState === "lost" ||
+      contextState === "partially-lost" ||
+      contextState === "restore-failed" ||
+      contextState === "unavailable";
+    const runtimeState = this.destroyed
+      ? "destroyed"
+      : document.visibilityState !== "visible"
+        ? "suspended-hidden"
+        : this.restoring
+          ? "restoring"
+          : unavailable
+            ? "dom-fallback"
+            : this.shouldRun &&
+                this.frameState.active &&
+                this.frameState.running
+              ? "gpu-active"
+              : "preparing";
+    this.options.onLifecycleStateChange({
+      activeDriver:
+        runtimeState === "gpu-active"
+          ? "gpu"
+          : runtimeState === "dom-fallback"
+            ? "dom"
+            : "none",
+      contextState,
+      runtimeState,
+    });
+  }
 }
 
 export const TRAINING_GPU_CONSOLIDATED_BASELINE = {

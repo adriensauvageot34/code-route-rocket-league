@@ -29,6 +29,7 @@ import { useTrainingRendererDebug } from "@/hooks/useTrainingRendererDebug";
 import { useTrainingSceneStartup } from "@/hooks/useTrainingSceneStartup";
 import { homeIllustrationAssets } from "@/lib/home/homeIllustrationAssets";
 import type { TrainingCameraFrameApplier } from "@/lib/home/trainingCamera";
+import type { TrainingGpuLifecycleSnapshot } from "@/lib/home/gpu/trainingGpuTypes";
 import {
   getTrainingRadarRangeTiming,
   TRAINING_VOLUME_SCAN_TIMING,
@@ -67,6 +68,12 @@ const INITIAL_ENVIRONMENT_ASSET_STATE = {
   "near-buildings": { fallback: false, settled: false },
   ground: { fallback: false, settled: false },
   barrier: { fallback: false, settled: false },
+};
+
+const INITIAL_GPU_LIFECYCLE: TrainingGpuLifecycleSnapshot = {
+  activeDriver: "none",
+  contextState: "unavailable",
+  runtimeState: "preparing",
 };
 
 type TrainingFennecScanStyle = CSSProperties & {
@@ -111,6 +118,9 @@ export function TrainingScene({
   );
   const [gpuBasesReady, setGpuBasesReady] = useState(false);
   const [gpuCriticalError, setGpuCriticalError] = useState(false);
+  const [gpuLifecycle, setGpuLifecycle] =
+    useState<TrainingGpuLifecycleSnapshot>(INITIAL_GPU_LIFECYCLE);
+  const [gpuResizePending, setGpuResizePending] = useState(false);
   const [gpuRadarReady, setGpuRadarReady] = useState(false);
   const [gpuParticlesReady, setGpuParticlesReady] = useState(false);
   const [gpuVolumeScansReady, setGpuVolumeScansReady] = useState(false);
@@ -124,6 +134,16 @@ export function TrainingScene({
   const handleGpuCriticalErrorChange = useCallback((error: boolean) => {
     setGpuCriticalError(error);
   }, []);
+  const handleGpuLifecycleStateChange = useCallback(
+    (snapshot: TrainingGpuLifecycleSnapshot) => {
+      setGpuLifecycle(snapshot);
+      setGpuCriticalError(
+        snapshot.contextState !== "available" &&
+          snapshot.contextState !== "restored",
+      );
+    },
+    [],
+  );
   const handleGpuRadarReadyChange = useCallback((ready: boolean) => {
     setGpuRadarReady(ready);
   }, []);
@@ -150,9 +170,15 @@ export function TrainingScene({
     useGpuRenderer,
     debugCollector,
   );
+  const gpuRuntimeUnavailable =
+    useGpuRenderer &&
+    gpuLifecycle.contextState !== "available" &&
+    gpuLifecycle.contextState !== "restored";
   const gpuCriticalFailed =
     useGpuRenderer &&
-    (gpuCriticalError || gpuObjectAssetState.status === "error");
+    (gpuCriticalError ||
+      gpuRuntimeUnavailable ||
+      gpuObjectAssetState.status === "error");
   const domCriticalAssetState = useTrainingDomCriticalAssets(
     !useGpuRenderer || gpuCriticalFailed,
   );
@@ -181,7 +207,9 @@ export function TrainingScene({
     gpuCriticalFailed ||
     domCriticalAssetState.hasError;
   const {
+    documentVisible,
     handleTransitionEnd: handleStartupTransitionEnd,
+    reducedMotion,
     stage: startupStage,
   } = useTrainingSceneStartup({
     active,
@@ -192,6 +220,7 @@ export function TrainingScene({
     absolutePassIndex,
     callbackLatenessMs,
     cumulativeTheoreticalDriftMs,
+    cycleStartedAtMs,
     globalTimersActive,
     nextPassBoundaryMs,
     objectTimersActive,
@@ -215,10 +244,27 @@ export function TrainingScene({
   const activeRendererMode = gpuCriticalFailed
     ? "dom"
     : trainingRendererMode;
+  const runtimeState = launching
+    ? "launching"
+    : !documentVisible
+      ? "suspended-hidden"
+      : useGpuRenderer
+        ? gpuLifecycle.runtimeState
+        : "preparing";
+  const activeDriver =
+    launching || !documentVisible || !running
+      ? "none"
+      : activeRendererMode === "dom"
+        ? "dom"
+        : gpuLifecycle.activeDriver;
   const showDomBase =
     !useGpuRenderer || gpuCriticalFailed || !gpuBasesReady || launching;
   const showDomRadar =
-    !useGpuRenderer || gpuCriticalFailed || !gpuRadarReady || launching;
+    reducedMotion ||
+    !useGpuRenderer ||
+    gpuCriticalFailed ||
+    !gpuRadarReady ||
+    launching;
   const showDomParticles =
     !useGpuRenderer || gpuCriticalFailed || !gpuParticlesReady || launching;
   const showDomVolumeScan =
@@ -272,6 +318,15 @@ export function TrainingScene({
       callbackLatenessMs,
       skippedPasses,
       cumulativeTheoreticalDriftMs,
+      cycleStartedAtMs,
+      documentVisible,
+      contextState: useGpuRenderer
+        ? gpuLifecycle.contextState
+        : "unavailable",
+      runtimeState,
+      resizePending: gpuResizePending,
+      reducedMotion,
+      activeDriver,
       passStartedAtMs,
     });
   }, [
@@ -279,12 +334,19 @@ export function TrainingScene({
     active,
     callbackLatenessMs,
     cumulativeTheoreticalDriftMs,
+    cycleStartedAtMs,
     debugCollector,
+    documentVisible,
     globalTimersActive,
     nextPassBoundaryMs,
     objectTimersActive,
+    activeDriver,
+    gpuLifecycle.contextState,
+    gpuResizePending,
     passStartedAtMs,
     running,
+    reducedMotion,
+    runtimeState,
     skippedPasses,
     trainingRendererMode,
   ]);
@@ -297,6 +359,14 @@ export function TrainingScene({
         criticalAssetsReady ? "true" : "false"
       }
       data-training-environment-ready={environmentReady ? "true" : "false"}
+      data-training-document-visible={documentVisible ? "true" : "false"}
+      data-training-runtime-state={runtimeState}
+      data-training-context-state={
+        useGpuRenderer ? gpuLifecycle.contextState : "unavailable"
+      }
+      data-training-resize-pending={gpuResizePending ? "true" : "false"}
+      data-training-reduced-motion={reducedMotion ? "true" : "false"}
+      data-training-active-driver={activeDriver}
       data-training-gpu-critical-ready={gpuCriticalReady ? "true" : "false"}
       data-training-startup-fallback={startupFallback ? "true" : "false"}
       data-training-startup-stage={startupStage}
@@ -409,10 +479,12 @@ export function TrainingScene({
           onFennecBaseReadyChange={handleGpuFennecBaseReadyChange}
           onFennecEffectsReadyChange={handleGpuFennecEffectsReadyChange}
           onFennecVolumeReadyChange={handleGpuFennecVolumeReadyChange}
+          onLifecycleStateChange={handleGpuLifecycleStateChange}
           onParticlesReadyChange={handleGpuParticlesReadyChange}
           onRadarReadyChange={handleGpuRadarReadyChange}
           onVolumeScansReadyChange={handleGpuVolumeScansReadyChange}
           onTacticalReadyChange={handleGpuTacticalReadyChange}
+          onResizePendingChange={setGpuResizePending}
           radarClock={radarClock}
           running={running && !gpuCriticalFailed}
           volumeAssets={gpuVolumeAssets}

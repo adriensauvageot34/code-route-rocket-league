@@ -101,7 +101,9 @@ export type TrainingGpuSceneFrameMetrics = {
 type TrainingGpuSceneRendererOptions = {
   debugCollector: TrainingGpuDebugCollector | null;
   onBaseReadyChange: (ready: boolean) => void;
-  onContextRestored: () => void;
+  onContextLost: () => void;
+  onContextRestored: (ready: boolean) => void;
+  onContextRestoring: () => void;
   onFennecBaseReadyChange: (ready: boolean) => void;
   onFennecEffectsReadyChange: (ready: boolean) => void;
   onFennecVolumeReadyChange: (ready: boolean) => void;
@@ -365,6 +367,7 @@ export class TrainingGpuSceneRenderer {
     Record<TrainingGpuPreparedObjectId, TrainingGpuDecodedObjectAssetSet>
   > | null = null;
   private contextLost = false;
+  private destroyed = false;
   private fennec: FennecResources | null = null;
   private gl: WebGL2RenderingContext | null;
   private lastMetrics = { ...EMPTY_FRAME_METRICS };
@@ -497,6 +500,8 @@ export class TrainingGpuSceneRenderer {
   }
 
   destroy() {
+    if (this.destroyed) return;
+    this.destroyed = true;
     this.setAllReady(false);
     this.releaseParticleResources();
     this.releaseObjectResources();
@@ -1285,6 +1290,7 @@ export class TrainingGpuSceneRenderer {
   }
 
   private loseContext(event: Event) {
+    if (this.destroyed) return;
     event.preventDefault();
     this.contextLost = true;
     this.particleResources = {};
@@ -1302,14 +1308,18 @@ export class TrainingGpuSceneRenderer {
     ] as const) {
       this.options.debugCollector?.recordContextLost(subsystem);
     }
+    this.options.onContextLost();
     this.updateDebugState();
   }
 
   private restoreContext() {
+    if (this.destroyed) return;
+    this.options.onContextRestoring();
     this.gl = getWebGl2Context(this.canvas);
     this.contextLost = this.gl === null;
     if (!this.gl) {
       this.setAllReady(false);
+      this.options.onContextRestored(false);
       this.updateDebugState();
       return;
     }
@@ -1327,7 +1337,9 @@ export class TrainingGpuSceneRenderer {
     ] as const) {
       this.options.debugCollector?.recordContextRestored(subsystem);
     }
-    this.options.onContextRestored();
+    this.options.onContextRestored(
+      this.hasCriticalStartupResources() && this.viewport !== null,
+    );
     this.updateDebugState();
   }
 

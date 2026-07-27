@@ -14,6 +14,7 @@ import {
   TRAINING_GPU_RENDER_SCALE,
 } from "@/lib/home/gpu/trainingGpuConstants";
 import type { TrainingGpuFrameState } from "@/lib/home/gpu/trainingGpuTypes";
+import type { TrainingGpuLifecycleSnapshot } from "@/lib/home/gpu/trainingGpuTypes";
 import type { TrainingGpuDebugCollector } from "@/lib/home/gpu/debug/TrainingGpuDebugCollector";
 import type { TrainingGpuPreparedObjectId } from "@/lib/home/gpu/trainingGpuObjectAssetCatalog";
 import type { TrainingGpuDecodedObjectAssetSet } from "@/lib/home/gpu/TrainingGpuObjectAssetLoader";
@@ -35,10 +36,12 @@ type TrainingGpuCanvasProps = {
   onFennecBaseReadyChange: (ready: boolean) => void;
   onFennecEffectsReadyChange: (ready: boolean) => void;
   onFennecVolumeReadyChange: (ready: boolean) => void;
+  onLifecycleStateChange: (state: TrainingGpuLifecycleSnapshot) => void;
   onParticlesReadyChange: (ready: boolean) => void;
   onRadarReadyChange: (ready: boolean) => void;
   onVolumeScansReadyChange: (ready: boolean) => void;
   onTacticalReadyChange: (ready: boolean) => void;
+  onResizePendingChange: (pending: boolean) => void;
   radarClock: TrainingRadarClock;
   running: boolean;
   volumeAssets: Partial<
@@ -81,10 +84,12 @@ export function TrainingGpuCanvas({
   onFennecBaseReadyChange,
   onFennecEffectsReadyChange,
   onFennecVolumeReadyChange,
+  onLifecycleStateChange,
   onParticlesReadyChange,
   onRadarReadyChange,
   onVolumeScansReadyChange,
   onTacticalReadyChange,
+  onResizePendingChange,
   radarClock,
   running,
   volumeAssets,
@@ -124,7 +129,17 @@ export function TrainingGpuCanvas({
 
     let cancelled = false;
     let resizeObserver: ResizeObserver | null = null;
-    let resizeCanvases: (() => void) | null = null;
+    let resizeFrameId: number | null = null;
+    let resizePending = false;
+    let resizeGeneration = 0;
+    let lastViewportSignature = "";
+    let dprQuery: MediaQueryList | null = null;
+    let removeResizeSignals: (() => void) | null = null;
+    const setResizePending = (pending: boolean) => {
+      if (resizePending === pending) return;
+      resizePending = pending;
+      onResizePendingChange(pending);
+    };
     const resetReadiness = () => {
       onCriticalErrorChange(false);
       onBasesReadyChange(false);
@@ -171,6 +186,7 @@ export function TrainingGpuCanvas({
             onFennecBaseReadyChange,
             onFennecEffectsReadyChange,
             onFennecVolumeReadyChange,
+            onLifecycleStateChange,
             onParticlesReadyChange,
             onRadarReadyChange,
             onVolumeScansReadyChange,
@@ -180,7 +196,9 @@ export function TrainingGpuCanvas({
         );
         rendererRef.current = renderer;
 
-        const handleResize = () => {
+        const applyResize = () => {
+          resizeFrameId = null;
+          if (cancelled || document.visibilityState !== "visible") return;
           const { width: cssWidth, height: cssHeight } =
             stackElement.getBoundingClientRect();
           if (
@@ -189,13 +207,14 @@ export function TrainingGpuCanvas({
             cssWidth <= 0 ||
             cssHeight <= 0
           ) {
+            setResizePending(true);
             return;
           }
           const effectiveDpr = Math.min(
             window.devicePixelRatio || 1,
             TRAINING_GPU_MAX_DPR,
           );
-          renderer.resize({
+          const viewport = {
             cssWidth,
             cssHeight,
             pixelWidth: Math.round(cssWidth * effectiveDpr),
@@ -204,13 +223,84 @@ export function TrainingGpuCanvas({
             logicalWidth: TRAINING_GPU_LOGICAL_WIDTH,
             logicalHeight: TRAINING_GPU_LOGICAL_HEIGHT,
             renderScale: TRAINING_GPU_RENDER_SCALE,
-          });
+          };
+          const signature = [
+            viewport.cssWidth,
+            viewport.cssHeight,
+            viewport.pixelWidth,
+            viewport.pixelHeight,
+            viewport.effectiveDpr,
+            viewport.renderScale,
+          ].join(":");
+          if (signature !== lastViewportSignature) {
+            lastViewportSignature = signature;
+            resizeGeneration += 1;
+            renderer.resize(viewport);
+            debugCollector?.setGlobal({ resizeGeneration });
+          }
+          setResizePending(false);
         };
-        resizeCanvases = handleResize;
-        resizeObserver = new ResizeObserver(handleResize);
+        const scheduleResize = () => {
+          if (cancelled) return;
+          setResizePending(true);
+          if (
+            resizeFrameId === null &&
+            document.visibilityState === "visible"
+          ) {
+            resizeFrameId = window.requestAnimationFrame(applyResize);
+          }
+        };
+        const registerDprQuery = () => {
+          dprQuery?.removeEventListener("change", handleDprChange);
+          dprQuery = window.matchMedia(
+            `(resolution: ${window.devicePixelRatio || 1}dppx)`,
+          );
+          dprQuery.addEventListener("change", handleDprChange);
+        };
+        const handleDprChange = () => {
+          registerDprQuery();
+          scheduleResize();
+        };
+        const handleVisibilityChange = () => {
+          if (document.visibilityState !== "visible") {
+            if (resizeFrameId !== null) {
+              window.cancelAnimationFrame(resizeFrameId);
+              resizeFrameId = null;
+            }
+            setResizePending(true);
+            return;
+          }
+          scheduleResize();
+        };
+        resizeObserver = new ResizeObserver(scheduleResize);
         resizeObserver.observe(stackElement);
-        window.addEventListener("resize", handleResize);
-        handleResize();
+        window.addEventListener("resize", scheduleResize);
+        window.addEventListener("orientationchange", scheduleResize);
+        window.visualViewport?.addEventListener("resize", scheduleResize);
+        document.addEventListener(
+          "visibilitychange",
+          handleVisibilityChange,
+        );
+        registerDprQuery();
+        removeResizeSignals = () => {
+          window.removeEventListener("resize", scheduleResize);
+          window.removeEventListener("orientationchange", scheduleResize);
+          window.visualViewport?.removeEventListener(
+            "resize",
+            scheduleResize,
+          );
+          document.removeEventListener(
+            "visibilitychange",
+            handleVisibilityChange,
+          );
+          dprQuery?.removeEventListener("change", handleDprChange);
+          dprQuery = null;
+          if (resizeFrameId !== null) {
+            window.cancelAnimationFrame(resizeFrameId);
+            resizeFrameId = null;
+          }
+        };
+        applyResize();
 
         renderer.setFrameState(
           createGpuFrameState(lifecycleRef.current, radarClock, 0),
@@ -218,8 +308,8 @@ export function TrainingGpuCanvas({
         if (!renderer.initialize()) {
           resizeObserver.disconnect();
           resizeObserver = null;
-          window.removeEventListener("resize", handleResize);
-          resizeCanvases = null;
+          removeResizeSignals();
+          removeResizeSignals = null;
           renderer.destroy();
           rendererRef.current = null;
           resetReadiness();
@@ -228,10 +318,11 @@ export function TrainingGpuCanvas({
         }
         renderer.setVolumeAssets(volumeAssetsRef.current);
         if (
-          radarPreparationFailed ||
-          !renderer.isRadarReadyForStartup() ||
-          (volumeAssetsRef.current !== null &&
-            !renderer.hasCriticalSceneResourcesForStartup())
+          document.visibilityState === "visible" &&
+          (radarPreparationFailed ||
+            !renderer.isRadarReadyForStartup() ||
+            (volumeAssetsRef.current !== null &&
+              !renderer.hasCriticalSceneResourcesForStartup()))
         ) {
           onCriticalErrorChange(true);
         }
@@ -241,10 +332,8 @@ export function TrainingGpuCanvas({
       } catch {
         resizeObserver?.disconnect();
         resizeObserver = null;
-        if (resizeCanvases) {
-          window.removeEventListener("resize", resizeCanvases);
-          resizeCanvases = null;
-        }
+        removeResizeSignals?.();
+        removeResizeSignals = null;
         rendererRef.current?.destroy();
         rendererRef.current = null;
         if (!cancelled) {
@@ -259,9 +348,7 @@ export function TrainingGpuCanvas({
     return () => {
       cancelled = true;
       resizeObserver?.disconnect();
-      if (resizeCanvases) {
-        window.removeEventListener("resize", resizeCanvases);
-      }
+      removeResizeSignals?.();
       rendererRef.current?.destroy();
       rendererRef.current = null;
       resetReadiness();
@@ -275,9 +362,11 @@ export function TrainingGpuCanvas({
     onFennecBaseReadyChange,
     onFennecEffectsReadyChange,
     onFennecVolumeReadyChange,
+    onLifecycleStateChange,
     onParticlesReadyChange,
     onRadarReadyChange,
     onTacticalReadyChange,
+    onResizePendingChange,
     onVolumeScansReadyChange,
     radarClock,
   ]);

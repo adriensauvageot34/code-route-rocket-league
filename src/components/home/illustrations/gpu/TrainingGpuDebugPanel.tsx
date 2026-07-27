@@ -215,6 +215,11 @@ export function TrainingGpuDebugPanel({
           {global.viewportPixelWidth}×{global.viewportPixelHeight}
         </span>
         <span>
+          lifecycle {global.runtimeState} · contexte {global.contextState} ·
+          resize {global.resizePending ? "pending" : "stable"} · génération{" "}
+          {global.resizeGeneration}
+        </span>
+        <span>
           driver {global.activeDriver} · RAF Training{" "}
           {global.trainingRafCount} · timers globaux{" "}
           {global.globalTimersActive} · timers objets{" "}

@@ -7,6 +7,30 @@ export type TrainingRendererMode = "dom" | "gpu";
 
 export type { TrainingRadarPassMode };
 
+export type TrainingGpuContextState =
+  | "available"
+  | "partially-lost"
+  | "lost"
+  | "restoring"
+  | "restored"
+  | "restore-failed"
+  | "unavailable";
+
+export type TrainingGpuRuntimeState =
+  | "preparing"
+  | "gpu-active"
+  | "suspended-hidden"
+  | "dom-fallback"
+  | "restoring"
+  | "launching"
+  | "destroyed";
+
+export type TrainingGpuLifecycleSnapshot = {
+  activeDriver: "gpu" | "dom" | "none";
+  contextState: TrainingGpuContextState;
+  runtimeState: TrainingGpuRuntimeState;
+};
+
 export type TrainingGpuViewport = {
   cssWidth: number;
   cssHeight: number;
