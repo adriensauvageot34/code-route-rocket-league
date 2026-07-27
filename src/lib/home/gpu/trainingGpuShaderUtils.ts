@@ -163,7 +163,7 @@ function createFieldMaskTexture(
 
 function createTerrainTexture(
   gl: WebGL2RenderingContext,
-  terrainImage: HTMLImageElement,
+  terrainImage: TexImageSource,
 ) {
   const texture = gl.createTexture();
   if (!texture) {
@@ -190,7 +190,7 @@ export function createTrainingGpuRadarPlaneResources(
   gl: WebGL2RenderingContext,
   plane: TrainingGpuRadarPlane,
   maskPixels: Uint8Array,
-  terrainImage: HTMLImageElement,
+  terrainImage: TexImageSource,
 ): TrainingGpuRadarPlaneResources {
   let program: WebGLProgram | null = null;
   let vertexArray: WebGLVertexArrayObject | null = null;

@@ -1,32 +1,18 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useState,
-  type CSSProperties,
-} from "react";
-import { SceneGroup, SceneLayer } from "@/components/home/illustrations/SceneGroup";
-import {
-  TrainingGroundedBall,
-  TrainingGroundedCar,
-} from "@/components/home/illustrations/TrainingGroundedActor";
+import { useCallback, useEffect, useState } from "react";
+import { SceneGroup } from "@/components/home/illustrations/SceneGroup";
+import { TrainingEnvironmentLayer } from "@/components/home/illustrations/TrainingEnvironmentLayer";
 import { TrainingGpuCanvas } from "@/components/home/illustrations/gpu/TrainingGpuCanvas";
 import { TrainingGpuDebugPanel } from "@/components/home/illustrations/gpu/TrainingGpuDebugPanel";
-import {
-  TrainingEnvironmentLayer,
-  type TrainingEnvironmentAssetLoadResult,
-} from "@/components/home/illustrations/TrainingEnvironmentLayer";
-import { TrainingRadarOverlay } from "@/components/home/illustrations/TrainingRadarOverlay";
 import { useTrainingRadarSequence } from "@/components/home/illustrations/TrainingRadarSequence";
-import { TrainingParticleField } from "@/components/home/illustrations/TrainingParticleField";
-import { useTrainingDomRadarDriver } from "@/hooks/useTrainingDomRadarDriver";
-import { useTrainingDomCriticalAssets } from "@/hooks/useTrainingDomCriticalAssets";
+import { TrainingStaticFallback } from "@/components/home/illustrations/TrainingStaticFallback";
 import { useTrainingGpuObjectAssets } from "@/hooks/useTrainingGpuObjectAssets";
 import { useTrainingRadarClock } from "@/hooks/useTrainingRadarClock";
-import { useTrainingRendererMode } from "@/hooks/useTrainingRendererMode";
 import { useTrainingRendererDebug } from "@/hooks/useTrainingRendererDebug";
+import { useTrainingRendererMode } from "@/hooks/useTrainingRendererMode";
 import { useTrainingSceneStartup } from "@/hooks/useTrainingSceneStartup";
+import { useTrainingStaticFallbackAssets } from "@/hooks/useTrainingStaticFallbackAssets";
 import { homeIllustrationAssets } from "@/lib/home/homeIllustrationAssets";
 import type { TrainingCameraFrameApplier } from "@/lib/home/trainingCamera";
 import type {
@@ -34,13 +20,9 @@ import type {
   TrainingRendererFallbackReason,
 } from "@/lib/home/gpu/trainingGpuTypes";
 import {
-  getTrainingRadarRangeTiming,
-  TRAINING_VOLUME_SCAN_TIMING,
-  trainingBallRadarTarget,
-  trainingCarRadarTargets,
-  trainingFennecVolumeScanTarget,
-  type TrainingCarRadarTarget,
-} from "@/lib/home/trainingRadarTargets";
+  createTrainingRadarFrameState,
+  getTrainingRadarTemporalSnapshot,
+} from "@/lib/home/trainingRadarSnapshots";
 
 const assets = homeIllustrationAssets.training;
 
@@ -49,20 +31,6 @@ type TrainingSceneProps = {
   applyCameraSnapshot: TrainingCameraFrameApplier;
   launching: boolean;
 };
-
-function getTrainingCarTarget(depth: TrainingCarRadarTarget["depth"]) {
-  const target = trainingCarRadarTargets.find((candidate) => candidate.depth === depth);
-
-  if (!target) {
-    throw new Error(`Missing training car target for depth: ${depth}`);
-  }
-
-  return target;
-}
-
-const trainingFarCarTarget = getTrainingCarTarget("trainingCarFar");
-const trainingMidCarTarget = getTrainingCarTarget("trainingCarMid");
-const trainingNearCarTarget = getTrainingCarTarget("trainingCarNear");
 
 const INITIAL_ENVIRONMENT_ASSET_STATE = {
   sky: { fallback: false, settled: false },
@@ -78,36 +46,6 @@ const INITIAL_GPU_LIFECYCLE: TrainingGpuLifecycleSnapshot = {
   contextState: "unavailable",
   runtimeState: "preparing",
 };
-
-type TrainingFennecScanStyle = CSSProperties & {
-  "--training-fennec-mask-end-position": string;
-  "--training-fennec-mask-start-position": string;
-  "--training-volume-contour-delay": string;
-  "--training-volume-fade-duration": string;
-  "--training-volume-scan-duration": string;
-  "--training-volume-scan-easing": string;
-};
-
-function getTrainingFennecScanStyle(): TrainingFennecScanStyle {
-  const rangeTiming = getTrainingRadarRangeTiming(
-    trainingFennecVolumeScanTarget.scanRange,
-  );
-
-  return {
-    "--training-fennec-mask-end-position": `${(
-      (1 - trainingFennecVolumeScanTarget.scanRange.endProgress) *
-      100
-    ).toFixed(1)}%`,
-    "--training-fennec-mask-start-position": `${(
-      (1 - trainingFennecVolumeScanTarget.scanRange.startProgress) *
-      100
-    ).toFixed(1)}%`,
-    "--training-volume-contour-delay": `${TRAINING_VOLUME_SCAN_TIMING.contourDelayMs}ms`,
-    "--training-volume-fade-duration": `${TRAINING_VOLUME_SCAN_TIMING.fadeDurationMs}ms`,
-    "--training-volume-scan-duration": `${rangeTiming.durationMs}ms`,
-    "--training-volume-scan-easing": rangeTiming.easing,
-  };
-}
 
 export function TrainingScene({
   active,
@@ -136,12 +74,7 @@ export function TrainingScene({
   const [gpuFennecEffectsReady, setGpuFennecEffectsReady] = useState(false);
   const [gpuFennecVolumeReady, setGpuFennecVolumeReady] = useState(false);
   const [gpuTacticalReady, setGpuTacticalReady] = useState(false);
-  const handleGpuBasesReadyChange = useCallback((ready: boolean) => {
-    setGpuBasesReady(ready);
-  }, []);
-  const handleGpuCriticalErrorChange = useCallback((error: boolean) => {
-    setGpuCriticalError(error);
-  }, []);
+
   const handleGpuLifecycleStateChange = useCallback(
     (snapshot: TrainingGpuLifecycleSnapshot) => {
       setGpuLifecycle(snapshot);
@@ -159,27 +92,7 @@ export function TrainingScene({
     },
     [],
   );
-  const handleGpuRadarReadyChange = useCallback((ready: boolean) => {
-    setGpuRadarReady(ready);
-  }, []);
-  const handleGpuParticlesReadyChange = useCallback((ready: boolean) => {
-    setGpuParticlesReady(ready);
-  }, []);
-  const handleGpuVolumeScansReadyChange = useCallback((ready: boolean) => {
-    setGpuVolumeScansReady(ready);
-  }, []);
-  const handleGpuFennecVolumeReadyChange = useCallback((ready: boolean) => {
-    setGpuFennecVolumeReady(ready);
-  }, []);
-  const handleGpuFennecBaseReadyChange = useCallback((ready: boolean) => {
-    setGpuFennecBaseReady(ready);
-  }, []);
-  const handleGpuFennecEffectsReadyChange = useCallback((ready: boolean) => {
-    setGpuFennecEffectsReady(ready);
-  }, []);
-  const handleGpuTacticalReadyChange = useCallback((ready: boolean) => {
-    setGpuTacticalReady(ready);
-  }, []);
+
   const useGpuRenderer =
     rendererResolved && requestedRendererMode === "gpu";
   const gpuObjectAssetState = useTrainingGpuObjectAssets(
@@ -196,8 +109,14 @@ export function TrainingScene({
     (gpuCriticalError ||
       gpuRuntimeUnavailable ||
       gpuObjectAssetState.status === "error");
-  const domCriticalAssetState = useTrainingDomCriticalAssets(
-    rendererResolved && (!useGpuRenderer || gpuCriticalFailed),
+  const activeRendererMode =
+    !rendererResolved ||
+    requestedRendererMode === "dom" ||
+    gpuCriticalFailed
+      ? "dom"
+      : "gpu";
+  const staticAssetState = useTrainingStaticFallbackAssets(
+    rendererResolved && activeRendererMode === "dom",
   );
   const environmentReady = Object.values(environmentAssetState).every(
     (state) => state.settled,
@@ -213,17 +132,15 @@ export function TrainingScene({
     gpuVolumeScansReady &&
     gpuFennecBaseReady &&
     gpuFennecVolumeReady;
-  const domCriticalReady = domCriticalAssetState.status === "ready";
+  const staticAssetsReady = staticAssetState.status === "ready";
   const criticalAssetsReady =
     rendererResolved &&
     environmentReady &&
-    (useGpuRenderer
-      ? gpuCriticalReady || (gpuCriticalFailed && domCriticalReady)
-      : domCriticalReady);
+    (activeRendererMode === "gpu" ? gpuCriticalReady : staticAssetsReady);
   const startupFallback =
     environmentFallback ||
-    gpuCriticalFailed ||
-    domCriticalAssetState.hasError;
+    activeRendererMode === "dom" ||
+    staticAssetState.hasError;
   const {
     documentVisible,
     handleTransitionEnd: handleStartupTransitionEnd,
@@ -251,7 +168,11 @@ export function TrainingScene({
   } = useTrainingRadarSequence({
     active,
     launching,
-    readyToStart: startupStage === "running",
+    readyToStart:
+      startupStage === "running" &&
+      activeRendererMode === "gpu" &&
+      !gpuCriticalFailed &&
+      gpuCriticalReady,
   });
   const radarClock = useTrainingRadarClock({
     passKey,
@@ -259,12 +180,6 @@ export function TrainingScene({
     passStartedAtMs,
     running,
   });
-  const activeRendererMode =
-    !rendererResolved ||
-    requestedRendererMode === "dom" ||
-    gpuCriticalFailed
-      ? "dom"
-      : "gpu";
   const rendererFallbackReason: TrainingRendererFallbackReason =
     !rendererResolved
       ? "none"
@@ -289,49 +204,26 @@ export function TrainingScene({
     ? "launching"
     : !documentVisible
       ? "suspended-hidden"
-      : useGpuRenderer
-        ? gpuLifecycle.runtimeState
-        : "preparing";
-  const activeDriver =
-    launching || !documentVisible || !running
-      ? "none"
       : activeRendererMode === "dom"
-        ? "dom"
-        : gpuLifecycle.activeDriver;
-  const showDomBase =
-    !useGpuRenderer || gpuCriticalFailed || !gpuBasesReady || launching;
-  const showDomRadar =
-    reducedMotion ||
-    !useGpuRenderer ||
-    gpuCriticalFailed ||
-    !gpuRadarReady ||
-    launching;
-  const showDomParticles =
-    !useGpuRenderer || gpuCriticalFailed || !gpuParticlesReady || launching;
-  const showDomVolumeScan =
-    !useGpuRenderer ||
-    gpuCriticalFailed ||
-    !gpuVolumeScansReady ||
-    launching;
-  const showDomTactical =
-    !useGpuRenderer || gpuCriticalFailed || !gpuTacticalReady || launching;
-  const applyDomSnapshot = useTrainingDomRadarDriver({
-    active,
-    applyCameraSnapshot,
-    debugCollector,
-    mode: activeRendererMode,
-    radarClock,
-    rootRef: sceneRef,
-    running,
-  });
+        ? "dom-fallback"
+        : gpuLifecycle.runtimeState;
+  const activeDriver =
+    launching ||
+    !documentVisible ||
+    !running ||
+    activeRendererMode === "dom"
+      ? "none"
+      : gpuLifecycle.activeDriver;
+  const showStaticFallback =
+    activeRendererMode === "dom" || !gpuBasesReady || launching;
   const gpuVolumeAssets =
     gpuObjectAssetState.status === "ready" ||
     gpuObjectAssetState.status === "error"
       ? gpuObjectAssetState.objects
       : null;
-  const trainingFennecScanStyle = getTrainingFennecScanStyle();
+
   const handleEnvironmentAssetSettled = useCallback(
-    ({ assetId, fallback }: TrainingEnvironmentAssetLoadResult) => {
+    ({ assetId, fallback }: { assetId: string; fallback: boolean }) => {
       setEnvironmentAssetState((current) => {
         const previous = current[assetId as keyof typeof current];
         if (previous?.settled && previous.fallback === fallback) {
@@ -346,6 +238,23 @@ export function TrainingScene({
     },
     [],
   );
+
+  useEffect(() => {
+    if (!rendererResolved || activeRendererMode !== "dom") return;
+    const staticSnapshot = getTrainingRadarTemporalSnapshot(
+      createTrainingRadarFrameState(
+        false,
+        false,
+        radarClock.sample(performance.now()),
+      ),
+    );
+    applyCameraSnapshot(staticSnapshot);
+  }, [
+    activeRendererMode,
+    applyCameraSnapshot,
+    radarClock,
+    rendererResolved,
+  ]);
 
   useEffect(() => {
     debugCollector?.setGlobal({
@@ -378,27 +287,28 @@ export function TrainingScene({
   }, [
     absolutePassIndex,
     active,
+    activeDriver,
+    activeRendererMode,
     callbackLatenessMs,
     cumulativeTheoreticalDriftMs,
     cycleStartedAtMs,
     debugCollector,
     documentVisible,
     globalTimersActive,
-    nextPassBoundaryMs,
-    objectTimersActive,
-    activeDriver,
     gpuLifecycle.contextState,
     gpuResizePending,
+    nextPassBoundaryMs,
+    objectTimersActive,
     passStartedAtMs,
-    running,
     reducedMotion,
-    runtimeState,
-    skippedPasses,
-    activeRendererMode,
     rendererFallback,
     rendererFallbackReason,
     rendererResolved,
     requestedRendererMode,
+    running,
+    runtimeState,
+    skippedPasses,
+    useGpuRenderer,
   ]);
 
   return (
@@ -509,39 +419,29 @@ export function TrainingScene({
         />
       </SceneGroup>
 
-      <SceneGroup blendMode="screen" depth="trainingGround" layer={6} name="training-radar-surface">
-        <TrainingRadarOverlay
-          domVisible={showDomRadar}
-          variant="surface"
-        />
-      </SceneGroup>
-
-      <SceneGroup depth="trainingGround" layer={7} name="training-radar-sweep">
-        <TrainingRadarOverlay
-          domVisible={showDomRadar}
-          variant="sweep"
-        />
-      </SceneGroup>
-
       {useGpuRenderer ? (
         <TrainingGpuCanvas
           active={active}
           applyCameraSnapshot={applyCameraSnapshot}
-          applyDomSnapshot={applyDomSnapshot}
+          applyDomSnapshot={null}
           debugCollector={debugCollector}
-          onBasesReadyChange={handleGpuBasesReadyChange}
-          onCriticalErrorChange={handleGpuCriticalErrorChange}
-          onFennecBaseReadyChange={handleGpuFennecBaseReadyChange}
-          onFennecEffectsReadyChange={handleGpuFennecEffectsReadyChange}
-          onFennecVolumeReadyChange={handleGpuFennecVolumeReadyChange}
+          onBasesReadyChange={setGpuBasesReady}
+          onCriticalErrorChange={setGpuCriticalError}
+          onFennecBaseReadyChange={setGpuFennecBaseReady}
+          onFennecEffectsReadyChange={setGpuFennecEffectsReady}
+          onFennecVolumeReadyChange={setGpuFennecVolumeReady}
           onLifecycleStateChange={handleGpuLifecycleStateChange}
-          onParticlesReadyChange={handleGpuParticlesReadyChange}
-          onRadarReadyChange={handleGpuRadarReadyChange}
-          onVolumeScansReadyChange={handleGpuVolumeScansReadyChange}
-          onTacticalReadyChange={handleGpuTacticalReadyChange}
+          onParticlesReadyChange={setGpuParticlesReady}
+          onRadarReadyChange={setGpuRadarReady}
+          onVolumeScansReadyChange={setGpuVolumeScansReady}
+          onTacticalReadyChange={setGpuTacticalReady}
           onResizePendingChange={setGpuResizePending}
           radarClock={radarClock}
-          running={running && !gpuCriticalFailed}
+          running={
+            running &&
+            activeRendererMode === "gpu" &&
+            !gpuCriticalFailed
+          }
           volumeAssets={gpuVolumeAssets}
         />
       ) : null}
@@ -556,109 +456,7 @@ export function TrainingScene({
         />
       </SceneGroup>
 
-      <SceneGroup blendMode="screen" depth="trainingParticlesFar" layer={9} name="training-particles-far">
-        <TrainingParticleField
-          domVisible={showDomParticles}
-          preset="far"
-        />
-      </SceneGroup>
-
-      <SceneGroup depth={trainingFarCarTarget.depth} layer={10} name={`training-${trainingFarCarTarget.id}`}>
-        <TrainingGroundedCar
-          showDomBase={showDomBase}
-          showDomVolumeScan={showDomVolumeScan}
-          showDomTactical={showDomTactical}
-          target={trainingFarCarTarget}
-        />
-      </SceneGroup>
-
-      <SceneGroup blendMode="screen" depth="trainingParticlesMid" layer={11} name="training-particles-mid">
-        <TrainingParticleField
-          domVisible={showDomParticles}
-          preset="mid"
-        />
-      </SceneGroup>
-
-      <SceneGroup depth={trainingMidCarTarget.depth} layer={12} name={`training-${trainingMidCarTarget.id}`}>
-        <TrainingGroundedCar
-          showDomBase={showDomBase}
-          showDomVolumeScan={showDomVolumeScan}
-          showDomTactical={showDomTactical}
-          target={trainingMidCarTarget}
-        />
-      </SceneGroup>
-
-      <SceneGroup depth={trainingNearCarTarget.depth} layer={13} name={`training-${trainingNearCarTarget.id}`}>
-        <TrainingGroundedCar
-          showDomBase={showDomBase}
-          showDomVolumeScan={showDomVolumeScan}
-          showDomTactical={showDomTactical}
-          target={trainingNearCarTarget}
-        />
-      </SceneGroup>
-
-      <SceneGroup depth={trainingBallRadarTarget.depth} layer={14} name="ball">
-        <TrainingGroundedBall
-          showDomBase={showDomBase}
-          showDomVolumeScan={showDomVolumeScan}
-          showDomTactical={showDomTactical}
-          target={trainingBallRadarTarget}
-        />
-      </SceneGroup>
-
-      <SceneGroup blendMode="screen" depth="trainingParticlesNear" layer={15} name="training-particles-near">
-        <TrainingParticleField
-          domVisible={showDomParticles}
-          preset="near"
-        />
-      </SceneGroup>
-
-      <SceneGroup depth="trainingFennec" layer={16} name="fennec">
-        <div aria-hidden="true" className="training-fennec-contact-shadow" />
-        <div
-          className="training-fennec-base-frame"
-          data-tactical-active="false"
-          style={trainingFennecScanStyle}
-        >
-          <SceneLayer asset={assets.fennecBase} className="training-fennec-base" />
-        </div>
-        <div
-          className="training-radar-fennec-target"
-          data-surface-scan-mode="hidden"
-          data-tactical-active="false"
-          data-volume-scan-phase="hidden"
-          style={trainingFennecScanStyle}
-        >
-          <div className="training-radar-fennec-surface-mask">
-            <div className="training-radar-fennec-surface-frame">
-              <SceneLayer
-                asset={trainingFennecVolumeScanTarget.surfaceAsset}
-                className="training-radar-fennec-surface"
-              />
-            </div>
-          </div>
-          <SceneLayer
-            asset={trainingFennecVolumeScanTarget.contourAsset}
-            className="training-radar-fennec-contour"
-          />
-          <div className="training-radar-fennec-impact-frame">
-            <SceneLayer
-              asset={trainingFennecVolumeScanTarget.impactAsset}
-              className="training-radar-fennec-impact"
-            />
-          </div>
-        </div>
-        <SceneLayer asset={assets.fennecHeadlightGlow} className="training-fennec-headlight-glow" />
-        <SceneLayer asset={assets.fennecRearAccent} className="training-fennec-rear-accent" />
-      </SceneGroup>
-
-      <SceneGroup blendMode="screen" depth="trainingFennec" layer={17} name="fennec-lights-glow">
-        <SceneLayer asset={assets.lightsVioletGlow} className="training-lights-glow" />
-      </SceneGroup>
-
-      <SceneGroup blendMode="screen" depth="foreground" future layer={18} name="transition">
-        <SceneLayer asset={assets.transitionWaveGold} className="training-transition-wave-local" />
-      </SceneGroup>
+      {showStaticFallback ? <TrainingStaticFallback /> : null}
 
       {debugEnabled && debugCollector ? (
         <TrainingGpuDebugPanel

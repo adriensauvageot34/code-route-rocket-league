@@ -51,6 +51,12 @@ export function createTrainingGpuRadarFieldMask() {
 }
 
 export async function loadTrainingGpuRadarTerrain(path: string) {
+  const sourceWidth = 1536;
+  const sourceHeight = 1024;
+  const cropX = 0;
+  const cropY = 392;
+  const cropWidth = 1536;
+  const cropHeight = 632;
   const image = new Image();
   image.decoding = "async";
   image.src = path;
@@ -71,6 +77,30 @@ export async function loadTrainingGpuRadarTerrain(path: string) {
   if (image.naturalWidth === 0 || image.naturalHeight === 0) {
     throw new Error("The Training tactical terrain decoded without pixels.");
   }
+  if (
+    image.naturalWidth !== cropWidth ||
+    image.naturalHeight !== cropHeight
+  ) {
+    throw new Error(
+      "The Training tactical terrain does not match its cropped manifest dimensions.",
+    );
+  }
 
-  return image;
+  const sourceCanvas = document.createElement("canvas");
+  sourceCanvas.width = sourceWidth;
+  sourceCanvas.height = sourceHeight;
+  const context = sourceCanvas.getContext("2d");
+  if (!context) {
+    throw new Error("Unable to map the Training tactical terrain crop.");
+  }
+  context.clearRect(0, 0, sourceWidth, sourceHeight);
+  context.drawImage(
+    image,
+    cropX,
+    cropY,
+    cropWidth,
+    cropHeight,
+  );
+
+  return sourceCanvas;
 }
