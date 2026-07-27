@@ -420,6 +420,14 @@
   transform: scale(var(--training-camera-scale, 1));
 }
 
+.mode-illustration.is-training {
+  --training-camera-scale: 1;
+}
+
+.mode-illustration.is-training .scene-camera {
+  transform: scale(1);
+}
+
 .scene-group {
   pointer-events: none;
 }
@@ -441,6 +449,13 @@
       var(--scene-parallax-scale-x, 1),
       var(--scene-parallax-scale-y, 1)
     );
+}
+
+.mode-illustration.is-training .scene-parallax {
+  transform: scale(
+    var(--scene-parallax-scale-x, 1),
+    var(--scene-parallax-scale-y, 1)
+  );
 }
 
 .mode-illustration[data-motion-active="true"] .scene-parallax {
@@ -478,6 +493,11 @@
 
 .scene-idle[data-idle="foreground"] {
   animation: scene-idle-foreground 7s ease-in-out infinite;
+}
+
+.mode-illustration.is-training .scene-idle {
+  animation: none;
+  transform: translate3d(0, 0, 0);
 }
 
 .scene-layer {

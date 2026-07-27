@@ -27,7 +27,7 @@ export const ModeIllustration = forwardRef<ModeIllustrationHandle, ModeIllustrat
       applyTrainingCameraSnapshot,
       containerRef,
       resetToCenter,
-    } = useParallaxController({ active, launching, mode });
+    } = useParallaxController({ active, launching });
     const getLaunchGeometry = useCallback(() => {
       const container = containerRef.current;
       if (!container) return null;

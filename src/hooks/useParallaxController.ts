@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import {
   calculateTrainingParallaxSafety,
   homeSceneDepths,
@@ -10,30 +10,13 @@ import {
 import { setTrainingGpuParallaxSnapshot } from "@/lib/home/gpu/trainingGpuParallaxState";
 import {
   getCenteredTrainingCameraSnapshot,
-  getTrainingCameraSnapshot,
-  sampleTrainingCameraSpring,
-  TRAINING_CAMERA_PROFILES,
-  TRAINING_CAMERA_DEPTH_PROFILES,
   type TrainingCameraApplyMetrics,
   type TrainingCameraFrameApplier,
-  type TrainingCameraPoint,
-  type TrainingCameraProfile,
-  type TrainingCameraSnapshot,
 } from "@/lib/home/trainingCamera";
-import type { TrainingRadarTemporalSnapshot } from "@/lib/home/trainingRadarSnapshots";
-import type { HomeModeId } from "@/types/home";
-
-type CenterReset = {
-  durationMs: number;
-  from: TrainingCameraSnapshot;
-  resolve: () => void;
-  startedAtMs: number;
-};
 
 type UseParallaxControllerOptions = {
   active: boolean;
   launching: boolean;
-  mode: HomeModeId;
 };
 
 type CssWriteMetrics = {
@@ -44,6 +27,8 @@ type CssWriteMetrics = {
 const HOME_SCENE_DEPTH_ENTRIES = Object.entries(
   homeSceneDepths,
 ) as [HomeSceneDepth, (typeof homeSceneDepths)[HomeSceneDepth]][];
+const NEUTRAL_TRAINING_CAMERA_SNAPSHOT =
+  getCenteredTrainingCameraSnapshot();
 
 function writeCssValue(
   element: HTMLElement,
@@ -61,149 +46,46 @@ function writeCssValue(
   metrics.writes += 1;
 }
 
-function resetSnapshotAt(
-  reset: CenterReset,
-  nowMs: number,
-): TrainingCameraSnapshot {
-  const elapsedMs = Math.max(0, nowMs - reset.startedAtMs);
-  const globalX = sampleTrainingCameraSpring(
-    reset.from.x,
-    0,
-    0,
-    elapsedMs,
-    reset.durationMs,
-  );
-  const globalY = sampleTrainingCameraSpring(
-    reset.from.y,
-    0,
-    0,
-    elapsedMs,
-    reset.durationMs,
-  );
-  const globalScale = sampleTrainingCameraSpring(
-    reset.from.scale,
-    0,
-    1,
-    elapsedMs,
-    reset.durationMs,
-  );
-  const profilePoints = {} as Record<
-    TrainingCameraProfile,
-    TrainingCameraPoint
-  >;
-  const depthPoints = {} as Record<HomeSceneDepth, TrainingCameraPoint>;
-
-  for (const profile of TRAINING_CAMERA_PROFILES) {
-    const from = reset.from.profilePoints[profile];
-    profilePoints[profile] = {
-      x: sampleTrainingCameraSpring(
-        from.x,
-        0,
-        0,
-        elapsedMs,
-        reset.durationMs,
-      ).position,
-      y: sampleTrainingCameraSpring(
-        from.y,
-        0,
-        0,
-        elapsedMs,
-        reset.durationMs,
-      ).position,
-    };
-  }
-  for (const [depth] of HOME_SCENE_DEPTH_ENTRIES) {
-    depthPoints[depth] =
-      profilePoints[TRAINING_CAMERA_DEPTH_PROFILES[depth]];
-  }
-
-  const stabilized =
-    globalX.stabilized &&
-    globalY.stabilized &&
-    globalScale.stabilized;
-  return {
-    x: globalX.position,
-    y: globalY.position,
-    scale: globalScale.position,
-    contactCount: reset.from.contactCount,
-    depthPoints,
-    phase: "recentering",
-    profilePoints,
-    progress: Math.min(
-      globalX.progress,
-      globalY.progress,
-      globalScale.progress,
-    ),
-    sourceEvent: "reset-to-center",
-    stabilized,
-    startedAtMs: reset.startedAtMs,
-    targetScale: 1,
-    targetX: 0,
-    targetY: 0,
-  };
-}
-
 export function useParallaxController({
   active,
   launching,
-  mode,
 }: UseParallaxControllerOptions) {
   const containerRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef(active);
-  const launchingRef = useRef(launching);
-  const modeRef = useRef(mode);
-  const reducedMotionRef = useRef(false);
-  const cameraAvailableRef = useRef(active);
-  const currentSnapshotRef = useRef<TrainingCameraSnapshot>(
-    getCenteredTrainingCameraSnapshot(),
-  );
-  const resetRef = useRef<CenterReset | null>(null);
-  const centerLockedRef = useRef(false);
-  const lastSampleAtRef = useRef(0);
-  const missedFramesRef = useRef(0);
   const cssValueCacheRef = useRef(new Map<string, string>());
   const effectiveTranslationXRef = useRef<Record<string, number>>({});
   const effectiveScaleXRef = useRef<Record<string, number>>({});
 
-  useLayoutEffect(() => {
-    activeRef.current = active;
-    launchingRef.current = launching;
-    modeRef.current = mode;
-  }, [active, launching, mode]);
+  activeRef.current = active;
 
-  const writeCameraVariables = useCallback(
-    (snapshot: TrainingCameraSnapshot): TrainingCameraApplyMetrics => {
+  const writeNeutralCameraVariables = useCallback(
+    (): TrainingCameraApplyMetrics => {
       const container = containerRef.current;
       const cssMetrics: CssWriteMetrics = { avoided: 0, writes: 0 };
       let gpuUpdates = 0;
       let gpuUpdatesAvoided = 0;
 
-      currentSnapshotRef.current = snapshot;
       if (container) {
-        for (const [name, depth] of HOME_SCENE_DEPTH_ENTRIES) {
-          const point = snapshot.depthPoints[name];
-          const translationX =
-            effectiveTranslationXRef.current[name] ??
-            depth.translationX;
+        for (const [name] of HOME_SCENE_DEPTH_ENTRIES) {
           writeCssValue(
             container,
             cssValueCacheRef.current,
             `--parallax-${name}-x`,
-            `${(point.x * translationX).toFixed(3)}px`,
+            "0px",
             cssMetrics,
           );
           writeCssValue(
             container,
             cssValueCacheRef.current,
             `--parallax-${name}-y`,
-            `${(point.y * depth.translationY).toFixed(3)}px`,
+            "0px",
             cssMetrics,
           );
           writeCssValue(
             container,
             cssValueCacheRef.current,
             `--parallax-${name}-rotation`,
-            `${(point.x * depth.rotation).toFixed(3)}deg`,
+            "0deg",
             cssMetrics,
           );
         }
@@ -211,14 +93,14 @@ export function useParallaxController({
           container,
           cssValueCacheRef.current,
           "--training-camera-scale",
-          snapshot.scale.toFixed(6),
+          "1",
           cssMetrics,
         );
       }
 
       if (
         setTrainingGpuParallaxSnapshot(
-          snapshot,
+          NEUTRAL_TRAINING_CAMERA_SNAPSHOT,
           effectiveTranslationXRef.current,
           effectiveScaleXRef.current,
         )
@@ -230,12 +112,12 @@ export function useParallaxController({
 
       return {
         absoluteResumeCorrect: true,
-        cameraSnapshot: snapshot,
+        cameraSnapshot: NEUTRAL_TRAINING_CAMERA_SNAPSHOT,
         cssWrites: cssMetrics.writes,
         cssWritesAvoided: cssMetrics.avoided,
         gpuUpdates,
         gpuUpdatesAvoided,
-        missedFrames: missedFramesRef.current,
+        missedFrames: 0,
       };
     },
     [],
@@ -243,92 +125,16 @@ export function useParallaxController({
 
   const applyTrainingCameraSnapshot =
     useCallback<TrainingCameraFrameApplier>(
-      (temporalSnapshot: TrainingRadarTemporalSnapshot) => {
-        const nowMs =
-          temporalSnapshot.frameState.nowMs > 0
-            ? temporalSnapshot.frameState.nowMs
-            : performance.now();
-        if (
-          lastSampleAtRef.current > 0 &&
-          nowMs - lastSampleAtRef.current > 50
-        ) {
-          missedFramesRef.current += Math.max(
-            1,
-            Math.round((nowMs - lastSampleAtRef.current) / (1000 / 60)) -
-              1,
-          );
-        }
-        lastSampleAtRef.current = nowMs;
-
-        let snapshot: TrainingCameraSnapshot;
-        const reset = resetRef.current;
-        if (
-          modeRef.current !== "training" ||
-          reducedMotionRef.current ||
-          !cameraAvailableRef.current
-        ) {
-          snapshot = getCenteredTrainingCameraSnapshot();
-        } else if (launchingRef.current) {
-          snapshot = getCenteredTrainingCameraSnapshot("launch");
-        } else if (reset) {
-          snapshot = resetSnapshotAt(reset, nowMs);
-        } else if (centerLockedRef.current) {
-          snapshot = getCenteredTrainingCameraSnapshot("recentering");
-        } else {
-          snapshot = getTrainingCameraSnapshot(
-            temporalSnapshot.frameState,
-            {
-              active: activeRef.current,
-              launching: launchingRef.current,
-              reducedMotion: reducedMotionRef.current,
-            },
-          );
-        }
-
-        const metrics = writeCameraVariables(snapshot);
-        if (
-          reset &&
-          (snapshot.stabilized ||
-            launchingRef.current ||
-            !cameraAvailableRef.current)
-        ) {
-          resetRef.current = null;
-          reset.resolve();
-        }
-        return metrics;
-      },
-      [writeCameraVariables],
+      (_temporalSnapshot) => writeNeutralCameraVariables(),
+      [writeNeutralCameraVariables],
     );
 
   const resetToCenter = useCallback(
-    (durationMs = 200) => {
-      const safeDuration = Math.max(0, durationMs);
-      centerLockedRef.current = true;
-      resetRef.current?.resolve();
-      resetRef.current = null;
-
-      if (
-        modeRef.current !== "training" ||
-        reducedMotionRef.current ||
-        !cameraAvailableRef.current ||
-        safeDuration === 0
-      ) {
-        writeCameraVariables(
-          getCenteredTrainingCameraSnapshot("recentering"),
-        );
-        return Promise.resolve();
-      }
-
-      return new Promise<void>((resolve) => {
-        resetRef.current = {
-          durationMs: safeDuration,
-          from: currentSnapshotRef.current,
-          resolve,
-          startedAtMs: performance.now(),
-        };
-      });
+    (_durationMs = 200) => {
+      writeNeutralCameraVariables();
+      return Promise.resolve();
     },
-    [writeCameraVariables],
+    [writeNeutralCameraVariables],
   );
 
   useEffect(() => {
@@ -348,8 +154,7 @@ export function useParallaxController({
           renderedContainerWidth,
           homeSceneDepths[name].translationX,
         );
-        effectiveTranslationXRef.current[name] =
-          safety.translationX;
+        effectiveTranslationXRef.current[name] = 0;
         effectiveScaleXRef.current[name] = safety.scaleX;
         writeCssValue(
           container,
@@ -359,7 +164,7 @@ export function useParallaxController({
           cssMetrics,
         );
       }
-      writeCameraVariables(currentSnapshotRef.current);
+      writeNeutralCameraVariables();
     };
 
     updateSafety(container.clientWidth);
@@ -368,7 +173,7 @@ export function useParallaxController({
     });
     resizeObserver.observe(container);
     return () => resizeObserver.disconnect();
-  }, [writeCameraVariables]);
+  }, [writeNeutralCameraVariables]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -381,20 +186,13 @@ export function useParallaxController({
     let intersectionObserver: IntersectionObserver | null = null;
 
     const syncAvailability = () => {
-      reducedMotionRef.current = reducedMotionQuery.matches;
-      cameraAvailableRef.current =
+      const motionAvailable =
         activeRef.current &&
         documentVisible &&
         illustrationVisible &&
-        !reducedMotionRef.current;
-      container.dataset.motionActive = cameraAvailableRef.current
-        ? "true"
-        : "false";
-      if (!cameraAvailableRef.current) {
-        writeCameraVariables(getCenteredTrainingCameraSnapshot());
-        resetRef.current?.resolve();
-        resetRef.current = null;
-      }
+        !reducedMotionQuery.matches;
+      container.dataset.motionActive = motionAvailable ? "true" : "false";
+      if (!motionAvailable) writeNeutralCameraVariables();
     };
     const handleVisibilityChange = () => {
       documentVisible = document.visibilityState === "visible";
@@ -428,26 +226,13 @@ export function useParallaxController({
         handleVisibilityChange,
       );
       intersectionObserver?.disconnect();
-      resetRef.current?.resolve();
-      resetRef.current = null;
       delete container.dataset.motionActive;
     };
-  }, [active, writeCameraVariables]);
+  }, [active, writeNeutralCameraVariables]);
 
   useEffect(() => {
-    if (active && !launching) {
-      centerLockedRef.current = false;
-    }
-    if (launching) {
-      writeCameraVariables(
-        getCenteredTrainingCameraSnapshot(
-          reducedMotionRef.current ? "neutral" : "launch",
-        ),
-      );
-      resetRef.current?.resolve();
-      resetRef.current = null;
-    }
-  }, [active, launching, writeCameraVariables]);
+    writeNeutralCameraVariables();
+  }, [active, launching, writeNeutralCameraVariables]);
 
   return {
     applyTrainingCameraSnapshot,
