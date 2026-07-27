@@ -6,7 +6,15 @@ import {
   TRAINING_GPU_RADAR_DEPTH_STOPS,
   TRAINING_GPU_RADAR_FIELD_HORIZON_Y,
 } from "@/lib/home/gpu/trainingGpuRadarConstants";
+import type {
+  HomeIllustrationAsset,
+  HomeIllustrationScenePlacement,
+} from "@/lib/home/homeIllustrationAssets";
 import { TRAINING_RADAR_FIELD_PATH } from "@/lib/home/trainingRadarTargets";
+
+type TrainingGpuRadarTerrainAsset = HomeIllustrationAsset & {
+  scenePlacement: HomeIllustrationScenePlacement;
+};
 
 export function createTrainingGpuRadarFieldMask() {
   const canvas = document.createElement("canvas");
@@ -50,16 +58,13 @@ export function createTrainingGpuRadarFieldMask() {
   return mask;
 }
 
-export async function loadTrainingGpuRadarTerrain(path: string) {
-  const sourceWidth = 1536;
-  const sourceHeight = 1024;
-  const cropX = 0;
-  const cropY = 392;
-  const cropWidth = 1536;
-  const cropHeight = 632;
+export async function loadTrainingGpuRadarTerrain(
+  asset: TrainingGpuRadarTerrainAsset,
+) {
+  const { crop, sourceDimensions } = asset.scenePlacement;
   const image = new Image();
   image.decoding = "async";
-  image.src = path;
+  image.src = asset.path;
 
   if (typeof image.decode === "function") {
     await image.decode();
@@ -78,8 +83,8 @@ export async function loadTrainingGpuRadarTerrain(path: string) {
     throw new Error("The Training tactical terrain decoded without pixels.");
   }
   if (
-    image.naturalWidth !== cropWidth ||
-    image.naturalHeight !== cropHeight
+    image.naturalWidth !== asset.dimensions.width ||
+    image.naturalHeight !== asset.dimensions.height
   ) {
     throw new Error(
       "The Training tactical terrain does not match its cropped manifest dimensions.",
@@ -87,19 +92,24 @@ export async function loadTrainingGpuRadarTerrain(path: string) {
   }
 
   const sourceCanvas = document.createElement("canvas");
-  sourceCanvas.width = sourceWidth;
-  sourceCanvas.height = sourceHeight;
+  sourceCanvas.width = sourceDimensions.width;
+  sourceCanvas.height = sourceDimensions.height;
   const context = sourceCanvas.getContext("2d");
   if (!context) {
     throw new Error("Unable to map the Training tactical terrain crop.");
   }
-  context.clearRect(0, 0, sourceWidth, sourceHeight);
+  context.clearRect(
+    0,
+    0,
+    sourceDimensions.width,
+    sourceDimensions.height,
+  );
   context.drawImage(
     image,
-    cropX,
-    cropY,
-    cropWidth,
-    cropHeight,
+    crop.x,
+    crop.y,
+    crop.width,
+    crop.height,
   );
 
   return sourceCanvas;
