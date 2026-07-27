@@ -21,6 +21,7 @@ type TrainingRadarSequenceState = {
 type UseTrainingRadarSequenceOptions = {
   active: boolean;
   launching: boolean;
+  readyToStart: boolean;
 };
 
 type AbsoluteTrainingRadarPass = {
@@ -84,6 +85,7 @@ export function getAbsoluteTrainingRadarPass(
 export function useTrainingRadarSequence({
   active,
   launching,
+  readyToStart,
 }: UseTrainingRadarSequenceOptions): TrainingRadarSequenceState & {
   sceneRef: RefObject<HTMLDivElement | null>;
 } {
@@ -138,7 +140,8 @@ export function useTrainingRadarSequence({
     };
   }, []);
 
-  const shouldRun = active && !launching && motionAvailable;
+  const shouldRun =
+    active && !launching && motionAvailable && readyToStart;
 
   useEffect(() => {
     if (!shouldRun) {

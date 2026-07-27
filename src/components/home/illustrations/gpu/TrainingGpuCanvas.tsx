@@ -31,6 +31,7 @@ type TrainingGpuCanvasProps = {
   applyDomSnapshot: (snapshot: TrainingRadarTemporalSnapshot) => void;
   debugCollector: TrainingGpuDebugCollector | null;
   onBasesReadyChange: (ready: boolean) => void;
+  onCriticalErrorChange: (error: boolean) => void;
   onFennecBaseReadyChange: (ready: boolean) => void;
   onFennecEffectsReadyChange: (ready: boolean) => void;
   onFennecVolumeReadyChange: (ready: boolean) => void;
@@ -76,6 +77,7 @@ export function TrainingGpuCanvas({
   applyDomSnapshot,
   debugCollector,
   onBasesReadyChange,
+  onCriticalErrorChange,
   onFennecBaseReadyChange,
   onFennecEffectsReadyChange,
   onFennecVolumeReadyChange,
@@ -124,6 +126,7 @@ export function TrainingGpuCanvas({
     let resizeObserver: ResizeObserver | null = null;
     let resizeCanvases: (() => void) | null = null;
     const resetReadiness = () => {
+      onCriticalErrorChange(false);
       onBasesReadyChange(false);
       onFennecBaseReadyChange(false);
       onFennecEffectsReadyChange(false);
@@ -139,6 +142,7 @@ export function TrainingGpuCanvas({
       try {
         let fieldMaskPixels: Uint8Array | null = null;
         let terrainImage: HTMLImageElement | null = null;
+        let radarPreparationFailed = false;
         try {
           fieldMaskPixels = createTrainingGpuRadarFieldMask();
           terrainImage =
@@ -146,6 +150,7 @@ export function TrainingGpuCanvas({
         } catch {
           fieldMaskPixels = null;
           terrainImage = null;
+          radarPreparationFailed = true;
         }
         if (cancelled) return;
 
@@ -218,9 +223,18 @@ export function TrainingGpuCanvas({
           renderer.destroy();
           rendererRef.current = null;
           resetReadiness();
+          onCriticalErrorChange(true);
           return;
         }
         renderer.setVolumeAssets(volumeAssetsRef.current);
+        if (
+          radarPreparationFailed ||
+          !renderer.isRadarReadyForStartup() ||
+          (volumeAssetsRef.current !== null &&
+            !renderer.hasCriticalSceneResourcesForStartup())
+        ) {
+          onCriticalErrorChange(true);
+        }
         if (lifecycleRef.current.active && lifecycleRef.current.running) {
           renderer.start();
         }
@@ -233,7 +247,10 @@ export function TrainingGpuCanvas({
         }
         rendererRef.current?.destroy();
         rendererRef.current = null;
-        if (!cancelled) resetReadiness();
+        if (!cancelled) {
+          resetReadiness();
+          onCriticalErrorChange(true);
+        }
       }
     }
 
@@ -254,6 +271,7 @@ export function TrainingGpuCanvas({
     applyDomSnapshot,
     debugCollector,
     onBasesReadyChange,
+    onCriticalErrorChange,
     onFennecBaseReadyChange,
     onFennecEffectsReadyChange,
     onFennecVolumeReadyChange,
@@ -265,8 +283,16 @@ export function TrainingGpuCanvas({
   ]);
 
   useEffect(() => {
-    rendererRef.current?.setVolumeAssets(volumeAssets);
-  }, [volumeAssets]);
+    const renderer = rendererRef.current;
+    renderer?.setVolumeAssets(volumeAssets);
+    if (
+      renderer &&
+      volumeAssets !== null &&
+      !renderer.hasCriticalSceneResourcesForStartup()
+    ) {
+      onCriticalErrorChange(true);
+    }
+  }, [onCriticalErrorChange, volumeAssets]);
 
   useEffect(() => {
     const renderer = rendererRef.current;

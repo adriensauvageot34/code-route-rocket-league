@@ -511,6 +511,46 @@
   user-select: none;
 }
 
+.training-scene {
+  background: #05050c;
+  transform-origin: 50% 55%;
+}
+
+.training-scene:is(
+    [data-training-startup-stage="poster"],
+    [data-training-startup-stage="preparing"]
+  ) {
+  opacity: 0.96;
+  transform: translate3d(0, 3px, 0) scale(1.003);
+}
+
+.training-scene[data-training-startup-stage="entering"] {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  transition:
+    opacity 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.training-scene[data-training-startup-stage="running"] {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+.training-scene[data-launching="true"] {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .training-scene {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    transition: none;
+  }
+}
+
 .training-city-layer {
   transform-origin: center bottom;
 }
