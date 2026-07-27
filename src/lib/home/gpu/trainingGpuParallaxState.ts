@@ -22,7 +22,7 @@ export type TrainingGpuParallaxSnapshot = {
 
 let currentSnapshot: TrainingGpuParallaxSnapshot = {
   cameraScale: 1,
-  pointsByDepth: {},
+  pointsByDepth: createCenteredPointsByDepth(),
   point: { x: 0, y: 0 },
   effectiveTranslationX: {},
   effectiveScaleX: {},
@@ -33,24 +33,22 @@ function sameNumber(left: number | undefined, right: number | undefined) {
   return Math.abs((left ?? 0) - (right ?? 0)) < 0.000001;
 }
 
+function createCenteredPointsByDepth() {
+  const points: Partial<
+    Record<HomeSceneDepth, TrainingGpuParallaxPoint>
+  > = {};
+  for (const depth of TRAINING_CAMERA_DEPTHS) {
+    points[depth] = { x: 0, y: 0 };
+  }
+  return points;
+}
+
 function snapshotChanged(
-  camera: TrainingCameraSnapshot,
   effectiveTranslationX: Readonly<Record<string, number>>,
   effectiveScaleX: Readonly<Record<string, number>>,
 ) {
-  if (
-    !sameNumber(currentSnapshot.point.x, camera.x) ||
-    !sameNumber(currentSnapshot.point.y, camera.y) ||
-    !sameNumber(currentSnapshot.cameraScale, camera.scale)
-  ) {
-    return true;
-  }
   for (const depth of TRAINING_CAMERA_DEPTHS) {
-    const previousPoint = currentSnapshot.pointsByDepth[depth];
-    const nextPoint = camera.depthPoints[depth];
     if (
-      !sameNumber(previousPoint?.x, nextPoint.x) ||
-      !sameNumber(previousPoint?.y, nextPoint.y) ||
       !sameNumber(
         currentSnapshot.effectiveTranslationX[depth],
         effectiveTranslationX[depth],
@@ -67,32 +65,22 @@ function snapshotChanged(
 }
 
 export function setTrainingGpuParallaxSnapshot(
-  camera: TrainingCameraSnapshot,
+  _camera: TrainingCameraSnapshot,
   effectiveTranslationX: Readonly<Record<string, number>>,
   effectiveScaleX: Readonly<Record<string, number>>,
 ) {
   if (
     !snapshotChanged(
-      camera,
       effectiveTranslationX,
       effectiveScaleX,
     )
   ) {
     return false;
   }
-  const pointsByDepth: Partial<
-    Record<HomeSceneDepth, TrainingGpuParallaxPoint>
-  > = {};
-  for (const depth of TRAINING_CAMERA_DEPTHS) {
-    pointsByDepth[depth] = {
-      x: camera.depthPoints[depth].x,
-      y: camera.depthPoints[depth].y,
-    };
-  }
   currentSnapshot = {
-    cameraScale: camera.scale,
-    pointsByDepth,
-    point: { x: camera.x, y: camera.y },
+    cameraScale: 1,
+    pointsByDepth: createCenteredPointsByDepth(),
+    point: { x: 0, y: 0 },
     effectiveTranslationX: { ...effectiveTranslationX },
     effectiveScaleX: { ...effectiveScaleX },
     revision: currentSnapshot.revision + 1,
