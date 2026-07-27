@@ -489,6 +489,13 @@ export class TrainingGpuSceneRenderer {
     return this.gl !== null && !this.contextLost;
   }
 
+  hasCriticalStartupResources() {
+    return (
+      Object.keys(this.objectResources).length ===
+        OBJECT_DRAW_ORDER.length && this.fennec !== null
+    );
+  }
+
   destroy() {
     this.setAllReady(false);
     this.releaseParticleResources();

@@ -93,6 +93,7 @@ function getWebGl2Context(canvas: HTMLCanvasElement) {
 
 export class TrainingGpuConsolidatedRenderer {
   private animationFrameId: number | null = null;
+  private firstStaticFrameReady = false;
   private frameState = INITIAL_FRAME_STATE;
   private radarInitialized = false;
   private radarReady = false;
@@ -201,6 +202,17 @@ export class TrainingGpuConsolidatedRenderer {
     this.syncAnimationLoop();
   }
 
+  hasCriticalSceneResourcesForStartup() {
+    return (
+      this.firstStaticFrameReady &&
+      this.sceneRenderer.hasCriticalStartupResources()
+    );
+  }
+
+  isRadarReadyForStartup() {
+    return this.firstStaticFrameReady && this.radarReady;
+  }
+
   start() {
     this.shouldRun = true;
     this.updateGlobalDebugState();
@@ -289,6 +301,7 @@ export class TrainingGpuConsolidatedRenderer {
       this.handleVisibilityChange,
     );
     this.viewport = null;
+    this.firstStaticFrameReady = false;
     this.radarInitialized = false;
     this.updateRadarDebugState();
     this.updateGlobalDebugState();
@@ -381,7 +394,7 @@ export class TrainingGpuConsolidatedRenderer {
     } else {
       this.setRadarReady(false);
     }
-    this.sceneRenderer.render(
+    this.firstStaticFrameReady = this.sceneRenderer.render(
       snapshot,
       snapshot.frameState.active && snapshot.frameState.running,
       !snapshot.frameState.running,

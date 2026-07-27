@@ -13,15 +13,20 @@ import {
 } from "@/components/home/illustrations/TrainingGroundedActor";
 import { TrainingGpuCanvas } from "@/components/home/illustrations/gpu/TrainingGpuCanvas";
 import { TrainingGpuDebugPanel } from "@/components/home/illustrations/gpu/TrainingGpuDebugPanel";
-import { TrainingEnvironmentLayer } from "@/components/home/illustrations/TrainingEnvironmentLayer";
+import {
+  TrainingEnvironmentLayer,
+  type TrainingEnvironmentAssetLoadResult,
+} from "@/components/home/illustrations/TrainingEnvironmentLayer";
 import { TrainingRadarOverlay } from "@/components/home/illustrations/TrainingRadarOverlay";
 import { useTrainingRadarSequence } from "@/components/home/illustrations/TrainingRadarSequence";
 import { TrainingParticleField } from "@/components/home/illustrations/TrainingParticleField";
 import { useTrainingDomRadarDriver } from "@/hooks/useTrainingDomRadarDriver";
+import { useTrainingDomCriticalAssets } from "@/hooks/useTrainingDomCriticalAssets";
 import { useTrainingGpuObjectAssets } from "@/hooks/useTrainingGpuObjectAssets";
 import { useTrainingRadarClock } from "@/hooks/useTrainingRadarClock";
 import { useTrainingRendererMode } from "@/hooks/useTrainingRendererMode";
 import { useTrainingRendererDebug } from "@/hooks/useTrainingRendererDebug";
+import { useTrainingSceneStartup } from "@/hooks/useTrainingSceneStartup";
 import { homeIllustrationAssets } from "@/lib/home/homeIllustrationAssets";
 import type { TrainingCameraFrameApplier } from "@/lib/home/trainingCamera";
 import {
@@ -54,6 +59,15 @@ function getTrainingCarTarget(depth: TrainingCarRadarTarget["depth"]) {
 const trainingFarCarTarget = getTrainingCarTarget("trainingCarFar");
 const trainingMidCarTarget = getTrainingCarTarget("trainingCarMid");
 const trainingNearCarTarget = getTrainingCarTarget("trainingCarNear");
+
+const INITIAL_ENVIRONMENT_ASSET_STATE = {
+  sky: { fallback: false, settled: false },
+  skyline: { fallback: false, settled: false },
+  "mid-buildings": { fallback: false, settled: false },
+  "near-buildings": { fallback: false, settled: false },
+  ground: { fallback: false, settled: false },
+  barrier: { fallback: false, settled: false },
+};
 
 type TrainingFennecScanStyle = CSSProperties & {
   "--training-fennec-mask-end-position": string;
@@ -92,27 +106,11 @@ export function TrainingScene({
 }: TrainingSceneProps) {
   const trainingRendererMode = useTrainingRendererMode();
   const { debugEnabled, debugCollector } = useTrainingRendererDebug();
-  const {
-    absolutePassIndex,
-    callbackLatenessMs,
-    cumulativeTheoreticalDriftMs,
-    globalTimersActive,
-    nextPassBoundaryMs,
-    objectTimersActive,
-    passKey,
-    passMode,
-    passStartedAtMs,
-    running,
-    sceneRef,
-    skippedPasses,
-  } = useTrainingRadarSequence({ active, launching });
-  const radarClock = useTrainingRadarClock({
-    passKey,
-    passMode,
-    passStartedAtMs,
-    running,
-  });
+  const [environmentAssetState, setEnvironmentAssetState] = useState(
+    INITIAL_ENVIRONMENT_ASSET_STATE,
+  );
   const [gpuBasesReady, setGpuBasesReady] = useState(false);
+  const [gpuCriticalError, setGpuCriticalError] = useState(false);
   const [gpuRadarReady, setGpuRadarReady] = useState(false);
   const [gpuParticlesReady, setGpuParticlesReady] = useState(false);
   const [gpuVolumeScansReady, setGpuVolumeScansReady] = useState(false);
@@ -122,6 +120,9 @@ export function TrainingScene({
   const [gpuTacticalReady, setGpuTacticalReady] = useState(false);
   const handleGpuBasesReadyChange = useCallback((ready: boolean) => {
     setGpuBasesReady(ready);
+  }, []);
+  const handleGpuCriticalErrorChange = useCallback((error: boolean) => {
+    setGpuCriticalError(error);
   }, []);
   const handleGpuRadarReadyChange = useCallback((ready: boolean) => {
     setGpuRadarReady(ready);
@@ -149,19 +150,89 @@ export function TrainingScene({
     useGpuRenderer,
     debugCollector,
   );
-  const showDomBase = !useGpuRenderer || !gpuBasesReady || launching;
-  const showDomRadar = !useGpuRenderer || !gpuRadarReady || launching;
+  const gpuCriticalFailed =
+    useGpuRenderer &&
+    (gpuCriticalError || gpuObjectAssetState.status === "error");
+  const domCriticalAssetState = useTrainingDomCriticalAssets(
+    !useGpuRenderer || gpuCriticalFailed,
+  );
+  const environmentReady = Object.values(environmentAssetState).every(
+    (state) => state.settled,
+  );
+  const environmentFallback = Object.values(environmentAssetState).some(
+    (state) => state.fallback,
+  );
+  const gpuCriticalReady =
+    useGpuRenderer &&
+    gpuObjectAssetState.status === "ready" &&
+    gpuBasesReady &&
+    gpuRadarReady &&
+    gpuVolumeScansReady &&
+    gpuFennecBaseReady &&
+    gpuFennecVolumeReady;
+  const domCriticalReady = domCriticalAssetState.status === "ready";
+  const criticalAssetsReady =
+    environmentReady &&
+    (useGpuRenderer
+      ? gpuCriticalReady || (gpuCriticalFailed && domCriticalReady)
+      : domCriticalReady);
+  const startupFallback =
+    environmentFallback ||
+    gpuCriticalFailed ||
+    domCriticalAssetState.hasError;
+  const {
+    handleTransitionEnd: handleStartupTransitionEnd,
+    stage: startupStage,
+  } = useTrainingSceneStartup({
+    active,
+    criticalAssetsReady,
+    launching,
+  });
+  const {
+    absolutePassIndex,
+    callbackLatenessMs,
+    cumulativeTheoreticalDriftMs,
+    globalTimersActive,
+    nextPassBoundaryMs,
+    objectTimersActive,
+    passKey,
+    passMode,
+    passStartedAtMs,
+    running,
+    sceneRef,
+    skippedPasses,
+  } = useTrainingRadarSequence({
+    active,
+    launching,
+    readyToStart: startupStage === "running",
+  });
+  const radarClock = useTrainingRadarClock({
+    passKey,
+    passMode,
+    passStartedAtMs,
+    running,
+  });
+  const activeRendererMode = gpuCriticalFailed
+    ? "dom"
+    : trainingRendererMode;
+  const showDomBase =
+    !useGpuRenderer || gpuCriticalFailed || !gpuBasesReady || launching;
+  const showDomRadar =
+    !useGpuRenderer || gpuCriticalFailed || !gpuRadarReady || launching;
   const showDomParticles =
-    !useGpuRenderer || !gpuParticlesReady || launching;
+    !useGpuRenderer || gpuCriticalFailed || !gpuParticlesReady || launching;
   const showDomVolumeScan =
-    !useGpuRenderer || !gpuVolumeScansReady || launching;
+    !useGpuRenderer ||
+    gpuCriticalFailed ||
+    !gpuVolumeScansReady ||
+    launching;
   const showDomTactical =
-    !useGpuRenderer || !gpuTacticalReady || launching;
+    !useGpuRenderer || gpuCriticalFailed || !gpuTacticalReady || launching;
   const applyDomSnapshot = useTrainingDomRadarDriver({
     active,
     applyCameraSnapshot,
     debugCollector,
-    mode: trainingRendererMode,
+    mode: activeRendererMode,
     radarClock,
     rootRef: sceneRef,
     running,
@@ -172,6 +243,22 @@ export function TrainingScene({
       ? gpuObjectAssetState.objects
       : null;
   const trainingFennecScanStyle = getTrainingFennecScanStyle();
+  const handleEnvironmentAssetSettled = useCallback(
+    ({ assetId, fallback }: TrainingEnvironmentAssetLoadResult) => {
+      setEnvironmentAssetState((current) => {
+        const previous = current[assetId as keyof typeof current];
+        if (previous?.settled && previous.fallback === fallback) {
+          return current;
+        }
+
+        return {
+          ...current,
+          [assetId]: { fallback, settled: true },
+        };
+      });
+    },
+    [],
+  );
 
   useEffect(() => {
     debugCollector?.setGlobal({
@@ -206,6 +293,13 @@ export function TrainingScene({
     <div
       className="home-scene training-scene"
       data-launching={launching ? "true" : "false"}
+      data-training-critical-assets-ready={
+        criticalAssetsReady ? "true" : "false"
+      }
+      data-training-environment-ready={environmentReady ? "true" : "false"}
+      data-training-gpu-critical-ready={gpuCriticalReady ? "true" : "false"}
+      data-training-startup-fallback={startupFallback ? "true" : "false"}
+      data-training-startup-stage={startupStage}
       data-radar-active={running ? "true" : "false"}
       data-gpu-bases-ready={useGpuRenderer && gpuBasesReady ? "true" : "false"}
       data-gpu-radar-ready={useGpuRenderer && gpuRadarReady ? "true" : "false"}
@@ -232,12 +326,15 @@ export function TrainingScene({
       data-scene="training"
       data-training-time-source="master-clock"
       data-training-renderer={trainingRendererMode}
+      onTransitionEnd={handleStartupTransitionEnd}
       ref={sceneRef}
     >
       <SceneGroup depth="trainingSky" layer={0} name="training-sky">
         <TrainingEnvironmentLayer
           asset={assets.parallaxSky}
           assetId="sky"
+          onError={handleEnvironmentAssetSettled}
+          onLoad={handleEnvironmentAssetSettled}
           preload
         />
       </SceneGroup>
@@ -247,6 +344,8 @@ export function TrainingScene({
           asset={assets.parallaxFarSkyline}
           assetId="skyline"
           className="training-city-layer training-city-far"
+          onError={handleEnvironmentAssetSettled}
+          onLoad={handleEnvironmentAssetSettled}
           preload
         />
       </SceneGroup>
@@ -260,6 +359,8 @@ export function TrainingScene({
           asset={assets.parallaxMidBuildings}
           assetId="mid-buildings"
           className="training-city-layer training-city-middle"
+          onError={handleEnvironmentAssetSettled}
+          onLoad={handleEnvironmentAssetSettled}
         />
       </SceneGroup>
 
@@ -268,6 +369,8 @@ export function TrainingScene({
           asset={assets.parallaxNearBuildings}
           assetId="near-buildings"
           className="training-city-layer training-city-near"
+          onError={handleEnvironmentAssetSettled}
+          onLoad={handleEnvironmentAssetSettled}
         />
       </SceneGroup>
 
@@ -275,6 +378,8 @@ export function TrainingScene({
         <TrainingEnvironmentLayer
           asset={assets.parallaxGround}
           assetId="ground"
+          onError={handleEnvironmentAssetSettled}
+          onLoad={handleEnvironmentAssetSettled}
           preload
         />
       </SceneGroup>
@@ -300,6 +405,7 @@ export function TrainingScene({
           applyDomSnapshot={applyDomSnapshot}
           debugCollector={debugCollector}
           onBasesReadyChange={handleGpuBasesReadyChange}
+          onCriticalErrorChange={handleGpuCriticalErrorChange}
           onFennecBaseReadyChange={handleGpuFennecBaseReadyChange}
           onFennecEffectsReadyChange={handleGpuFennecEffectsReadyChange}
           onFennecVolumeReadyChange={handleGpuFennecVolumeReadyChange}
@@ -308,7 +414,7 @@ export function TrainingScene({
           onVolumeScansReadyChange={handleGpuVolumeScansReadyChange}
           onTacticalReadyChange={handleGpuTacticalReadyChange}
           radarClock={radarClock}
-          running={running}
+          running={running && !gpuCriticalFailed}
           volumeAssets={gpuVolumeAssets}
         />
       ) : null}
@@ -317,6 +423,8 @@ export function TrainingScene({
         <TrainingEnvironmentLayer
           asset={assets.parallaxBarrier}
           assetId="barrier"
+          onError={handleEnvironmentAssetSettled}
+          onLoad={handleEnvironmentAssetSettled}
           preload
         />
       </SceneGroup>
